@@ -38,9 +38,8 @@
             android:id="@+id/etModelName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:inputType="text"
-            android:imeOptions="flagNoExtractUi"
+            android:imeOptions="actionDone"
             android:minHeight="@dimen/button_height_compact" />
     </com.google.android.material.textfield.TextInputLayout>
 

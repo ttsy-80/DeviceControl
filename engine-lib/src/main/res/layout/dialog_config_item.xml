@@ -44,8 +44,8 @@
             android:id="@+id/etGearRatio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="flagNoExtractUi"
             android:inputType="numberDecimal|numberSigned"
+            android:imeOptions="actionNext"
             android:minHeight="@dimen/button_height_compact" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -67,7 +67,8 @@
             android:id="@+id/etPosition"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="flagNoExtractUi"
+            android:inputType="text"
+            android:imeOptions="actionNext"
             android:minHeight="@dimen/button_height_compact" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -89,8 +90,8 @@
             android:id="@+id/etBladeCount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="flagNoExtractUi"
             android:inputType="number"
+            android:imeOptions="actionNext"
             android:minHeight="@dimen/button_height_compact" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -112,8 +113,8 @@
             android:id="@+id/etJogCount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="flagNoExtractUi"
             android:inputType="number"
+            android:imeOptions="actionDone"
             android:minHeight="@dimen/button_height_compact" />
     </com.google.android.material.textfield.TextInputLayout>
 
