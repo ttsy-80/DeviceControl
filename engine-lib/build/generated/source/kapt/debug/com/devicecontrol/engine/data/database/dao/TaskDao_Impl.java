@@ -85,7 +85,7 @@ public final class TaskDao_Impl implements TaskDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `task_executions` (`executionId`,`taskId`,`currentGearRatioIndex`,`status`,`torque`,`speed`,`rotationDirection`,`operationMode`,`progress`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `task_executions` (`executionId`,`taskId`,`gearRatioIndex`,`status`,`torque`,`speed`,`rotationDirection`,`operationMode`,`progress`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -93,7 +93,7 @@ public final class TaskDao_Impl implements TaskDao {
           @NonNull final TaskExecution entity) {
         statement.bindLong(1, entity.getExecutionId());
         statement.bindLong(2, entity.getTaskId());
-        statement.bindLong(3, entity.getCurrentGearRatioIndex());
+        statement.bindLong(3, entity.getGearRatioIndex());
         statement.bindString(4, __TaskStatus_enumToString(entity.getStatus()));
         statement.bindDouble(5, entity.getTorque());
         statement.bindDouble(6, entity.getSpeed());
@@ -119,7 +119,7 @@ public final class TaskDao_Impl implements TaskDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `task_executions` SET `executionId` = ?,`taskId` = ?,`currentGearRatioIndex` = ?,`status` = ?,`torque` = ?,`speed` = ?,`rotationDirection` = ?,`operationMode` = ?,`progress` = ? WHERE `executionId` = ?";
+        return "UPDATE OR ABORT `task_executions` SET `executionId` = ?,`taskId` = ?,`gearRatioIndex` = ?,`status` = ?,`torque` = ?,`speed` = ?,`rotationDirection` = ?,`operationMode` = ?,`progress` = ? WHERE `executionId` = ?";
       }
 
       @Override
@@ -127,7 +127,7 @@ public final class TaskDao_Impl implements TaskDao {
           @NonNull final TaskExecution entity) {
         statement.bindLong(1, entity.getExecutionId());
         statement.bindLong(2, entity.getTaskId());
-        statement.bindLong(3, entity.getCurrentGearRatioIndex());
+        statement.bindLong(3, entity.getGearRatioIndex());
         statement.bindString(4, __TaskStatus_enumToString(entity.getStatus()));
         statement.bindDouble(5, entity.getTorque());
         statement.bindDouble(6, entity.getSpeed());
@@ -148,7 +148,7 @@ public final class TaskDao_Impl implements TaskDao {
   }
 
   @Override
-  public Object insertTask(final Task task, final Continuation<? super Long> $completion) {
+  public Object insertTask(final Task task, final Continuation<? super Long> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -162,12 +162,12 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object insertTaskExecution(final TaskExecution execution,
-      final Continuation<? super Long> $completion) {
+      final Continuation<? super Long> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -181,11 +181,11 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object deleteTask(final Task task, final Continuation<? super Unit> $completion) {
+  public Object deleteTask(final Task task, final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -199,12 +199,12 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object updateTaskExecution(final TaskExecution execution,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -218,12 +218,12 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object deleteTaskExecutionByTaskId(final long taskId,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -244,7 +244,7 @@ public final class TaskDao_Impl implements TaskDao {
           __preparedStmtOfDeleteTaskExecutionByTaskId.release(_stmt);
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
@@ -299,7 +299,7 @@ public final class TaskDao_Impl implements TaskDao {
   }
 
   @Override
-  public Object getTaskById(final long taskId, final Continuation<? super Task> $completion) {
+  public Object getTaskById(final long taskId, final Continuation<? super Task> arg1) {
     final String _sql = "SELECT * FROM tasks WHERE id = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -345,12 +345,131 @@ public final class TaskDao_Impl implements TaskDao {
           _statement.release();
         }
       }
-    }, $completion);
+    }, arg1);
+  }
+
+  @Override
+  public Object getTaskExecutionByTaskIdAndIndex(final long taskId, final int gearRatioIndex,
+      final Continuation<? super TaskExecution> arg2) {
+    final String _sql = "SELECT * FROM task_executions WHERE taskId = ? AND gearRatioIndex = ?";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 2);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, taskId);
+    _argIndex = 2;
+    _statement.bindLong(_argIndex, gearRatioIndex);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<TaskExecution>() {
+      @Override
+      @Nullable
+      public TaskExecution call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfExecutionId = CursorUtil.getColumnIndexOrThrow(_cursor, "executionId");
+          final int _cursorIndexOfTaskId = CursorUtil.getColumnIndexOrThrow(_cursor, "taskId");
+          final int _cursorIndexOfGearRatioIndex = CursorUtil.getColumnIndexOrThrow(_cursor, "gearRatioIndex");
+          final int _cursorIndexOfStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "status");
+          final int _cursorIndexOfTorque = CursorUtil.getColumnIndexOrThrow(_cursor, "torque");
+          final int _cursorIndexOfSpeed = CursorUtil.getColumnIndexOrThrow(_cursor, "speed");
+          final int _cursorIndexOfRotationDirection = CursorUtil.getColumnIndexOrThrow(_cursor, "rotationDirection");
+          final int _cursorIndexOfOperationMode = CursorUtil.getColumnIndexOrThrow(_cursor, "operationMode");
+          final int _cursorIndexOfProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "progress");
+          final TaskExecution _result;
+          if (_cursor.moveToFirst()) {
+            final long _tmpExecutionId;
+            _tmpExecutionId = _cursor.getLong(_cursorIndexOfExecutionId);
+            final long _tmpTaskId;
+            _tmpTaskId = _cursor.getLong(_cursorIndexOfTaskId);
+            final int _tmpGearRatioIndex;
+            _tmpGearRatioIndex = _cursor.getInt(_cursorIndexOfGearRatioIndex);
+            final TaskStatus _tmpStatus;
+            _tmpStatus = __TaskStatus_stringToEnum(_cursor.getString(_cursorIndexOfStatus));
+            final double _tmpTorque;
+            _tmpTorque = _cursor.getDouble(_cursorIndexOfTorque);
+            final double _tmpSpeed;
+            _tmpSpeed = _cursor.getDouble(_cursorIndexOfSpeed);
+            final RotationDirection _tmpRotationDirection;
+            _tmpRotationDirection = __RotationDirection_stringToEnum(_cursor.getString(_cursorIndexOfRotationDirection));
+            final OperationMode _tmpOperationMode;
+            _tmpOperationMode = __OperationMode_stringToEnum(_cursor.getString(_cursorIndexOfOperationMode));
+            final int _tmpProgress;
+            _tmpProgress = _cursor.getInt(_cursorIndexOfProgress);
+            _result = new TaskExecution(_tmpExecutionId,_tmpTaskId,_tmpGearRatioIndex,_tmpStatus,_tmpTorque,_tmpSpeed,_tmpRotationDirection,_tmpOperationMode,_tmpProgress);
+          } else {
+            _result = null;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, arg2);
+  }
+
+  @Override
+  public Flow<TaskExecution> getTaskExecutionByTaskIdAndIndexFlow(final long taskId,
+      final int gearRatioIndex) {
+    final String _sql = "SELECT * FROM task_executions WHERE taskId = ? AND gearRatioIndex = ?";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 2);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, taskId);
+    _argIndex = 2;
+    _statement.bindLong(_argIndex, gearRatioIndex);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"task_executions"}, new Callable<TaskExecution>() {
+      @Override
+      @Nullable
+      public TaskExecution call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfExecutionId = CursorUtil.getColumnIndexOrThrow(_cursor, "executionId");
+          final int _cursorIndexOfTaskId = CursorUtil.getColumnIndexOrThrow(_cursor, "taskId");
+          final int _cursorIndexOfGearRatioIndex = CursorUtil.getColumnIndexOrThrow(_cursor, "gearRatioIndex");
+          final int _cursorIndexOfStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "status");
+          final int _cursorIndexOfTorque = CursorUtil.getColumnIndexOrThrow(_cursor, "torque");
+          final int _cursorIndexOfSpeed = CursorUtil.getColumnIndexOrThrow(_cursor, "speed");
+          final int _cursorIndexOfRotationDirection = CursorUtil.getColumnIndexOrThrow(_cursor, "rotationDirection");
+          final int _cursorIndexOfOperationMode = CursorUtil.getColumnIndexOrThrow(_cursor, "operationMode");
+          final int _cursorIndexOfProgress = CursorUtil.getColumnIndexOrThrow(_cursor, "progress");
+          final TaskExecution _result;
+          if (_cursor.moveToFirst()) {
+            final long _tmpExecutionId;
+            _tmpExecutionId = _cursor.getLong(_cursorIndexOfExecutionId);
+            final long _tmpTaskId;
+            _tmpTaskId = _cursor.getLong(_cursorIndexOfTaskId);
+            final int _tmpGearRatioIndex;
+            _tmpGearRatioIndex = _cursor.getInt(_cursorIndexOfGearRatioIndex);
+            final TaskStatus _tmpStatus;
+            _tmpStatus = __TaskStatus_stringToEnum(_cursor.getString(_cursorIndexOfStatus));
+            final double _tmpTorque;
+            _tmpTorque = _cursor.getDouble(_cursorIndexOfTorque);
+            final double _tmpSpeed;
+            _tmpSpeed = _cursor.getDouble(_cursorIndexOfSpeed);
+            final RotationDirection _tmpRotationDirection;
+            _tmpRotationDirection = __RotationDirection_stringToEnum(_cursor.getString(_cursorIndexOfRotationDirection));
+            final OperationMode _tmpOperationMode;
+            _tmpOperationMode = __OperationMode_stringToEnum(_cursor.getString(_cursorIndexOfOperationMode));
+            final int _tmpProgress;
+            _tmpProgress = _cursor.getInt(_cursorIndexOfProgress);
+            _result = new TaskExecution(_tmpExecutionId,_tmpTaskId,_tmpGearRatioIndex,_tmpStatus,_tmpTorque,_tmpSpeed,_tmpRotationDirection,_tmpOperationMode,_tmpProgress);
+          } else {
+            _result = null;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
   }
 
   @Override
   public Object getTaskExecutionByTaskId(final long taskId,
-      final Continuation<? super TaskExecution> $completion) {
+      final Continuation<? super TaskExecution> arg1) {
     final String _sql = "SELECT * FROM task_executions WHERE taskId = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -364,7 +483,7 @@ public final class TaskDao_Impl implements TaskDao {
         try {
           final int _cursorIndexOfExecutionId = CursorUtil.getColumnIndexOrThrow(_cursor, "executionId");
           final int _cursorIndexOfTaskId = CursorUtil.getColumnIndexOrThrow(_cursor, "taskId");
-          final int _cursorIndexOfCurrentGearRatioIndex = CursorUtil.getColumnIndexOrThrow(_cursor, "currentGearRatioIndex");
+          final int _cursorIndexOfGearRatioIndex = CursorUtil.getColumnIndexOrThrow(_cursor, "gearRatioIndex");
           final int _cursorIndexOfStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "status");
           final int _cursorIndexOfTorque = CursorUtil.getColumnIndexOrThrow(_cursor, "torque");
           final int _cursorIndexOfSpeed = CursorUtil.getColumnIndexOrThrow(_cursor, "speed");
@@ -377,8 +496,8 @@ public final class TaskDao_Impl implements TaskDao {
             _tmpExecutionId = _cursor.getLong(_cursorIndexOfExecutionId);
             final long _tmpTaskId;
             _tmpTaskId = _cursor.getLong(_cursorIndexOfTaskId);
-            final int _tmpCurrentGearRatioIndex;
-            _tmpCurrentGearRatioIndex = _cursor.getInt(_cursorIndexOfCurrentGearRatioIndex);
+            final int _tmpGearRatioIndex;
+            _tmpGearRatioIndex = _cursor.getInt(_cursorIndexOfGearRatioIndex);
             final TaskStatus _tmpStatus;
             _tmpStatus = __TaskStatus_stringToEnum(_cursor.getString(_cursorIndexOfStatus));
             final double _tmpTorque;
@@ -391,7 +510,7 @@ public final class TaskDao_Impl implements TaskDao {
             _tmpOperationMode = __OperationMode_stringToEnum(_cursor.getString(_cursorIndexOfOperationMode));
             final int _tmpProgress;
             _tmpProgress = _cursor.getInt(_cursorIndexOfProgress);
-            _result = new TaskExecution(_tmpExecutionId,_tmpTaskId,_tmpCurrentGearRatioIndex,_tmpStatus,_tmpTorque,_tmpSpeed,_tmpRotationDirection,_tmpOperationMode,_tmpProgress);
+            _result = new TaskExecution(_tmpExecutionId,_tmpTaskId,_tmpGearRatioIndex,_tmpStatus,_tmpTorque,_tmpSpeed,_tmpRotationDirection,_tmpOperationMode,_tmpProgress);
           } else {
             _result = null;
           }
@@ -401,7 +520,7 @@ public final class TaskDao_Impl implements TaskDao {
           _statement.release();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
@@ -418,7 +537,7 @@ public final class TaskDao_Impl implements TaskDao {
         try {
           final int _cursorIndexOfExecutionId = CursorUtil.getColumnIndexOrThrow(_cursor, "executionId");
           final int _cursorIndexOfTaskId = CursorUtil.getColumnIndexOrThrow(_cursor, "taskId");
-          final int _cursorIndexOfCurrentGearRatioIndex = CursorUtil.getColumnIndexOrThrow(_cursor, "currentGearRatioIndex");
+          final int _cursorIndexOfGearRatioIndex = CursorUtil.getColumnIndexOrThrow(_cursor, "gearRatioIndex");
           final int _cursorIndexOfStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "status");
           final int _cursorIndexOfTorque = CursorUtil.getColumnIndexOrThrow(_cursor, "torque");
           final int _cursorIndexOfSpeed = CursorUtil.getColumnIndexOrThrow(_cursor, "speed");
@@ -431,8 +550,8 @@ public final class TaskDao_Impl implements TaskDao {
             _tmpExecutionId = _cursor.getLong(_cursorIndexOfExecutionId);
             final long _tmpTaskId;
             _tmpTaskId = _cursor.getLong(_cursorIndexOfTaskId);
-            final int _tmpCurrentGearRatioIndex;
-            _tmpCurrentGearRatioIndex = _cursor.getInt(_cursorIndexOfCurrentGearRatioIndex);
+            final int _tmpGearRatioIndex;
+            _tmpGearRatioIndex = _cursor.getInt(_cursorIndexOfGearRatioIndex);
             final TaskStatus _tmpStatus;
             _tmpStatus = __TaskStatus_stringToEnum(_cursor.getString(_cursorIndexOfStatus));
             final double _tmpTorque;
@@ -445,7 +564,7 @@ public final class TaskDao_Impl implements TaskDao {
             _tmpOperationMode = __OperationMode_stringToEnum(_cursor.getString(_cursorIndexOfOperationMode));
             final int _tmpProgress;
             _tmpProgress = _cursor.getInt(_cursorIndexOfProgress);
-            _result = new TaskExecution(_tmpExecutionId,_tmpTaskId,_tmpCurrentGearRatioIndex,_tmpStatus,_tmpTorque,_tmpSpeed,_tmpRotationDirection,_tmpOperationMode,_tmpProgress);
+            _result = new TaskExecution(_tmpExecutionId,_tmpTaskId,_tmpGearRatioIndex,_tmpStatus,_tmpTorque,_tmpSpeed,_tmpRotationDirection,_tmpOperationMode,_tmpProgress);
           } else {
             _result = null;
           }

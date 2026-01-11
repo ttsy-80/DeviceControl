@@ -20,6 +20,12 @@ interface TaskDao {
     @Delete
     suspend fun deleteTask(task: Task)
     
+    @Query("SELECT * FROM task_executions WHERE taskId = :taskId AND gearRatioIndex = :gearRatioIndex")
+    suspend fun getTaskExecutionByTaskIdAndIndex(taskId: Long, gearRatioIndex: Int): TaskExecution?
+    
+    @Query("SELECT * FROM task_executions WHERE taskId = :taskId AND gearRatioIndex = :gearRatioIndex")
+    fun getTaskExecutionByTaskIdAndIndexFlow(taskId: Long, gearRatioIndex: Int): Flow<TaskExecution?>
+    
     @Query("SELECT * FROM task_executions WHERE taskId = :taskId")
     suspend fun getTaskExecutionByTaskId(taskId: Long): TaskExecution?
     

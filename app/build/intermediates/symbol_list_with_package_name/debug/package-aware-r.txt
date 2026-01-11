@@ -3379,6 +3379,7 @@ id enterAlwaysCollapsed
 id etBladeCount
 id etGearRatio
 id etJogCount
+id etModelName
 id etPosition
 id exitUntilCollapsed
 id expand_activities_button
@@ -3851,6 +3852,7 @@ layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout dialog_config_item
+layout dialog_new_model
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout item_gear_ratio_checkbox
@@ -3971,6 +3973,7 @@ string character_counter_overflowed_content_description
 string character_counter_pattern
 string clear_text_end_icon_content_description
 string confirm
+string continuous
 string create_task
 string delete
 string edit_config_item
@@ -3987,11 +3990,13 @@ string error_select_model
 string exposed_dropdown_menu_content_description
 string fab_transformation_scrim_behavior
 string fab_transformation_sheet_behavior
+string forward
 string forward_reverse
 string gear_ratio
 string hide_bottom_view_on_scroll_behavior
 string icon_content_description
 string item_view_role_description
+string jog
 string jog_continuous
 string jog_count
 string m3_exceed_max_badge_text_suffix
@@ -4103,9 +4108,11 @@ string path_password_eye
 string path_password_eye_mask_strike_through
 string path_password_eye_mask_visible
 string path_password_strike_through
+string pause
 string please_select_model_and_gear_ratio
 string position
 string previous_task
+string reverse
 string search_menu_title
 string searchbar_scrolling_view_behavior
 string searchview_clear_text_content_description
@@ -4117,6 +4124,7 @@ string side_sheet_accessibility_pane_title
 string side_sheet_behavior
 string speed_minus
 string speed_plus
+string start
 string start_pause
 string status_bar_notification_info_overflow
 string stop

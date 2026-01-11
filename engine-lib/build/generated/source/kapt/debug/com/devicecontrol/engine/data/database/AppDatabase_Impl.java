@@ -38,16 +38,17 @@ public final class AppDatabase_Impl extends AppDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `engine_models` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `config_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `modelId` INTEGER NOT NULL, `gearRatio` REAL NOT NULL, `position` TEXT NOT NULL, `bladeCount` INTEGER NOT NULL, `jogCount` INTEGER NOT NULL, FOREIGN KEY(`modelId`) REFERENCES `engine_models`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_config_items_modelId` ON `config_items` (`modelId`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `tasks` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `modelId` INTEGER NOT NULL, `modelName` TEXT NOT NULL, `gearRatios` TEXT NOT NULL)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `task_executions` (`executionId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `currentGearRatioIndex` INTEGER NOT NULL, `status` TEXT NOT NULL, `torque` REAL NOT NULL, `speed` REAL NOT NULL, `rotationDirection` TEXT NOT NULL, `operationMode` TEXT NOT NULL, `progress` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `task_executions` (`executionId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `gearRatioIndex` INTEGER NOT NULL, `status` TEXT NOT NULL, `torque` REAL NOT NULL, `speed` REAL NOT NULL, `rotationDirection` TEXT NOT NULL, `operationMode` TEXT NOT NULL, `progress` INTEGER NOT NULL)");
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_task_executions_taskId_gearRatioIndex` ON `task_executions` (`taskId`, `gearRatioIndex`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4e24ccb4f1c8a7b78cb1837e5c1665c5')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f54f1c768b6345fd782082d6c2c2d1f')");
       }
 
       @Override
@@ -147,7 +148,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         final HashMap<String, TableInfo.Column> _columnsTaskExecutions = new HashMap<String, TableInfo.Column>(9);
         _columnsTaskExecutions.put("executionId", new TableInfo.Column("executionId", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTaskExecutions.put("taskId", new TableInfo.Column("taskId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsTaskExecutions.put("currentGearRatioIndex", new TableInfo.Column("currentGearRatioIndex", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTaskExecutions.put("gearRatioIndex", new TableInfo.Column("gearRatioIndex", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTaskExecutions.put("status", new TableInfo.Column("status", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTaskExecutions.put("torque", new TableInfo.Column("torque", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTaskExecutions.put("speed", new TableInfo.Column("speed", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -155,7 +156,8 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsTaskExecutions.put("operationMode", new TableInfo.Column("operationMode", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTaskExecutions.put("progress", new TableInfo.Column("progress", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysTaskExecutions = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesTaskExecutions = new HashSet<TableInfo.Index>(0);
+        final HashSet<TableInfo.Index> _indicesTaskExecutions = new HashSet<TableInfo.Index>(1);
+        _indicesTaskExecutions.add(new TableInfo.Index("index_task_executions_taskId_gearRatioIndex", true, Arrays.asList("taskId", "gearRatioIndex"), Arrays.asList("ASC", "ASC")));
         final TableInfo _infoTaskExecutions = new TableInfo("task_executions", _columnsTaskExecutions, _foreignKeysTaskExecutions, _indicesTaskExecutions);
         final TableInfo _existingTaskExecutions = TableInfo.read(db, "task_executions");
         if (!_infoTaskExecutions.equals(_existingTaskExecutions)) {
@@ -165,7 +167,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "4e24ccb4f1c8a7b78cb1837e5c1665c5", "0dc1e5c21c43b000567e4f711c084132");
+    }, "1f54f1c768b6345fd782082d6c2c2d1f", "9f3872ed80ac45a9365d7d00afd18b72");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

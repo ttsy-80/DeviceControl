@@ -5,16 +5,19 @@
         <activity
             android:name=".ui.model.ModelManagementActivity"
             android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="false" />
         
         <activity
             android:name=".ui.task.TaskCreateActivity"
             android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="false" />
         
         <activity
             android:name=".ui.control.TaskControlActivity"
             android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="false" />
     </application>
     

@@ -1,6 +1,7 @@
 package com.devicecontrol.engine.data.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 enum class TaskStatus {
@@ -19,12 +20,15 @@ enum class OperationMode {
     CONTINUOUS
 }
 
-@Entity(tableName = "task_executions")
+@Entity(
+    tableName = "task_executions",
+    indices = [Index(value = ["taskId", "gearRatioIndex"], unique = true)]
+)
 data class TaskExecution(
     @PrimaryKey(autoGenerate = true)
     val executionId: Long = 0,
     val taskId: Long,
-    val currentGearRatioIndex: Int = 0,
+    val gearRatioIndex: Int = 0, // 每个子任务的索引，用于区分同一个任务的不同子任务
     val status: TaskStatus = TaskStatus.STOPPED,
     val torque: Double = 0.0,
     val speed: Double = 0.0,

@@ -35,32 +35,44 @@ class TaskControlViewModel(
     private val _canGoNext = MutableLiveData<Boolean>(false)
     val canGoNext: LiveData<Boolean> = _canGoNext
     
+    private var currentGearRatioIndex: Int = 0
+    
     fun loadTask(taskId: Long) {
         viewModelScope.launch {
             val task = taskRepository.getTaskById(taskId)
             _task.value = task
             
             if (task != null) {
-                // 加载或创建任务执行记录
-                var execution = taskRepository.getTaskExecutionByTaskId(taskId)
-                if (execution == null) {
-                    execution = TaskExecution(
-                        taskId = taskId,
-                        currentGearRatioIndex = 0
-                    )
-                    taskRepository.insertOrUpdateTaskExecution(execution)
-                }
-                _taskExecution.value = execution
-                
-                // 加载当前配置项
-                loadCurrentConfigItem(task, execution.currentGearRatioIndex)
-                
-                // 更新任务索引显示
-                updateTaskIndex(task, execution.currentGearRatioIndex)
-                
-                // 更新导航按钮状态
-                updateNavigationButtons(task, execution.currentGearRatioIndex)
+                // 从第一个子任务开始
+                currentGearRatioIndex = 0
+                loadTaskExecution(taskId, currentGearRatioIndex)
             }
+        }
+    }
+    
+    private fun loadTaskExecution(taskId: Long, gearRatioIndex: Int) {
+        viewModelScope.launch {
+            val task = _task.value ?: return@launch
+            
+            // 加载或创建该子任务的执行记录
+            var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, gearRatioIndex)
+            if (execution == null) {
+                execution = TaskExecution(
+                    taskId = taskId,
+                    gearRatioIndex = gearRatioIndex
+                )
+                taskRepository.insertOrUpdateTaskExecution(execution)
+            }
+            _taskExecution.value = execution
+            
+            // 加载当前配置项
+            loadCurrentConfigItem(task, gearRatioIndex)
+            
+            // 更新任务索引显示
+            updateTaskIndex(task, gearRatioIndex)
+            
+            // 更新导航按钮状态
+            updateNavigationButtons(task, gearRatioIndex)
         }
     }
     
@@ -72,8 +84,16 @@ class TaskControlViewModel(
                 val configItem = model.configItems.find { it.gearRatio == gearRatio }
                 _currentConfigItem.value = configItem
                 
-                // 更新显示信息
-                val displayText = "${task.modelName} | ${configItem?.position ?: ""} | 点动"
+                // 获取当前执行状态以显示操作模式
+                val execution = _taskExecution.value
+                val operationModeText = when (execution?.operationMode) {
+                    OperationMode.JOG -> "点动"
+                    OperationMode.CONTINUOUS -> "连续"
+                    null -> "点动"
+                }
+                
+                // 更新显示信息，包含操作模式
+                val displayText = "${task.modelName} | ${configItem?.position ?: ""} | $operationModeText"
                 _displayInfo.value = displayText
             }
         }
@@ -90,38 +110,20 @@ class TaskControlViewModel(
     }
     
     fun goToPreviousTask() {
-        val execution = _taskExecution.value ?: return
         val task = _task.value ?: return
         
-        if (execution.currentGearRatioIndex > 0) {
-            val newIndex = execution.currentGearRatioIndex - 1
-            updateTaskIndex(task, newIndex)
-            updateNavigationButtons(task, newIndex)
-            loadCurrentConfigItem(task, newIndex)
-            
-            viewModelScope.launch {
-                val updatedExecution = execution.copy(currentGearRatioIndex = newIndex)
-                taskRepository.updateTaskExecution(updatedExecution)
-                _taskExecution.value = updatedExecution
-            }
+        if (currentGearRatioIndex > 0) {
+            currentGearRatioIndex--
+            loadTaskExecution(task.id, currentGearRatioIndex)
         }
     }
     
     fun goToNextTask() {
-        val execution = _taskExecution.value ?: return
         val task = _task.value ?: return
         
-        if (execution.currentGearRatioIndex < task.gearRatios.size - 1) {
-            val newIndex = execution.currentGearRatioIndex + 1
-            updateTaskIndex(task, newIndex)
-            updateNavigationButtons(task, newIndex)
-            loadCurrentConfigItem(task, newIndex)
-            
-            viewModelScope.launch {
-                val updatedExecution = execution.copy(currentGearRatioIndex = newIndex)
-                taskRepository.updateTaskExecution(updatedExecution)
-                _taskExecution.value = updatedExecution
-            }
+        if (currentGearRatioIndex < task.gearRatios.size - 1) {
+            currentGearRatioIndex++
+            loadTaskExecution(task.id, currentGearRatioIndex)
         }
     }
     
@@ -154,6 +156,9 @@ class TaskControlViewModel(
             OperationMode.CONTINUOUS -> OperationMode.JOG
         }
         updateExecution { it.copy(operationMode = newMode) }
+        // 更新header显示
+        val task = _task.value ?: return
+        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun increaseTorque() {
@@ -188,7 +193,7 @@ class TaskControlViewModel(
         _taskExecution.value = updated
         
         viewModelScope.launch {
-            taskRepository.updateTaskExecution(updated)
+            taskRepository.insertOrUpdateTaskExecution(updated)
         }
     }
 }

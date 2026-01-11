@@ -30,6 +30,12 @@
     <string name="start_pause">启动/暂停</string>
     <string name="forward_reverse">正转/反转</string>
     <string name="jog_continuous">点动/连续</string>
+    <string name="forward">正转</string>
+    <string name="reverse">反转</string>
+    <string name="jog">点动</string>
+    <string name="continuous">连续</string>
+    <string name="start">启动</string>
+    <string name="pause">暂停</string>
     <string name="stop">停止</string>
     <string name="torque_plus">力矩+</string>
     <string name="torque_minus">力矩-</string>

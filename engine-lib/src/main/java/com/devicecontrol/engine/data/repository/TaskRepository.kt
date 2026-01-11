@@ -29,12 +29,20 @@ class TaskRepository(private val taskDao: TaskDao) {
         return taskDao.getTaskExecutionByTaskId(taskId)
     }
     
+    suspend fun getTaskExecutionByTaskIdAndIndex(taskId: Long, gearRatioIndex: Int): TaskExecution? {
+        return taskDao.getTaskExecutionByTaskIdAndIndex(taskId, gearRatioIndex)
+    }
+    
     fun getTaskExecutionByTaskIdFlow(taskId: Long): Flow<TaskExecution?> {
         return taskDao.getTaskExecutionByTaskIdFlow(taskId)
     }
     
+    fun getTaskExecutionByTaskIdAndIndexFlow(taskId: Long, gearRatioIndex: Int): Flow<TaskExecution?> {
+        return taskDao.getTaskExecutionByTaskIdAndIndexFlow(taskId, gearRatioIndex)
+    }
+    
     suspend fun insertOrUpdateTaskExecution(execution: TaskExecution): Long {
-        val existing = taskDao.getTaskExecutionByTaskId(execution.taskId)
+        val existing = taskDao.getTaskExecutionByTaskIdAndIndex(execution.taskId, execution.gearRatioIndex)
         return if (existing != null) {
             taskDao.updateTaskExecution(execution)
             existing.executionId

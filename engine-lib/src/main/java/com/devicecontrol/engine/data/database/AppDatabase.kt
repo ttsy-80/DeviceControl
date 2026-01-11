@@ -14,7 +14,7 @@ import com.devicecontrol.engine.data.model.TaskExecution
 
 @Database(
     entities = [EngineModel::class, ConfigItem::class, Task::class, TaskExecution::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

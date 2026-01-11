@@ -113,25 +113,11 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun showNewModelDialog() {
-        val input = EditText(this)
-        input.inputType = InputType.TYPE_CLASS_TEXT
-        input.hint = "请输入型号名称"
-
-        AlertDialog.Builder(this)
-            .setTitle("新建型号")
-            .setView(input)
-            .setPositiveButton("确认") { _, _ ->
-                val modelName = input.text.toString().trim()
-                if (modelName.isBlank()) {
-                    Toast.makeText(this, "型号名称不能为空", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-
-                // 创建型号后立即弹出配置项添加弹框
-                showConfigItemDialogForNewModel(modelName)
-            }
-            .setNegativeButton("取消", null)
-            .show()
+        val dialog = NewModelDialog { modelName ->
+            // 创建型号后立即弹出配置项添加弹框
+            showConfigItemDialogForNewModel(modelName)
+        }
+        dialog.show(supportFragmentManager, "NewModelDialog")
     }
 
     private fun showConfigItemDialogForNewModel(modelName: String) {

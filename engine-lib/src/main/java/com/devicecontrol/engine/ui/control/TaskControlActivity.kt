@@ -62,18 +62,18 @@ class TaskControlActivity : AppCompatActivity() {
         viewModel.taskExecution.observe(this) { execution ->
             execution?.let {
                 updateTorqueSpeedDisplay(it.torque, it.speed)
-                updateButtonStates(it.status)
+                updateButtonStates(it)
             }
         }
 
         viewModel.canGoPrevious.observe(this) { canGo ->
             binding.btnPreviousTask.isEnabled = canGo
-            binding.btnPreviousTask.visibility = if (canGo) android.view.View.VISIBLE else android.view.View.GONE
+            // 不隐藏，只是置灰
         }
 
         viewModel.canGoNext.observe(this) { canGo ->
             binding.btnNextTask.isEnabled = canGo
-            binding.btnNextTask.visibility = if (canGo) android.view.View.VISIBLE else android.view.View.GONE
+            // 不隐藏，只是置灰
         }
 
         viewModel.task.observe(this) { task ->
@@ -85,6 +85,7 @@ class TaskControlActivity : AppCompatActivity() {
                     binding.btnNextTask.visibility = android.view.View.VISIBLE
                 } else {
                     binding.tvTaskIndex.visibility = android.view.View.GONE
+                    // 单个任务时隐藏切换按钮
                     binding.btnPreviousTask.visibility = android.view.View.GONE
                     binding.btnNextTask.visibility = android.view.View.GONE
                 }
@@ -97,17 +98,30 @@ class TaskControlActivity : AppCompatActivity() {
         binding.tvTorqueSpeed.text = display
     }
 
-    private fun updateButtonStates(status: TaskStatus) {
-        when (status) {
-            TaskStatus.RUNNING -> {
-                binding.btnStartPause.text = "暂停"
+    private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
+        // 更新启动/暂停按钮
+        when (execution.status) {
+            com.devicecontrol.engine.data.model.TaskStatus.RUNNING -> {
+                binding.btnStartPause.text = getString(R.string.pause)
             }
-            TaskStatus.PAUSED -> {
-                binding.btnStartPause.text = "启动"
+            com.devicecontrol.engine.data.model.TaskStatus.PAUSED -> {
+                binding.btnStartPause.text = getString(R.string.start)
             }
-            TaskStatus.STOPPED -> {
-                binding.btnStartPause.text = "启动"
+            com.devicecontrol.engine.data.model.TaskStatus.STOPPED -> {
+                binding.btnStartPause.text = getString(R.string.start)
             }
+        }
+        
+        // 更新正转/反转按钮 - 显示当前状态
+        binding.btnForwardReverse.text = when (execution.rotationDirection) {
+            com.devicecontrol.engine.data.model.RotationDirection.FORWARD -> getString(R.string.forward)
+            com.devicecontrol.engine.data.model.RotationDirection.REVERSE -> getString(R.string.reverse)
+        }
+        
+        // 更新点动/连续按钮 - 显示当前状态
+        binding.btnJogContinuous.text = when (execution.operationMode) {
+            com.devicecontrol.engine.data.model.OperationMode.JOG -> getString(R.string.jog)
+            com.devicecontrol.engine.data.model.OperationMode.CONTINUOUS -> getString(R.string.continuous)
         }
     }
 

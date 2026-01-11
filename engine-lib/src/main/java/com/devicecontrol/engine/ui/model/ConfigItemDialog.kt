@@ -3,6 +3,7 @@ package com.devicecontrol.engine.ui.model
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
@@ -30,6 +31,25 @@ class ConfigItemDialog(
         val dialog = AlertDialog.Builder(requireContext())
             .setView(binding.root)
             .create()
+        
+        // 确保对话框显示自定义视图，不显示默认按钮栏
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+        
+        // 设置对话框窗口属性，优化横屏显示
+        dialog.window?.let { window ->
+            val params = window.attributes
+            params.width = (resources.displayMetrics.widthPixels * 0.8).toInt()
+            params.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            window.attributes = params
+        }
+        
+        // 配置输入法行为
+        setupImeActions()
+        
+        // 确保确认按钮可见且可点击
+        binding.btnConfirm.visibility = android.view.View.VISIBLE
+        binding.btnConfirm.isEnabled = true
 
         binding.btnConfirm.setOnClickListener {
             val gearRatioText = binding.etGearRatio.text.toString()
@@ -65,6 +85,55 @@ class ConfigItemDialog(
         }
 
         return dialog
+    }
+    
+    private fun setupImeActions() {
+        // 设置输入法选项
+        binding.etGearRatio.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        binding.etPosition.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        binding.etBladeCount.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        binding.etJogCount.imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        
+        // 设置输入法的下一步/完成行为
+        binding.etGearRatio.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                binding.etPosition.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+        
+        binding.etPosition.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                binding.etBladeCount.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+        
+        binding.etBladeCount.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                binding.etJogCount.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+        
+        binding.etJogCount.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                // 隐藏输入法
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.etJogCount.windowToken, 0)
+                // 触发确认按钮
+                binding.btnConfirm.performClick()
+                true
+            } else {
+                false
+            }
+        }
     }
 
     override fun onDestroyView() {
