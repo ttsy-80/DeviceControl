@@ -196,3 +196,4 @@ proguard/
 
 # User-specific configurations
 *.orig
+/.gradle/
