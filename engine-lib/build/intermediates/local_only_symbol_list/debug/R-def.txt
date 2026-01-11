@@ -126,6 +126,7 @@ id etPosition
 id rvGearRatios
 id rvModelList
 id tableHeader
+id tilModel
 id toolbar
 id tvBladeCount
 id tvDialogTitle

@@ -4,7 +4,6 @@ package com.devicecontrol.engine.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AutoCompleteTextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -15,6 +14,8 @@ import com.devicecontrol.engine.R;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputLayout;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -24,7 +25,7 @@ public final class ActivityTaskCreateBinding implements ViewBinding {
   private final CoordinatorLayout rootView;
 
   @NonNull
-  public final AutoCompleteTextView actvModel;
+  public final MaterialAutoCompleteTextView actvModel;
 
   @NonNull
   public final AppBarLayout appBarLayout;
@@ -36,17 +37,21 @@ public final class ActivityTaskCreateBinding implements ViewBinding {
   public final RecyclerView rvGearRatios;
 
   @NonNull
+  public final TextInputLayout tilModel;
+
+  @NonNull
   public final MaterialToolbar toolbar;
 
   private ActivityTaskCreateBinding(@NonNull CoordinatorLayout rootView,
-      @NonNull AutoCompleteTextView actvModel, @NonNull AppBarLayout appBarLayout,
+      @NonNull MaterialAutoCompleteTextView actvModel, @NonNull AppBarLayout appBarLayout,
       @NonNull MaterialButton btnCreateTask, @NonNull RecyclerView rvGearRatios,
-      @NonNull MaterialToolbar toolbar) {
+      @NonNull TextInputLayout tilModel, @NonNull MaterialToolbar toolbar) {
     this.rootView = rootView;
     this.actvModel = actvModel;
     this.appBarLayout = appBarLayout;
     this.btnCreateTask = btnCreateTask;
     this.rvGearRatios = rvGearRatios;
+    this.tilModel = tilModel;
     this.toolbar = toolbar;
   }
 
@@ -78,7 +83,7 @@ public final class ActivityTaskCreateBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.actvModel;
-      AutoCompleteTextView actvModel = ViewBindings.findChildViewById(rootView, id);
+      MaterialAutoCompleteTextView actvModel = ViewBindings.findChildViewById(rootView, id);
       if (actvModel == null) {
         break missingId;
       }
@@ -101,6 +106,12 @@ public final class ActivityTaskCreateBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tilModel;
+      TextInputLayout tilModel = ViewBindings.findChildViewById(rootView, id);
+      if (tilModel == null) {
+        break missingId;
+      }
+
       id = R.id.toolbar;
       MaterialToolbar toolbar = ViewBindings.findChildViewById(rootView, id);
       if (toolbar == null) {
@@ -108,7 +119,7 @@ public final class ActivityTaskCreateBinding implements ViewBinding {
       }
 
       return new ActivityTaskCreateBinding((CoordinatorLayout) rootView, actvModel, appBarLayout,
-          btnCreateTask, rvGearRatios, toolbar);
+          btnCreateTask, rvGearRatios, tilModel, toolbar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

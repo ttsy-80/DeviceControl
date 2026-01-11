@@ -16,13 +16,13 @@ class TaskCreateViewModel(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
     
-    private val _modelsWithConfigItems = MutableLiveData<List<EngineModelWithConfigItems>>()
+    private val _modelsWithConfigItems = MutableLiveData<List<EngineModelWithConfigItems>>(emptyList())
     val modelsWithConfigItems: LiveData<List<EngineModelWithConfigItems>> = _modelsWithConfigItems
     
     private val _selectedModel = MutableLiveData<EngineModelWithConfigItems?>()
     val selectedModel: LiveData<EngineModelWithConfigItems?> = _selectedModel
     
-    private val _availableGearRatios = MutableLiveData<List<ConfigItem>>()
+    private val _availableGearRatios = MutableLiveData<List<ConfigItem>>(emptyList())
     val availableGearRatios: LiveData<List<ConfigItem>> = _availableGearRatios
     
     private val _errorMessage = MutableLiveData<String?>()
@@ -34,16 +34,22 @@ class TaskCreateViewModel(
     
     private fun loadModels() {
         viewModelScope.launch {
-            engineRepository.getAllModelsWithConfigItems().collect { models ->
-                val modelsWithItems = models.filter { it.configItems.isNotEmpty() }
-                _modelsWithConfigItems.postValue(modelsWithItems)
+            try {
+                engineRepository.getAllModelsWithConfigItems().collect { models ->
+                    // 过滤出有配置项的型号
+                    val modelsWithItems = models.filter { it.configItems.isNotEmpty() }
+                    // 确保在主线程更新LiveData
+                    _modelsWithConfigItems.postValue(modelsWithItems)
+                }
+            } catch (e: Exception) {
+                _errorMessage.postValue("加载型号数据失败: ${e.message}")
             }
         }
     }
     
-    fun selectModel(model: EngineModelWithConfigItems) {
+    fun selectModel(model: EngineModelWithConfigItems?) {
         _selectedModel.value = model
-        _availableGearRatios.value = model.configItems
+        _availableGearRatios.value = model?.configItems ?: emptyList()
     }
     
     fun createTask(

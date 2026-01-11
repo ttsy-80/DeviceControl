@@ -124,6 +124,7 @@ int id etPosition 0x0
 int id rvGearRatios 0x0
 int id rvModelList 0x0
 int id tableHeader 0x0
+int id tilModel 0x0
 int id toolbar 0x0
 int id tvBladeCount 0x0
 int id tvDialogTitle 0x0

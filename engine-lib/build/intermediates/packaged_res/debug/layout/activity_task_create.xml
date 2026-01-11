@@ -82,16 +82,19 @@
                         android:layout_marginBottom="@dimen/spacing_medium" />
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilModel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:hint="@string/select_model"
                         app:boxCornerRadiusTopStart="@dimen/button_corner_radius"
                         app:boxCornerRadiusTopEnd="@dimen/button_corner_radius"
                         app:boxCornerRadiusBottomStart="@dimen/button_corner_radius"
-                        app:boxCornerRadiusBottomEnd="@dimen/button_corner_radius">
+                        app:boxCornerRadiusBottomEnd="@dimen/button_corner_radius"
+                        app:startIconDrawable="@android:drawable/ic_menu_sort_by_size"
+                        app:startIconTint="@color/primary">
 
-                        <AutoCompleteTextView
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
                             android:id="@+id/actvModel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

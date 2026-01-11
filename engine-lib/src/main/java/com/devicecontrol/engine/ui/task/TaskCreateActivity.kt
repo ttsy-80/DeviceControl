@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.data.database.AppDatabase
 import com.devicecontrol.engine.data.repository.EngineRepository
@@ -49,21 +50,36 @@ class TaskCreateActivity : AppCompatActivity() {
         gearRatioAdapter = GearRatioAdapter(emptyList()) { selectedRatios ->
             // 选择变化时的回调
         }
+        binding.rvGearRatios.layoutManager = LinearLayoutManager(this)
         binding.rvGearRatios.adapter = gearRatioAdapter
     }
 
     private fun setupObservers() {
         viewModel.modelsWithConfigItems.observe(this) { models ->
-            val modelNames = models.map { it.model.name }
-            val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, modelNames)
-            binding.actvModel.setAdapter(adapter)
+            if (models.isNotEmpty()) {
+                val modelNames = models.map { it.model.name }
+                val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, modelNames)
+                binding.actvModel.setAdapter(adapter)
+                binding.actvModel.setText("", false) // 清空文本，显示hint
+            } else {
+                // 如果没有型号数据，清空适配器
+                binding.actvModel.setAdapter(null)
+                binding.actvModel.setText("", false)
+            }
         }
 
         viewModel.availableGearRatios.observe(this) { configItems ->
-            gearRatioAdapter = GearRatioAdapter(configItems) { selectedRatios ->
-                // 选择变化时的回调
+            if (configItems.isNotEmpty()) {
+                gearRatioAdapter = GearRatioAdapter(configItems) { selectedRatios ->
+                    // 选择变化时的回调
+                }
+                binding.rvGearRatios.adapter = gearRatioAdapter
+                gearRatioAdapter.notifyDataSetChanged()
+            } else {
+                // 清空列表
+                gearRatioAdapter = GearRatioAdapter(emptyList()) { }
+                binding.rvGearRatios.adapter = gearRatioAdapter
             }
-            binding.rvGearRatios.adapter = gearRatioAdapter
         }
 
         viewModel.errorMessage.observe(this) { error ->
@@ -78,7 +94,8 @@ class TaskCreateActivity : AppCompatActivity() {
         binding.actvModel.setOnItemClickListener { _, _, position, _ ->
             val models = viewModel.modelsWithConfigItems.value
             if (models != null && position < models.size) {
-                viewModel.selectModel(models[position])
+                val selectedModel = models[position]
+                viewModel.selectModel(selectedModel)
             }
         }
 
