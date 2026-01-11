@@ -53,7 +53,7 @@ class TaskCreateViewModel(
     }
     
     fun createTask(
-        selectedGearRatios: List<Double>,
+        selectedConfigItemIds: List<Long>,
         onSuccess: (Long) -> Unit,
         onError: (String) -> Unit
     ) {
@@ -65,26 +65,28 @@ class TaskCreateViewModel(
                     return@launch
                 }
                 
-                if (selectedGearRatios.isEmpty()) {
-                    onError("请至少选择一个变速比")
+                if (selectedConfigItemIds.isEmpty()) {
+                    onError("请至少选择一个配置项")
                     return@launch
                 }
                 
-                // 验证选择的变速比是否属于该型号
-                val validGearRatios = model.configItems.map { it.gearRatio }
-                val invalidRatios = selectedGearRatios.filter { it !in validGearRatios }
-                if (invalidRatios.isNotEmpty()) {
-                    onError("选择的变速比不属于该型号")
+                // 验证选择的配置项ID是否属于该型号
+                val validConfigItemIds = model.configItems.map { it.id }.toSet()
+                val invalidIds = selectedConfigItemIds.filter { it !in validConfigItemIds }
+                if (invalidIds.isNotEmpty()) {
+                    onError("选择的配置项不属于该型号")
                     return@launch
                 }
                 
                 val task = Task(
                     modelId = model.model.id,
                     modelName = model.model.name,
-                    gearRatios = selectedGearRatios
+                    configItemIds = selectedConfigItemIds
                 )
                 
+                android.util.Log.d("TaskCreateViewModel", "Creating task: modelId=${task.modelId}, modelName=${task.modelName}, configItemIds=${task.configItemIds}, size=${task.configItemIds.size}")
                 val taskId = taskRepository.insertTask(task)
+                android.util.Log.d("TaskCreateViewModel", "Task created with id: $taskId")
                 onSuccess(taskId)
             } catch (e: Exception) {
                 onError("创建任务失败: ${e.message}")

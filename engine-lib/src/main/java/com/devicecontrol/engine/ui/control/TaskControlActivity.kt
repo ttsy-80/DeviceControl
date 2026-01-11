@@ -66,20 +66,12 @@ class TaskControlActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.canGoPrevious.observe(this) { canGo ->
-            binding.btnPreviousTask.isEnabled = canGo
-            // 不隐藏，只是置灰
-        }
-
-        viewModel.canGoNext.observe(this) { canGo ->
-            binding.btnNextTask.isEnabled = canGo
-            // 不隐藏，只是置灰
-        }
-
         viewModel.task.observe(this) { task ->
             task?.let {
-                // 如果任务有多个变速比，显示任务切换按钮和任务序号
-                if (it.gearRatios.size > 1) {
+                // 如果任务有多个配置项，显示任务切换按钮和任务序号
+                val hasMultipleTasks = it.configItemIds.size > 1
+                android.util.Log.d("TaskControl", "Task loaded: configItemIds.size = ${it.configItemIds.size}, hasMultipleTasks = $hasMultipleTasks")
+                if (hasMultipleTasks) {
                     binding.tvTaskIndex.visibility = android.view.View.VISIBLE
                     binding.btnPreviousTask.visibility = android.view.View.VISIBLE
                     binding.btnNextTask.visibility = android.view.View.VISIBLE
@@ -89,6 +81,20 @@ class TaskControlActivity : AppCompatActivity() {
                     binding.btnPreviousTask.visibility = android.view.View.GONE
                     binding.btnNextTask.visibility = android.view.View.GONE
                 }
+            }
+        }
+
+        viewModel.canGoPrevious.observe(this) { canGo ->
+            // 只有在按钮可见时才更新状态
+            if (binding.btnPreviousTask.visibility == android.view.View.VISIBLE) {
+                binding.btnPreviousTask.isEnabled = canGo
+            }
+        }
+
+        viewModel.canGoNext.observe(this) { canGo ->
+            // 只有在按钮可见时才更新状态
+            if (binding.btnNextTask.visibility == android.view.View.VISIBLE) {
+                binding.btnNextTask.isEnabled = canGo
             }
         }
     }

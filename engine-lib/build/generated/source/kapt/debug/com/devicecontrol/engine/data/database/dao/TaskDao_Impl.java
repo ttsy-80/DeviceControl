@@ -20,7 +20,6 @@ import com.devicecontrol.engine.data.model.Task;
 import com.devicecontrol.engine.data.model.TaskExecution;
 import com.devicecontrol.engine.data.model.TaskStatus;
 import java.lang.Class;
-import java.lang.Double;
 import java.lang.Exception;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
@@ -60,7 +59,7 @@ public final class TaskDao_Impl implements TaskDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `tasks` (`id`,`modelId`,`modelName`,`gearRatios`) VALUES (nullif(?, 0),?,?,?)";
+        return "INSERT OR REPLACE INTO `tasks` (`id`,`modelId`,`modelName`,`configItemIds`) VALUES (nullif(?, 0),?,?,?)";
       }
 
       @Override
@@ -73,7 +72,7 @@ public final class TaskDao_Impl implements TaskDao {
         } else {
           statement.bindString(3, entity.getModelName());
         }
-        final String _tmp = __converters.fromDoubleList(entity.getGearRatios());
+        final String _tmp = __converters.fromLongList(entity.getConfigItemIds());
         if (_tmp == null) {
           statement.bindNull(4);
         } else {
@@ -148,7 +147,7 @@ public final class TaskDao_Impl implements TaskDao {
   }
 
   @Override
-  public Object insertTask(final Task task, final Continuation<? super Long> arg1) {
+  public Object insertTask(final Task task, final Continuation<? super Long> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -162,12 +161,12 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object insertTaskExecution(final TaskExecution execution,
-      final Continuation<? super Long> arg1) {
+      final Continuation<? super Long> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -181,11 +180,11 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object deleteTask(final Task task, final Continuation<? super Unit> arg1) {
+  public Object deleteTask(final Task task, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -199,12 +198,12 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object updateTaskExecution(final TaskExecution execution,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -218,12 +217,12 @@ public final class TaskDao_Impl implements TaskDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object deleteTaskExecutionByTaskId(final long taskId,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -244,7 +243,7 @@ public final class TaskDao_Impl implements TaskDao {
           __preparedStmtOfDeleteTaskExecutionByTaskId.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
@@ -260,7 +259,7 @@ public final class TaskDao_Impl implements TaskDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfModelId = CursorUtil.getColumnIndexOrThrow(_cursor, "modelId");
           final int _cursorIndexOfModelName = CursorUtil.getColumnIndexOrThrow(_cursor, "modelName");
-          final int _cursorIndexOfGearRatios = CursorUtil.getColumnIndexOrThrow(_cursor, "gearRatios");
+          final int _cursorIndexOfConfigItemIds = CursorUtil.getColumnIndexOrThrow(_cursor, "configItemIds");
           final List<Task> _result = new ArrayList<Task>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final Task _item;
@@ -274,15 +273,15 @@ public final class TaskDao_Impl implements TaskDao {
             } else {
               _tmpModelName = _cursor.getString(_cursorIndexOfModelName);
             }
-            final List<Double> _tmpGearRatios;
+            final List<Long> _tmpConfigItemIds;
             final String _tmp;
-            if (_cursor.isNull(_cursorIndexOfGearRatios)) {
+            if (_cursor.isNull(_cursorIndexOfConfigItemIds)) {
               _tmp = null;
             } else {
-              _tmp = _cursor.getString(_cursorIndexOfGearRatios);
+              _tmp = _cursor.getString(_cursorIndexOfConfigItemIds);
             }
-            _tmpGearRatios = __converters.toDoubleList(_tmp);
-            _item = new Task(_tmpId,_tmpModelId,_tmpModelName,_tmpGearRatios);
+            _tmpConfigItemIds = __converters.toLongList(_tmp);
+            _item = new Task(_tmpId,_tmpModelId,_tmpModelName,_tmpConfigItemIds);
             _result.add(_item);
           }
           return _result;
@@ -299,7 +298,7 @@ public final class TaskDao_Impl implements TaskDao {
   }
 
   @Override
-  public Object getTaskById(final long taskId, final Continuation<? super Task> arg1) {
+  public Object getTaskById(final long taskId, final Continuation<? super Task> $completion) {
     final String _sql = "SELECT * FROM tasks WHERE id = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -314,7 +313,7 @@ public final class TaskDao_Impl implements TaskDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfModelId = CursorUtil.getColumnIndexOrThrow(_cursor, "modelId");
           final int _cursorIndexOfModelName = CursorUtil.getColumnIndexOrThrow(_cursor, "modelName");
-          final int _cursorIndexOfGearRatios = CursorUtil.getColumnIndexOrThrow(_cursor, "gearRatios");
+          final int _cursorIndexOfConfigItemIds = CursorUtil.getColumnIndexOrThrow(_cursor, "configItemIds");
           final Task _result;
           if (_cursor.moveToFirst()) {
             final long _tmpId;
@@ -327,15 +326,15 @@ public final class TaskDao_Impl implements TaskDao {
             } else {
               _tmpModelName = _cursor.getString(_cursorIndexOfModelName);
             }
-            final List<Double> _tmpGearRatios;
+            final List<Long> _tmpConfigItemIds;
             final String _tmp;
-            if (_cursor.isNull(_cursorIndexOfGearRatios)) {
+            if (_cursor.isNull(_cursorIndexOfConfigItemIds)) {
               _tmp = null;
             } else {
-              _tmp = _cursor.getString(_cursorIndexOfGearRatios);
+              _tmp = _cursor.getString(_cursorIndexOfConfigItemIds);
             }
-            _tmpGearRatios = __converters.toDoubleList(_tmp);
-            _result = new Task(_tmpId,_tmpModelId,_tmpModelName,_tmpGearRatios);
+            _tmpConfigItemIds = __converters.toLongList(_tmp);
+            _result = new Task(_tmpId,_tmpModelId,_tmpModelName,_tmpConfigItemIds);
           } else {
             _result = null;
           }
@@ -345,12 +344,12 @@ public final class TaskDao_Impl implements TaskDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object getTaskExecutionByTaskIdAndIndex(final long taskId, final int gearRatioIndex,
-      final Continuation<? super TaskExecution> arg2) {
+      final Continuation<? super TaskExecution> $completion) {
     final String _sql = "SELECT * FROM task_executions WHERE taskId = ? AND gearRatioIndex = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 2);
     int _argIndex = 1;
@@ -403,7 +402,7 @@ public final class TaskDao_Impl implements TaskDao {
           _statement.release();
         }
       }
-    }, arg2);
+    }, $completion);
   }
 
   @Override
@@ -469,7 +468,7 @@ public final class TaskDao_Impl implements TaskDao {
 
   @Override
   public Object getTaskExecutionByTaskId(final long taskId,
-      final Continuation<? super TaskExecution> arg1) {
+      final Continuation<? super TaskExecution> $completion) {
     final String _sql = "SELECT * FROM task_executions WHERE taskId = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -520,7 +519,7 @@ public final class TaskDao_Impl implements TaskDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override

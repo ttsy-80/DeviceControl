@@ -12,5 +12,5 @@ data class Task(
     val id: Long = 0,
     val modelId: Long,
     val modelName: String,
-    val gearRatios: List<Double>
+    val configItemIds: List<Long>  // 使用配置项ID列表，而不是变速比列表
 )

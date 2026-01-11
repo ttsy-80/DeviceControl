@@ -10,10 +10,10 @@ import com.devicecontrol.engine.data.model.ConfigItem
 
 class GearRatioAdapter(
     private val configItems: List<ConfigItem>,
-    private val onSelectionChanged: (List<Double>) -> Unit
+    private val onSelectionChanged: (List<Long>) -> Unit
 ) : RecyclerView.Adapter<GearRatioAdapter.ViewHolder>() {
 
-    private val selectedGearRatios = mutableSetOf<Double>()
+    private val selectedConfigItemIds = mutableSetOf<Long>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -23,7 +23,7 @@ class GearRatioAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val configItem = configItems[position]
-        holder.bind(configItem, selectedGearRatios.contains(configItem.gearRatio))
+        holder.bind(configItem, selectedConfigItemIds.contains(configItem.id))
     }
 
     override fun getItemCount(): Int = configItems.size
@@ -39,14 +39,14 @@ class GearRatioAdapter(
 
             cbGearRatio.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
-                    selectedGearRatios.add(configItem.gearRatio)
+                    selectedConfigItemIds.add(configItem.id)
                 } else {
-                    selectedGearRatios.remove(configItem.gearRatio)
+                    selectedConfigItemIds.remove(configItem.id)
                 }
-                onSelectionChanged(selectedGearRatios.toList())
+                onSelectionChanged(selectedConfigItemIds.toList())
             }
         }
     }
 
-    fun getSelectedGearRatios(): List<Double> = selectedGearRatios.toList()
+    fun getSelectedConfigItemIds(): List<Long> = selectedConfigItemIds.toList()
 }

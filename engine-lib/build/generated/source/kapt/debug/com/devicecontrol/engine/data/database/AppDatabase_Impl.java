@@ -38,17 +38,17 @@ public final class AppDatabase_Impl extends AppDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `engine_models` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `config_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `modelId` INTEGER NOT NULL, `gearRatio` REAL NOT NULL, `position` TEXT NOT NULL, `bladeCount` INTEGER NOT NULL, `jogCount` INTEGER NOT NULL, FOREIGN KEY(`modelId`) REFERENCES `engine_models`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_config_items_modelId` ON `config_items` (`modelId`)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `tasks` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `modelId` INTEGER NOT NULL, `modelName` TEXT NOT NULL, `gearRatios` TEXT NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `tasks` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `modelId` INTEGER NOT NULL, `modelName` TEXT NOT NULL, `configItemIds` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `task_executions` (`executionId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `gearRatioIndex` INTEGER NOT NULL, `status` TEXT NOT NULL, `torque` REAL NOT NULL, `speed` REAL NOT NULL, `rotationDirection` TEXT NOT NULL, `operationMode` TEXT NOT NULL, `progress` INTEGER NOT NULL)");
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_task_executions_taskId_gearRatioIndex` ON `task_executions` (`taskId`, `gearRatioIndex`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f54f1c768b6345fd782082d6c2c2d1f')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5bfd54e332b71874665e561ab79c9398')");
       }
 
       @Override
@@ -135,7 +135,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsTasks.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTasks.put("modelId", new TableInfo.Column("modelId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsTasks.put("modelName", new TableInfo.Column("modelName", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsTasks.put("gearRatios", new TableInfo.Column("gearRatios", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTasks.put("configItemIds", new TableInfo.Column("configItemIds", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysTasks = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesTasks = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoTasks = new TableInfo("tasks", _columnsTasks, _foreignKeysTasks, _indicesTasks);
@@ -167,7 +167,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "1f54f1c768b6345fd782082d6c2c2d1f", "9f3872ed80ac45a9365d7d00afd18b72");
+    }, "5bfd54e332b71874665e561ab79c9398", "d8bcf23a59d92c2689dc9dd43a40ebcf");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

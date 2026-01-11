@@ -14,7 +14,7 @@ import com.devicecontrol.engine.data.model.TaskExecution
 
 @Database(
     entities = [EngineModel::class, ConfigItem::class, Task::class, TaskExecution::class],
-    version = 2,
+    version = 3,  // 版本升级：Task模型从gearRatios改为configItemIds
     exportSchema = false
 )
 @TypeConverters(Converters::class)

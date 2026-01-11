@@ -47,7 +47,7 @@ class TaskCreateActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        gearRatioAdapter = GearRatioAdapter(emptyList()) { selectedRatios ->
+        gearRatioAdapter = GearRatioAdapter(emptyList()) { _ ->
             // 选择变化时的回调
         }
         binding.rvGearRatios.layoutManager = LinearLayoutManager(this)
@@ -70,7 +70,7 @@ class TaskCreateActivity : AppCompatActivity() {
 
         viewModel.availableGearRatios.observe(this) { configItems ->
             if (configItems.isNotEmpty()) {
-                gearRatioAdapter = GearRatioAdapter(configItems) { selectedRatios ->
+                gearRatioAdapter = GearRatioAdapter(configItems) { _ ->
                     // 选择变化时的回调
                 }
                 binding.rvGearRatios.adapter = gearRatioAdapter
@@ -100,9 +100,9 @@ class TaskCreateActivity : AppCompatActivity() {
         }
 
         binding.btnCreateTask.setOnClickListener {
-            val selectedRatios = gearRatioAdapter.getSelectedGearRatios()
+            val selectedConfigItemIds = gearRatioAdapter.getSelectedConfigItemIds()
             viewModel.createTask(
-                selectedGearRatios = selectedRatios,
+                selectedConfigItemIds = selectedConfigItemIds,
                 onSuccess = { taskId ->
                     Toast.makeText(this, "任务创建成功", Toast.LENGTH_SHORT).show()
                     // 跳转到任务控制页面

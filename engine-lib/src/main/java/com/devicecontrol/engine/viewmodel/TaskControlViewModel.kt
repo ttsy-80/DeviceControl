@@ -40,6 +40,7 @@ class TaskControlViewModel(
     fun loadTask(taskId: Long) {
         viewModelScope.launch {
             val task = taskRepository.getTaskById(taskId)
+            android.util.Log.d("TaskControlViewModel", "Task loaded: id=$taskId, task=$task, configItemIds=${task?.configItemIds}, size=${task?.configItemIds?.size}")
             _task.value = task
             
             if (task != null) {
@@ -50,38 +51,38 @@ class TaskControlViewModel(
         }
     }
     
-    private fun loadTaskExecution(taskId: Long, gearRatioIndex: Int) {
+    private fun loadTaskExecution(taskId: Long, configItemIndex: Int) {
         viewModelScope.launch {
             val task = _task.value ?: return@launch
             
             // 加载或创建该子任务的执行记录
-            var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, gearRatioIndex)
+            var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex)
             if (execution == null) {
                 execution = TaskExecution(
                     taskId = taskId,
-                    gearRatioIndex = gearRatioIndex
+                    gearRatioIndex = configItemIndex
                 )
                 taskRepository.insertOrUpdateTaskExecution(execution)
             }
             _taskExecution.value = execution
             
             // 加载当前配置项
-            loadCurrentConfigItem(task, gearRatioIndex)
+            loadCurrentConfigItem(task, configItemIndex)
             
             // 更新任务索引显示
-            updateTaskIndex(task, gearRatioIndex)
+            updateTaskIndex(task, configItemIndex)
             
             // 更新导航按钮状态
-            updateNavigationButtons(task, gearRatioIndex)
+            updateNavigationButtons(task, configItemIndex)
         }
     }
     
     private fun loadCurrentConfigItem(task: Task, index: Int) {
         viewModelScope.launch {
             val model = engineRepository.getModelWithConfigItemsById(task.modelId)
-            if (model != null && index < task.gearRatios.size) {
-                val gearRatio = task.gearRatios[index]
-                val configItem = model.configItems.find { it.gearRatio == gearRatio }
+            if (model != null && index < task.configItemIds.size) {
+                val configItemId = task.configItemIds[index]
+                val configItem = model.configItems.find { it.id == configItemId }
                 _currentConfigItem.value = configItem
                 
                 // 获取当前执行状态以显示操作模式
@@ -100,13 +101,13 @@ class TaskControlViewModel(
     }
     
     private fun updateTaskIndex(task: Task, index: Int) {
-        val total = task.gearRatios.size
+        val total = task.configItemIds.size
         _taskIndex.value = "任务 ${index + 1}/$total"
     }
     
     private fun updateNavigationButtons(task: Task, index: Int) {
         _canGoPrevious.value = index > 0
-        _canGoNext.value = index < task.gearRatios.size - 1
+        _canGoNext.value = index < task.configItemIds.size - 1
     }
     
     fun goToPreviousTask() {
@@ -121,7 +122,7 @@ class TaskControlViewModel(
     fun goToNextTask() {
         val task = _task.value ?: return
         
-        if (currentGearRatioIndex < task.gearRatios.size - 1) {
+        if (currentGearRatioIndex < task.configItemIds.size - 1) {
             currentGearRatioIndex++
             loadTaskExecution(task.id, currentGearRatioIndex)
         }
