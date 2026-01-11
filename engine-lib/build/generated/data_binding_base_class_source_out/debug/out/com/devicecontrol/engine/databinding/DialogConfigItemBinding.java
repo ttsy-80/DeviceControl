@@ -4,10 +4,10 @@ package com.devicecontrol.engine.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.devicecontrol.engine.R;
@@ -19,7 +19,7 @@ import java.lang.String;
 
 public final class DialogConfigItemBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final NestedScrollView rootView;
 
   @NonNull
   public final MaterialButton btnCancel;
@@ -42,10 +42,11 @@ public final class DialogConfigItemBinding implements ViewBinding {
   @NonNull
   public final TextView tvDialogTitle;
 
-  private DialogConfigItemBinding(@NonNull LinearLayout rootView, @NonNull MaterialButton btnCancel,
-      @NonNull MaterialButton btnConfirm, @NonNull TextInputEditText etBladeCount,
-      @NonNull TextInputEditText etGearRatio, @NonNull TextInputEditText etJogCount,
-      @NonNull TextInputEditText etPosition, @NonNull TextView tvDialogTitle) {
+  private DialogConfigItemBinding(@NonNull NestedScrollView rootView,
+      @NonNull MaterialButton btnCancel, @NonNull MaterialButton btnConfirm,
+      @NonNull TextInputEditText etBladeCount, @NonNull TextInputEditText etGearRatio,
+      @NonNull TextInputEditText etJogCount, @NonNull TextInputEditText etPosition,
+      @NonNull TextView tvDialogTitle) {
     this.rootView = rootView;
     this.btnCancel = btnCancel;
     this.btnConfirm = btnConfirm;
@@ -58,7 +59,7 @@ public final class DialogConfigItemBinding implements ViewBinding {
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public NestedScrollView getRoot() {
     return rootView;
   }
 
@@ -125,7 +126,7 @@ public final class DialogConfigItemBinding implements ViewBinding {
         break missingId;
       }
 
-      return new DialogConfigItemBinding((LinearLayout) rootView, btnCancel, btnConfirm,
+      return new DialogConfigItemBinding((NestedScrollView) rootView, btnCancel, btnConfirm,
           etBladeCount, etGearRatio, etJogCount, etPosition, tvDialogTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);

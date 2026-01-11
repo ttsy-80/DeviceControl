@@ -38,15 +38,18 @@
         <activity
             android:name="com.devicecontrol.engine.ui.model.ModelManagementActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing" />
         <activity
             android:name="com.devicecontrol.engine.ui.task.TaskCreateActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing" />
         <activity
             android:name="com.devicecontrol.engine.ui.control.TaskControlActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
