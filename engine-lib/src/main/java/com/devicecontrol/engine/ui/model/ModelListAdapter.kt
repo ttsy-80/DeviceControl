@@ -12,6 +12,7 @@ import com.devicecontrol.engine.data.model.EngineModelWithConfigItems
 
 class ModelListAdapter(
     private val onAddConfigItem: (Long) -> Unit,
+    private val onEditConfigItem: (ConfigItem) -> Unit,
     private val onDeleteConfigItem: (ConfigItem) -> Unit,
     private val onDeleteModel: (Long) -> Unit
 ) : RecyclerView.Adapter<ModelListAdapter.ViewHolder>() {
@@ -57,8 +58,10 @@ class ModelListAdapter(
                     model = model,
                     configItem = configItem,
                     isFirstItem = isFirstItem,
+                    isLastItem = itemIndex == model.configItems.size - 1,
                     spanCount = model.configItems.size,
                     onAddConfigItem = onAddConfigItem,
+                    onEditConfigItem = onEditConfigItem,
                     onDeleteConfigItem = onDeleteConfigItem,
                     onDeleteModel = onDeleteModel
                 )
@@ -75,14 +78,17 @@ class ModelListAdapter(
         private val tvBladeCount: TextView = itemView.findViewById(R.id.tvBladeCount)
         private val tvJogCount: TextView = itemView.findViewById(R.id.tvJogCount)
         private val btnAddConfigItem: Button = itemView.findViewById(R.id.btnAddConfigItem)
+        private val btnEdit: Button = itemView.findViewById(R.id.btnEdit)
         private val btnDelete: Button = itemView.findViewById(R.id.btnDelete)
 
         fun bind(
             model: EngineModelWithConfigItems,
             configItem: ConfigItem,
             isFirstItem: Boolean,
+            isLastItem: Boolean,
             spanCount: Int,
             onAddConfigItem: (Long) -> Unit,
+            onEditConfigItem: (ConfigItem) -> Unit,
             onDeleteConfigItem: (ConfigItem) -> Unit,
             onDeleteModel: (Long) -> Unit
         ) {
@@ -90,18 +96,35 @@ class ModelListAdapter(
             if (isFirstItem) {
                 tvModelName.text = model.model.name
                 tvModelName.visibility = View.VISIBLE
-                btnAddConfigItem.visibility = View.VISIBLE
-                btnAddConfigItem.setOnClickListener { onAddConfigItem(model.model.id) }
             } else {
                 tvModelName.visibility = View.INVISIBLE
-                btnAddConfigItem.visibility = View.GONE
             }
+
 
             tvGearRatio.text = configItem.gearRatio.toString()
             tvPosition.text = configItem.position
             tvBladeCount.text = configItem.bladeCount.toString()
             tvJogCount.text = configItem.jogCount.toString()
 
+            // 重置所有按钮状态，确保正确显示
+            btnAddConfigItem.visibility = View.GONE
+            btnEdit.visibility = View.GONE
+            btnDelete.visibility = View.GONE
+            
+            // "添加配置项"按钮只在最后一行显示
+            if (isLastItem) {
+                btnAddConfigItem.visibility = View.VISIBLE
+                btnAddConfigItem.setOnClickListener { onAddConfigItem(model.model.id) }
+            }
+
+            // 编辑按钮：所有配置项都可以编辑
+            btnEdit.visibility = View.VISIBLE
+            btnEdit.setOnClickListener {
+                onEditConfigItem(configItem)
+            }
+
+            // 删除按钮：所有配置项都可以删除
+            btnDelete.visibility = View.VISIBLE
             btnDelete.setOnClickListener {
                 if (spanCount == 1) {
                     // 如果只有一个配置项，删除型号

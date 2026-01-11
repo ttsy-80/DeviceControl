@@ -27,6 +27,9 @@ public final class ItemModelConfigBinding implements ViewBinding {
   public final MaterialButton btnDelete;
 
   @NonNull
+  public final MaterialButton btnEdit;
+
+  @NonNull
   public final TextView tvBladeCount;
 
   @NonNull
@@ -43,11 +46,13 @@ public final class ItemModelConfigBinding implements ViewBinding {
 
   private ItemModelConfigBinding(@NonNull MaterialCardView rootView,
       @NonNull MaterialButton btnAddConfigItem, @NonNull MaterialButton btnDelete,
-      @NonNull TextView tvBladeCount, @NonNull TextView tvGearRatio, @NonNull TextView tvJogCount,
-      @NonNull TextView tvModelName, @NonNull TextView tvPosition) {
+      @NonNull MaterialButton btnEdit, @NonNull TextView tvBladeCount,
+      @NonNull TextView tvGearRatio, @NonNull TextView tvJogCount, @NonNull TextView tvModelName,
+      @NonNull TextView tvPosition) {
     this.rootView = rootView;
     this.btnAddConfigItem = btnAddConfigItem;
     this.btnDelete = btnDelete;
+    this.btnEdit = btnEdit;
     this.tvBladeCount = tvBladeCount;
     this.tvGearRatio = tvGearRatio;
     this.tvJogCount = tvJogCount;
@@ -94,6 +99,12 @@ public final class ItemModelConfigBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnEdit;
+      MaterialButton btnEdit = ViewBindings.findChildViewById(rootView, id);
+      if (btnEdit == null) {
+        break missingId;
+      }
+
       id = R.id.tvBladeCount;
       TextView tvBladeCount = ViewBindings.findChildViewById(rootView, id);
       if (tvBladeCount == null) {
@@ -125,7 +136,7 @@ public final class ItemModelConfigBinding implements ViewBinding {
       }
 
       return new ItemModelConfigBinding((MaterialCardView) rootView, btnAddConfigItem, btnDelete,
-          tvBladeCount, tvGearRatio, tvJogCount, tvModelName, tvPosition);
+          btnEdit, tvBladeCount, tvGearRatio, tvJogCount, tvModelName, tvPosition);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

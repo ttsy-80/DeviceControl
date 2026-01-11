@@ -50,6 +50,9 @@ interface EngineDao {
     @Delete
     suspend fun deleteConfigItem(configItem: ConfigItem)
     
+    @Update
+    suspend fun updateConfigItem(configItem: ConfigItem)
+    
     @Query("DELETE FROM config_items WHERE id = :configItemId")
     suspend fun deleteConfigItemById(configItemId: Long)
     

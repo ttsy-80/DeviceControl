@@ -103,6 +103,7 @@
     <string name="continuous">连续</string>
     <string name="create_task">创建任务</string>
     <string name="delete">删除</string>
+    <string name="edit">编辑</string>
     <string name="edit_config_item">编辑配置项</string>
     <string name="engine_torque_speed">机力矩/速度</string>
     <string name="error_config_item_required">新建型号时必须至少添加一个配置项</string>

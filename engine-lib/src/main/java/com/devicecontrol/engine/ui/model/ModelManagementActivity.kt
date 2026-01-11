@@ -54,6 +54,9 @@ class ModelManagementActivity : AppCompatActivity() {
             onAddConfigItem = { modelId ->
                 showConfigItemDialog(modelId)
             },
+            onEditConfigItem = { configItem ->
+                showEditConfigItemDialog(configItem)
+            },
             onDeleteConfigItem = { configItem ->
                 showDeleteConfigItemDialog(configItem)
             },
@@ -121,7 +124,7 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun showConfigItemDialogForNewModel(modelName: String) {
-        val dialog = ConfigItemDialog { gearRatio, position, bladeCount, jogCount ->
+        val dialog = ConfigItemDialog(modelId = null, existingConfigItem = null) { gearRatio, position, bladeCount, jogCount ->
             viewModel.createModelWithConfigItem(
                 modelName = modelName,
                 gearRatio = gearRatio,
@@ -140,7 +143,7 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun showConfigItemDialog(modelId: Long) {
-        val dialog = ConfigItemDialog(modelId = modelId) { gearRatio, position, bladeCount, jogCount ->
+        val dialog = ConfigItemDialog(modelId = modelId, existingConfigItem = null) { gearRatio, position, bladeCount, jogCount ->
             viewModel.addConfigItem(
                 modelId = modelId,
                 gearRatio = gearRatio,
@@ -156,6 +159,28 @@ class ModelManagementActivity : AppCompatActivity() {
             )
         }
         dialog.show(supportFragmentManager, "ConfigItemDialog")
+    }
+    
+    private fun showEditConfigItemDialog(configItem: ConfigItem) {
+        val dialog = ConfigItemDialog(
+            modelId = configItem.modelId,
+            existingConfigItem = configItem
+        ) { gearRatio, position, bladeCount, jogCount ->
+            viewModel.updateConfigItem(
+                configItem = configItem,
+                gearRatio = gearRatio,
+                position = position,
+                bladeCount = bladeCount,
+                jogCount = jogCount,
+                onSuccess = {
+                    Toast.makeText(this, "配置项更新成功", Toast.LENGTH_SHORT).show()
+                },
+                onError = { error ->
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+        dialog.show(supportFragmentManager, "EditConfigItemDialog")
     }
 
     private fun showDeleteConfigItemDialog(configItem: ConfigItem) {

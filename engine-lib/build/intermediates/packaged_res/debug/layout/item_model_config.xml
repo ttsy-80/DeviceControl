@@ -76,9 +76,10 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1.5"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:minWidth="200dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddConfigItem"
@@ -86,11 +87,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/add_config_item"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="@color/primary"
-                android:paddingStart="@dimen/spacing_small"
-                android:paddingEnd="@dimen/spacing_small"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
                 android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEdit"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/edit"
+                android:textSize="11sp"
+                android:textColor="@color/primary"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDelete"
@@ -98,10 +118,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/delete"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="@color/error"
-                android:paddingStart="@dimen/spacing_small"
-                android:paddingEnd="@dimen/spacing_small" />
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
         </LinearLayout>
     </LinearLayout>
 

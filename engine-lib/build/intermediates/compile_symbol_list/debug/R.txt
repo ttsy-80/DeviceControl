@@ -101,6 +101,7 @@ int id btnCancel 0x0
 int id btnConfirm 0x0
 int id btnCreateTask 0x0
 int id btnDelete 0x0
+int id btnEdit 0x0
 int id btnForwardReverse 0x0
 int id btnJogContinuous 0x0
 int id btnModelManagement 0x0
@@ -154,6 +155,7 @@ int string confirm 0x0
 int string continuous 0x0
 int string create_task 0x0
 int string delete 0x0
+int string edit 0x0
 int string edit_config_item 0x0
 int string engine_torque_speed 0x0
 int string error_config_item_required 0x0

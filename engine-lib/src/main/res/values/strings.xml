@@ -12,6 +12,7 @@
     <string name="position">位置</string>
     <string name="blade_count">叶片数</string>
     <string name="jog_count">点动次数</string>
+    <string name="edit">编辑</string>
     <string name="delete">删除</string>
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>

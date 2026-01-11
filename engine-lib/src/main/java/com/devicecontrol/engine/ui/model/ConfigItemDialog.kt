@@ -12,6 +12,7 @@ import com.devicecontrol.engine.databinding.DialogConfigItemBinding
 
 class ConfigItemDialog(
     private val modelId: Long? = null,
+    private val existingConfigItem: com.devicecontrol.engine.data.model.ConfigItem? = null,
     private val onConfirm: (Double, String, Int, Int) -> Unit
 ) : DialogFragment() {
 
@@ -21,12 +22,21 @@ class ConfigItemDialog(
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogConfigItemBinding.inflate(layoutInflater)
 
-        val title = if (modelId == null) {
-            getString(R.string.add_config_item)
-        } else {
+        val isEditMode = existingConfigItem != null
+        val title = if (isEditMode) {
             getString(R.string.edit_config_item)
+        } else {
+            getString(R.string.add_config_item)
         }
         binding.tvDialogTitle.text = title
+        
+        // 如果是编辑模式，预填充数据
+        if (isEditMode && existingConfigItem != null) {
+            binding.etGearRatio.setText(existingConfigItem.gearRatio.toString())
+            binding.etPosition.setText(existingConfigItem.position)
+            binding.etBladeCount.setText(existingConfigItem.bladeCount.toString())
+            binding.etJogCount.setText(existingConfigItem.jogCount.toString())
+        }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(binding.root)

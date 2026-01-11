@@ -50,6 +50,8 @@ public final class EngineDao_Impl implements EngineDao {
 
   private final EntityDeletionOrUpdateAdapter<ConfigItem> __deletionAdapterOfConfigItem;
 
+  private final EntityDeletionOrUpdateAdapter<ConfigItem> __updateAdapterOfConfigItem;
+
   private final SharedSQLiteStatement __preparedStmtOfDeleteConfigItemById;
 
   private final SharedSQLiteStatement __preparedStmtOfDeleteModelById;
@@ -122,6 +124,29 @@ public final class EngineDao_Impl implements EngineDao {
         statement.bindLong(1, entity.getId());
       }
     };
+    this.__updateAdapterOfConfigItem = new EntityDeletionOrUpdateAdapter<ConfigItem>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "UPDATE OR ABORT `config_items` SET `id` = ?,`modelId` = ?,`gearRatio` = ?,`position` = ?,`bladeCount` = ?,`jogCount` = ? WHERE `id` = ?";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final ConfigItem entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindLong(2, entity.getModelId());
+        statement.bindDouble(3, entity.getGearRatio());
+        if (entity.getPosition() == null) {
+          statement.bindNull(4);
+        } else {
+          statement.bindString(4, entity.getPosition());
+        }
+        statement.bindLong(5, entity.getBladeCount());
+        statement.bindLong(6, entity.getJogCount());
+        statement.bindLong(7, entity.getId());
+      }
+    };
     this.__preparedStmtOfDeleteConfigItemById = new SharedSQLiteStatement(__db) {
       @Override
       @NonNull
@@ -141,7 +166,7 @@ public final class EngineDao_Impl implements EngineDao {
   }
 
   @Override
-  public Object insertModel(final EngineModel model, final Continuation<? super Long> arg1) {
+  public Object insertModel(final EngineModel model, final Continuation<? super Long> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -155,12 +180,12 @@ public final class EngineDao_Impl implements EngineDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object insertConfigItem(final ConfigItem configItem,
-      final Continuation<? super Long> arg1) {
+      final Continuation<? super Long> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -174,12 +199,12 @@ public final class EngineDao_Impl implements EngineDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object insertConfigItems(final List<ConfigItem> configItems,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -193,11 +218,11 @@ public final class EngineDao_Impl implements EngineDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object deleteModel(final EngineModel model, final Continuation<? super Unit> arg1) {
+  public Object deleteModel(final EngineModel model, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -211,12 +236,12 @@ public final class EngineDao_Impl implements EngineDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object deleteConfigItem(final ConfigItem configItem,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -230,12 +255,31 @@ public final class EngineDao_Impl implements EngineDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
+  }
+
+  @Override
+  public Object updateConfigItem(final ConfigItem configItem,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __updateAdapterOfConfigItem.handle(configItem);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
   }
 
   @Override
   public Object deleteConfigItemById(final long configItemId,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -256,11 +300,11 @@ public final class EngineDao_Impl implements EngineDao {
           __preparedStmtOfDeleteConfigItemById.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object deleteModelById(final long modelId, final Continuation<? super Unit> arg1) {
+  public Object deleteModelById(final long modelId, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -281,7 +325,7 @@ public final class EngineDao_Impl implements EngineDao {
           __preparedStmtOfDeleteModelById.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
@@ -324,7 +368,8 @@ public final class EngineDao_Impl implements EngineDao {
   }
 
   @Override
-  public Object getModelById(final long modelId, final Continuation<? super EngineModel> arg1) {
+  public Object getModelById(final long modelId,
+      final Continuation<? super EngineModel> $completion) {
     final String _sql = "SELECT * FROM engine_models WHERE id = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -358,11 +403,12 @@ public final class EngineDao_Impl implements EngineDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object getModelByName(final String name, final Continuation<? super EngineModel> arg1) {
+  public Object getModelByName(final String name,
+      final Continuation<? super EngineModel> $completion) {
     final String _sql = "SELECT * FROM engine_models WHERE name = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -400,7 +446,7 @@ public final class EngineDao_Impl implements EngineDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
@@ -467,7 +513,7 @@ public final class EngineDao_Impl implements EngineDao {
 
   @Override
   public Object getModelWithConfigItemsById(final long modelId,
-      final Continuation<? super EngineModelWithConfigItems> arg1) {
+      final Continuation<? super EngineModelWithConfigItems> $completion) {
     final String _sql = "SELECT * FROM engine_models WHERE id = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -523,12 +569,12 @@ public final class EngineDao_Impl implements EngineDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object getConfigItemsByModelId(final long modelId,
-      final Continuation<? super List<ConfigItem>> arg1) {
+      final Continuation<? super List<ConfigItem>> $completion) {
     final String _sql = "SELECT * FROM config_items WHERE modelId = ? ORDER BY gearRatio ASC";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -574,7 +620,7 @@ public final class EngineDao_Impl implements EngineDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
@@ -631,7 +677,8 @@ public final class EngineDao_Impl implements EngineDao {
   }
 
   @Override
-  public Object getConfigItemCount(final long modelId, final Continuation<? super Integer> arg1) {
+  public Object getConfigItemCount(final long modelId,
+      final Continuation<? super Integer> $completion) {
     final String _sql = "SELECT COUNT(*) FROM config_items WHERE modelId = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -661,7 +708,7 @@ public final class EngineDao_Impl implements EngineDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @NonNull

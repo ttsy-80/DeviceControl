@@ -150,6 +150,43 @@ class ModelManagementViewModel(private val repository: EngineRepository) : ViewM
         }
     }
     
+    fun updateConfigItem(
+        configItem: ConfigItem,
+        gearRatio: Double,
+        position: String,
+        bladeCount: Int,
+        jogCount: Int,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                // 验证配置项数据
+                if (gearRatio <= 0 || bladeCount <= 0 || jogCount <= 0) {
+                    onError("请输入有效的数值")
+                    return@launch
+                }
+                
+                if (position.isBlank()) {
+                    onError("位置不能为空")
+                    return@launch
+                }
+                
+                val updatedConfigItem = configItem.copy(
+                    gearRatio = gearRatio,
+                    position = position.trim(),
+                    bladeCount = bladeCount,
+                    jogCount = jogCount
+                )
+                
+                repository.updateConfigItem(updatedConfigItem)
+                onSuccess()
+            } catch (e: Exception) {
+                onError("操作失败: ${e.message}")
+            }
+        }
+    }
+    
     fun clearError() {
         _errorMessage.value = null
     }

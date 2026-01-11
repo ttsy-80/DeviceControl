@@ -56,4 +56,8 @@ class EngineRepository(private val engineDao: EngineDao) {
     suspend fun getConfigItemCount(modelId: Long): Int {
         return engineDao.getConfigItemCount(modelId)
     }
+    
+    suspend fun updateConfigItem(configItem: ConfigItem) {
+        engineDao.updateConfigItem(configItem)
+    }
 }

@@ -103,6 +103,7 @@ id btnCancel
 id btnConfirm
 id btnCreateTask
 id btnDelete
+id btnEdit
 id btnForwardReverse
 id btnJogContinuous
 id btnModelManagement
@@ -156,6 +157,7 @@ string confirm
 string continuous
 string create_task
 string delete
+string edit
 string edit_config_item
 string engine_torque_speed
 string error_config_item_required
