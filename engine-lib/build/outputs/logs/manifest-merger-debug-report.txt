@@ -1,0 +1,42 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:2:1-21:12
+INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:2:1-21:12
+	package
+		INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:2:11-69
+application
+ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:4:5-19:19
+activity#com.devicecontrol.engine.ui.model.ModelManagementActivity
+ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:5:9-8:40
+	android:screenOrientation
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:7:13-50
+	android:exported
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:8:13-37
+	android:name
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:6:13-61
+activity#com.devicecontrol.engine.ui.task.TaskCreateActivity
+ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:10:9-13:40
+	android:screenOrientation
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:12:13-50
+	android:exported
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:13:13-37
+	android:name
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:11:13-55
+activity#com.devicecontrol.engine.ui.control.TaskControlActivity
+ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:15:9-18:40
+	android:screenOrientation
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:17:13-50
+	android:exported
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:18:13-37
+	android:name
+		ADDED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml:16:13-59
+uses-sdk
+INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml
+INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/daiwenyin/AI/DeviceControl/engine-lib/src/main/AndroidManifest.xml

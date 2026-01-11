@@ -1,0 +1,174 @@
+package com.devicecontrol.engine.ui.control
+
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import com.devicecontrol.engine.R
+import com.devicecontrol.engine.data.database.AppDatabase
+import com.devicecontrol.engine.data.model.TaskStatus
+import com.devicecontrol.engine.data.repository.EngineRepository
+import com.devicecontrol.engine.data.repository.TaskRepository
+import com.devicecontrol.engine.databinding.ActivityTaskControlBinding
+import com.devicecontrol.engine.viewmodel.TaskControlViewModel
+import java.text.DecimalFormat
+
+class TaskControlActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityTaskControlBinding
+
+    private val database by lazy { AppDatabase.getDatabase(this) }
+    private val taskRepository by lazy { TaskRepository(database.taskDao()) }
+    private val engineRepository by lazy { EngineRepository(database.engineDao()) }
+    private val viewModel: TaskControlViewModel by viewModels {
+        TaskControlViewModelFactory(taskRepository, engineRepository)
+    }
+
+    private val decimalFormat = DecimalFormat("#0.0")
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityTaskControlBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Setup Toolbar
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        binding.toolbar.setNavigationOnClickListener { finish() }
+
+        val taskId = intent.getLongExtra("taskId", -1)
+        if (taskId == -1L) {
+            Toast.makeText(this, "无效的任务ID", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        viewModel.loadTask(taskId)
+        setupObservers()
+        setupListeners()
+    }
+
+    private fun setupObservers() {
+        viewModel.displayInfo.observe(this) { info ->
+            binding.tvTaskInfo.text = info
+        }
+
+        viewModel.taskIndex.observe(this) { index ->
+            binding.tvTaskIndex.text = index
+        }
+
+        viewModel.taskExecution.observe(this) { execution ->
+            execution?.let {
+                updateTorqueSpeedDisplay(it.torque, it.speed)
+                updateButtonStates(it.status)
+            }
+        }
+
+        viewModel.canGoPrevious.observe(this) { canGo ->
+            binding.btnPreviousTask.isEnabled = canGo
+            binding.btnPreviousTask.visibility = if (canGo) android.view.View.VISIBLE else android.view.View.GONE
+        }
+
+        viewModel.canGoNext.observe(this) { canGo ->
+            binding.btnNextTask.isEnabled = canGo
+            binding.btnNextTask.visibility = if (canGo) android.view.View.VISIBLE else android.view.View.GONE
+        }
+
+        viewModel.task.observe(this) { task ->
+            task?.let {
+                // 如果任务有多个变速比，显示任务切换按钮和任务序号
+                if (it.gearRatios.size > 1) {
+                    binding.tvTaskIndex.visibility = android.view.View.VISIBLE
+                    binding.btnPreviousTask.visibility = android.view.View.VISIBLE
+                    binding.btnNextTask.visibility = android.view.View.VISIBLE
+                } else {
+                    binding.tvTaskIndex.visibility = android.view.View.GONE
+                    binding.btnPreviousTask.visibility = android.view.View.GONE
+                    binding.btnNextTask.visibility = android.view.View.GONE
+                }
+            }
+        }
+    }
+
+    private fun updateTorqueSpeedDisplay(torque: Double, speed: Double) {
+        val display = "力矩: ${decimalFormat.format(torque)} | 速度: ${decimalFormat.format(speed)}"
+        binding.tvTorqueSpeed.text = display
+    }
+
+    private fun updateButtonStates(status: TaskStatus) {
+        when (status) {
+            TaskStatus.RUNNING -> {
+                binding.btnStartPause.text = "暂停"
+            }
+            TaskStatus.PAUSED -> {
+                binding.btnStartPause.text = "启动"
+            }
+            TaskStatus.STOPPED -> {
+                binding.btnStartPause.text = "启动"
+            }
+        }
+    }
+
+    private fun setupListeners() {
+        binding.btnStartPause.setOnClickListener {
+            viewModel.toggleStartPause()
+        }
+
+        binding.btnStop.setOnClickListener {
+            viewModel.stop()
+        }
+
+        binding.btnForwardReverse.setOnClickListener {
+            viewModel.toggleRotationDirection()
+        }
+
+        binding.btnJogContinuous.setOnClickListener {
+            viewModel.toggleOperationMode()
+        }
+
+        binding.btnTorquePlus.setOnClickListener {
+            viewModel.increaseTorque()
+        }
+
+        binding.btnTorqueMinus.setOnClickListener {
+            viewModel.decreaseTorque()
+        }
+
+        binding.btnSpeedPlus.setOnClickListener {
+            viewModel.increaseSpeed()
+        }
+
+        binding.btnSpeedMinus.setOnClickListener {
+            viewModel.decreaseSpeed()
+        }
+
+        binding.btnPreviousTask.setOnClickListener {
+            viewModel.goToPreviousTask()
+        }
+
+        binding.btnNextTask.setOnClickListener {
+            viewModel.goToNextTask()
+        }
+
+        binding.btnSettings.setOnClickListener {
+            // TODO: 实现设置功能
+            Toast.makeText(this, "设置功能待实现", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+// ViewModel Factory
+class TaskControlViewModelFactory(
+    private val taskRepository: TaskRepository,
+    private val engineRepository: EngineRepository
+) : ViewModelProvider.Factory {
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TaskControlViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return TaskControlViewModel(taskRepository, engineRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}

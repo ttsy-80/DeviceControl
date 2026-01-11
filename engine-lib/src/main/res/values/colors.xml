@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material Design 3 颜色系统 -->
+    <!-- Primary Colors -->
+    <color name="primary">#6750A4</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#EADDFF</color>
+    <color name="on_primary_container">#21005D</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#625B71</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#E8DEF8</color>
+    <color name="on_secondary_container">#1D192B</color>
+    
+    <!-- Tertiary Colors -->
+    <color name="tertiary">#7D5260</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#FFD8E4</color>
+    <color name="on_tertiary_container">#31111D</color>
+    
+    <!-- Error Colors -->
+    <color name="error">#BA1A1A</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_error_container">#410002</color>
+    
+    <!-- Background Colors -->
+    <color name="background">#FFFBFE</color>
+    <color name="on_background">#1C1B1F</color>
+    <color name="surface">#FFFBFE</color>
+    <color name="on_surface">#1C1B1F</color>
+    <color name="surface_variant">#E7E0EC</color>
+    <color name="on_surface_variant">#49454F</color>
+    
+    <!-- Dark Theme Background -->
+    <color name="background_dark">#1C1B1F</color>
+    <color name="on_background_dark">#E6E1E5</color>
+    <color name="surface_dark">#1C1B1F</color>
+    <color name="on_surface_dark">#E6E1E5</color>
+    <color name="surface_variant_dark">#49454F</color>
+    <color name="on_surface_variant_dark">#CAC4D0</color>
+    
+    <!-- Accent Colors -->
+    <color name="accent_orange">#FF6B35</color>
+    <color name="accent_orange_light">#FF8A65</color>
+    <color name="accent_orange_dark">#E64A19</color>
+    <color name="on_accent_orange">#FFFFFF</color>
+    
+    <color name="accent_blue">#2196F3</color>
+    <color name="accent_blue_light">#64B5F6</color>
+    <color name="accent_blue_dark">#1976D2</color>
+    
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_red">#F44336</color>
+    
+    <!-- Card Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_background_dark">#2C2C2C</color>
+    <color name="card_elevation">#F5F5F5</color>
+    
+    <!-- Divider -->
+    <color name="divider">#1F1F1F</color>
+    <color name="divider_light">#E0E0E0</color>
+    
+    <!-- Legacy colors for compatibility -->
+    <color name="purple_200">#E1BEE7</color>
+    <color name="purple_500">#9C27B0</color>
+    <color name="purple_700">#7B1FA2</color>
+    <color name="teal_200">#80CBC4</color>
+    <color name="teal_700">#00796B</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    
+    <!-- 自定义功能颜色 -->
+    <color name="orange_button">#FF6B35</color>
+    <color name="orange_button_pressed">#E64A19</color>
+    <color name="table_header_bg">#F5F5F5</color>
+    <color name="table_row_bg">#FFFFFF</color>
+    <color name="table_row_bg_dark">#2C2C2C</color>
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_primary_dark">#E6E1E5</color>
+    <color name="text_secondary">#49454F</color>
+    <color name="text_secondary_dark">#CAC4D0</color>
+    
+    <!-- Status Colors -->
+    <color name="status_running">#4CAF50</color>
+    <color name="status_paused">#FF9800</color>
+    <color name="status_stopped">#9E9E9E</color>
+</resources>

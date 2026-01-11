@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent_blue">#2196F3</color>
+    <color name="accent_blue_dark">#1976D2</color>
+    <color name="accent_blue_light">#64B5F6</color>
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_orange">#FF6B35</color>
+    <color name="accent_orange_dark">#E64A19</color>
+    <color name="accent_orange_light">#FF8A65</color>
+    <color name="accent_red">#F44336</color>
+    <color name="background">#FFFBFE</color>
+    <color name="background_dark">#1C1B1F</color>
+    <color name="black">#000000</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_background_dark">#2C2C2C</color>
+    <color name="card_elevation">#F5F5F5</color>
+    <color name="divider">#1F1F1F</color>
+    <color name="divider_light">#E0E0E0</color>
+    <color name="error">#BA1A1A</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_accent_orange">#FFFFFF</color>
+    <color name="on_background">#1C1B1F</color>
+    <color name="on_background_dark">#E6E1E5</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="on_error_container">#410002</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_primary_container">#21005D</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="on_secondary_container">#1D192B</color>
+    <color name="on_surface">#1C1B1F</color>
+    <color name="on_surface_dark">#E6E1E5</color>
+    <color name="on_surface_variant">#49454F</color>
+    <color name="on_surface_variant_dark">#CAC4D0</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="on_tertiary_container">#31111D</color>
+    <color name="orange_button">#FF6B35</color>
+    <color name="orange_button_pressed">#E64A19</color>
+    <color name="primary">#6750A4</color>
+    <color name="primary_container">#EADDFF</color>
+    <color name="purple_200">#E1BEE7</color>
+    <color name="purple_500">#9C27B0</color>
+    <color name="purple_700">#7B1FA2</color>
+    <color name="secondary">#625B71</color>
+    <color name="secondary_container">#E8DEF8</color>
+    <color name="status_paused">#FF9800</color>
+    <color name="status_running">#4CAF50</color>
+    <color name="status_stopped">#9E9E9E</color>
+    <color name="surface">#FFFBFE</color>
+    <color name="surface_dark">#1C1B1F</color>
+    <color name="surface_variant">#E7E0EC</color>
+    <color name="surface_variant_dark">#49454F</color>
+    <color name="table_header_bg">#F5F5F5</color>
+    <color name="table_row_bg">#FFFFFF</color>
+    <color name="table_row_bg_dark">#2C2C2C</color>
+    <color name="teal_200">#80CBC4</color>
+    <color name="teal_700">#00796B</color>
+    <color name="tertiary">#7D5260</color>
+    <color name="tertiary_container">#FFD8E4</color>
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_primary_dark">#E6E1E5</color>
+    <color name="text_secondary">#49454F</color>
+    <color name="text_secondary_dark">#CAC4D0</color>
+    <color name="white">#FFFFFF</color>
+    <dimen name="button_corner_radius">28dp</dimen>
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="button_height_compact">48dp</dimen>
+    <dimen name="button_padding_horizontal">24dp</dimen>
+    <dimen name="button_padding_vertical">12dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_margin">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="control_button_corner_radius">16dp</dimen>
+    <dimen name="control_button_margin">12dp</dimen>
+    <dimen name="control_button_size">120dp</dimen>
+    <dimen name="control_panel_padding">24dp</dimen>
+    <dimen name="dialog_corner_radius">28dp</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+    <dimen name="elevation_high">8dp</dimen>
+    <dimen name="elevation_low">2dp</dimen>
+    <dimen name="elevation_medium">4dp</dimen>
+    <dimen name="icon_size_large">48dp</dimen>
+    <dimen name="icon_size_medium">32dp</dimen>
+    <dimen name="icon_size_small">24dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_xlarge">32dp</dimen>
+    <dimen name="table_cell_padding">16dp</dimen>
+    <dimen name="table_divider_height">1dp</dimen>
+    <dimen name="table_header_height">56dp</dimen>
+    <dimen name="table_row_height">64dp</dimen>
+    <dimen name="table_row_min_height">56dp</dimen>
+    <string name="add_config_item">添加配置项</string>
+    <string name="app_name">发动机控制系统</string>
+    <string name="blade_count">叶片数</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
+    <string name="create_task">创建任务</string>
+    <string name="delete">删除</string>
+    <string name="edit_config_item">编辑配置项</string>
+    <string name="engine_torque_speed">机力矩/速度</string>
+    <string name="error_config_item_required">新建型号时必须至少添加一个配置项</string>
+    <string name="error_invalid_value">请输入有效的数值</string>
+    <string name="error_model_name_duplicate">型号名称已存在</string>
+    <string name="error_model_name_empty">型号名称不能为空</string>
+    <string name="error_operation_failed">操作失败</string>
+    <string name="error_select_gear_ratio">请至少选择一个变速比</string>
+    <string name="error_select_model">请选择型号</string>
+    <string name="forward_reverse">正转/反转</string>
+    <string name="gear_ratio">变速比</string>
+    <string name="jog_continuous">点动/连续</string>
+    <string name="jog_count">点动次数</string>
+    <string name="model_management">型号管理</string>
+    <string name="model_name">型号</string>
+    <string name="new_model">新建型号</string>
+    <string name="next_task">下一个任务</string>
+    <string name="please_select_model_and_gear_ratio">请输入型号与变速比</string>
+    <string name="position">位置</string>
+    <string name="previous_task">上一个任务</string>
+    <string name="select_gear_ratios">选择变速比</string>
+    <string name="select_model">选择型号</string>
+    <string name="settings">设置</string>
+    <string name="speed_minus">速度-</string>
+    <string name="speed_plus">速度+</string>
+    <string name="start_pause">启动/暂停</string>
+    <string name="stop">停止</string>
+    <string name="task_control">任务控制</string>
+    <string name="task_create">创建任务</string>
+    <string name="task_index">任务 %1$d/%2$d</string>
+    <string name="torque_minus">力矩-</string>
+    <string name="torque_plus">力矩+</string>
+    <style name="AccentButton" parent="PrimaryButton">
+        <item name="backgroundTint">@color/accent_orange</item>
+        <item name="android:textColor">@color/on_accent_orange</item>
+    </style>
+    <style name="CardStyle">
+        <item name="android:layout_margin">@dimen/card_margin</item>
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardElevation">@dimen/card_elevation</item>
+        <item name="cardBackgroundColor">@color/card_background</item>
+    </style>
+    <style name="ControlButton" parent="Widget.Material3.Button">
+        <item name="android:layout_height">@dimen/control_button_size</item>
+        <item name="android:minHeight">@dimen/control_button_size</item>
+        <item name="cornerRadius">@dimen/control_button_corner_radius</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+    <style name="PrimaryButton" parent="Widget.Material3.Button">
+        <item name="android:layout_height">@dimen/button_height</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="cornerRadius">@dimen/button_corner_radius</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="TextBody">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    <style name="TextHeadline">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+    <style name="TextLabel">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+    <style name="TextTitle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="Theme.DeviceControl" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
+        
+        
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="colorSecondaryContainer">@color/secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/on_secondary_container</item>
+        
+        
+        <item name="colorTertiary">@color/tertiary</item>
+        <item name="colorOnTertiary">@color/on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/on_tertiary_container</item>
+        
+        
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/on_error</item>
+        <item name="colorErrorContainer">@color/error_container</item>
+        <item name="colorOnErrorContainer">@color/on_error_container</item>
+        
+        
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        
+        
+        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        
+        <item name="android:windowBackground">@color/background</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+</resources>
