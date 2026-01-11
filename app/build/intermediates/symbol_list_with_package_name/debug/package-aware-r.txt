@@ -2256,7 +2256,10 @@ dimen compat_notification_large_icon_max_height
 dimen compat_notification_large_icon_max_width
 dimen control_button_corner_radius
 dimen control_button_margin
+dimen control_button_margin_top
 dimen control_button_size
+dimen control_button_size2
+dimen control_button_size3
 dimen control_panel_padding
 dimen def_drawer_elevation
 dimen design_appbar_elevation
@@ -3283,7 +3286,6 @@ id btnModelManagement
 id btnNewModel
 id btnNextTask
 id btnPreviousTask
-id btnSettings
 id btnSpeedMinus
 id btnSpeedPlus
 id btnStartPause
@@ -3444,6 +3446,7 @@ id line3
 id linear
 id listMode
 id list_item
+id llTaskNavigation
 id m3_side_sheet
 id marquee
 id masked

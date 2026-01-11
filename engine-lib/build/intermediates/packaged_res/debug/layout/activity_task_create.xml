@@ -42,6 +42,7 @@
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
                 app:strokeWidth="0dp"
+                android:visibility="gone"
                 app:cardBackgroundColor="@color/primary_container">
 
                 <TextView

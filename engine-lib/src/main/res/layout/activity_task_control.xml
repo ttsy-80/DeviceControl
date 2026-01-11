@@ -104,137 +104,171 @@
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="@dimen/spacing_large">
 
-                <GridLayout
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:columnCount="3"
-                    android:rowCount="4"
-                    android:alignmentMode="alignMargins"
-                    android:useDefaultMargins="false"
+                    android:orientation="vertical"
                     android:padding="@dimen/spacing_medium">
 
-                    <!-- Row 1 -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnStartPause"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/start_pause"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_green" />
+                    <!-- Row 1: 5个按钮 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnForwardReverse"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/forward_reverse"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_blue" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStartPause"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_marginTop="0dp"
+                            android:layout_marginHorizontal="@dimen/control_button_margin"
+                            android:text="@string/start_pause"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_green" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnJogContinuous"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/jog_continuous"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/secondary" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnForwardReverse"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_marginTop="0dp"
+                            android:layout_marginHorizontal="@dimen/control_button_margin"
+                            android:text="@string/forward_reverse"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_blue" />
 
-                    <!-- Row 2 -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSettings"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/settings"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/tertiary"
-                        android:visibility="gone" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnJogContinuous"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_marginTop="0dp"
+                            android:layout_marginHorizontal="@dimen/control_button_margin"
+                            android:text="@string/jog_continuous"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/secondary" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnStop"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/stop"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/error" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStop"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_marginTop="0dp"
+                            android:layout_marginHorizontal="@dimen/control_button_margin"
+                            android:text="@string/stop"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/error" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnPreviousTask"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/previous_task"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_orange"
-                        android:visibility="gone" />
 
-                    <!-- Row 3 -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnTorquePlus"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/torque_plus"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_orange" />
+                    </LinearLayout>
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnTorqueMinus"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/torque_minus"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_orange" />
+                    <!-- Row 2: 5个位置（力矩+/-, 速度+/-, 空位） -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="0dp"
+                        android:gravity="center">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnNextTask"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/next_task"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_orange"
-                        android:visibility="gone" />
+                        <!-- 力矩+/- 上下排列 -->
+                        <LinearLayout
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:orientation="vertical"
+                            android:gravity="center">
 
-                    <!-- Row 4 -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSpeedPlus"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/speed_plus"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_blue" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTorquePlus"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:text="@string/torque_plus"
+                                android:textSize="12sp"
+                                style="@style/ControlButton"
+                                app:backgroundTint="@color/accent_orange"
+                                android:minHeight="0dp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSpeedMinus"
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin"
-                        android:text="@string/speed_minus"
-                        android:textSize="14sp"
-                        style="@style/ControlButton"
-                        app:backgroundTint="@color/accent_blue" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTorqueMinus"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:text="@string/torque_minus"
+                                android:textSize="12sp"
+                                style="@style/ControlButton"
+                                app:backgroundTint="@color/accent_orange"
+                                android:minHeight="0dp" />
+                        </LinearLayout>
 
-                    <View
-                        android:layout_width="@dimen/control_button_size"
-                        android:layout_height="@dimen/control_button_size"
-                        android:layout_margin="@dimen/control_button_margin" />
-                </GridLayout>
+                        <!-- 速度+/- 上下排列 -->
+                        <LinearLayout
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSpeedPlus"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:text="@string/speed_plus"
+                                android:textSize="12sp"
+                                style="@style/ControlButton"
+                                app:backgroundTint="@color/accent_blue"
+                                android:minHeight="0dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSpeedMinus"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:text="@string/speed_minus"
+                                android:textSize="12sp"
+                                style="@style/ControlButton"
+                                app:backgroundTint="@color/accent_blue"
+                                android:minHeight="0dp" />
+                        </LinearLayout>
+
+                        <!-- 上一个任务/下一个任务 上下排列 -->
+                        <LinearLayout
+                            android:id="@+id/llTaskNavigation"
+                            android:layout_width="@dimen/control_button_size3"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnPreviousTask"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:text="@string/previous_task"
+                                android:textSize="12sp"
+                                style="@style/ControlButton"
+                                app:backgroundTint="@color/accent_orange"
+                                android:visibility="gone"
+                                android:minHeight="0dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnNextTask"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:text="@string/next_task"
+                                android:textSize="12sp"
+                                style="@style/ControlButton"
+                                app:backgroundTint="@color/accent_orange"
+                                android:visibility="gone"
+                                android:minHeight="0dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

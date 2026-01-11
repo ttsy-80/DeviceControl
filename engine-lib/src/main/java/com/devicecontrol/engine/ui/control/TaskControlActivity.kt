@@ -73,11 +73,14 @@ class TaskControlActivity : AppCompatActivity() {
                 android.util.Log.d("TaskControl", "Task loaded: configItemIds.size = ${it.configItemIds.size}, hasMultipleTasks = $hasMultipleTasks")
                 if (hasMultipleTasks) {
                     binding.tvTaskIndex.visibility = android.view.View.VISIBLE
+                    // 多任务时：上一个任务/下一个任务在第一行最后一个位置上下排列
+                    binding.llTaskNavigation.visibility = android.view.View.VISIBLE
                     binding.btnPreviousTask.visibility = android.view.View.VISIBLE
                     binding.btnNextTask.visibility = android.view.View.VISIBLE
                 } else {
                     binding.tvTaskIndex.visibility = android.view.View.GONE
-                    // 单个任务时隐藏切换按钮
+                    // 单任务时：隐藏任务导航容器，第一行最后一个位置显示空位
+                    binding.llTaskNavigation.visibility = android.view.View.GONE
                     binding.btnPreviousTask.visibility = android.view.View.GONE
                     binding.btnNextTask.visibility = android.view.View.GONE
                 }
@@ -85,17 +88,13 @@ class TaskControlActivity : AppCompatActivity() {
         }
 
         viewModel.canGoPrevious.observe(this) { canGo ->
-            // 只有在按钮可见时才更新状态
-            if (binding.btnPreviousTask.visibility == android.view.View.VISIBLE) {
-                binding.btnPreviousTask.isEnabled = canGo
-            }
+            // 更新按钮状态
+            binding.btnPreviousTask.isEnabled = canGo
         }
 
         viewModel.canGoNext.observe(this) { canGo ->
-            // 只有在按钮可见时才更新状态
-            if (binding.btnNextTask.visibility == android.view.View.VISIBLE) {
-                binding.btnNextTask.isEnabled = canGo
-            }
+            // 更新按钮状态
+            binding.btnNextTask.isEnabled = canGo
         }
     }
 
@@ -170,11 +169,6 @@ class TaskControlActivity : AppCompatActivity() {
 
         binding.btnNextTask.setOnClickListener {
             viewModel.goToNextTask()
-        }
-
-        binding.btnSettings.setOnClickListener {
-            // TODO: 实现设置功能
-            Toast.makeText(this, "设置功能待实现", Toast.LENGTH_SHORT).show()
         }
     }
 }

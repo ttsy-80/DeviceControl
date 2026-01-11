@@ -4,6 +4,7 @@ package com.devicecontrol.engine.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,9 +39,6 @@ public final class ActivityTaskControlBinding implements ViewBinding {
   public final MaterialButton btnPreviousTask;
 
   @NonNull
-  public final MaterialButton btnSettings;
-
-  @NonNull
   public final MaterialButton btnSpeedMinus;
 
   @NonNull
@@ -59,6 +57,9 @@ public final class ActivityTaskControlBinding implements ViewBinding {
   public final MaterialButton btnTorquePlus;
 
   @NonNull
+  public final LinearLayout llTaskNavigation;
+
+  @NonNull
   public final MaterialToolbar toolbar;
 
   @NonNull
@@ -73,10 +74,10 @@ public final class ActivityTaskControlBinding implements ViewBinding {
   private ActivityTaskControlBinding(@NonNull CoordinatorLayout rootView,
       @NonNull AppBarLayout appBarLayout, @NonNull MaterialButton btnForwardReverse,
       @NonNull MaterialButton btnJogContinuous, @NonNull MaterialButton btnNextTask,
-      @NonNull MaterialButton btnPreviousTask, @NonNull MaterialButton btnSettings,
-      @NonNull MaterialButton btnSpeedMinus, @NonNull MaterialButton btnSpeedPlus,
-      @NonNull MaterialButton btnStartPause, @NonNull MaterialButton btnStop,
-      @NonNull MaterialButton btnTorqueMinus, @NonNull MaterialButton btnTorquePlus,
+      @NonNull MaterialButton btnPreviousTask, @NonNull MaterialButton btnSpeedMinus,
+      @NonNull MaterialButton btnSpeedPlus, @NonNull MaterialButton btnStartPause,
+      @NonNull MaterialButton btnStop, @NonNull MaterialButton btnTorqueMinus,
+      @NonNull MaterialButton btnTorquePlus, @NonNull LinearLayout llTaskNavigation,
       @NonNull MaterialToolbar toolbar, @NonNull TextView tvTaskIndex, @NonNull TextView tvTaskInfo,
       @NonNull TextView tvTorqueSpeed) {
     this.rootView = rootView;
@@ -85,13 +86,13 @@ public final class ActivityTaskControlBinding implements ViewBinding {
     this.btnJogContinuous = btnJogContinuous;
     this.btnNextTask = btnNextTask;
     this.btnPreviousTask = btnPreviousTask;
-    this.btnSettings = btnSettings;
     this.btnSpeedMinus = btnSpeedMinus;
     this.btnSpeedPlus = btnSpeedPlus;
     this.btnStartPause = btnStartPause;
     this.btnStop = btnStop;
     this.btnTorqueMinus = btnTorqueMinus;
     this.btnTorquePlus = btnTorquePlus;
+    this.llTaskNavigation = llTaskNavigation;
     this.toolbar = toolbar;
     this.tvTaskIndex = tvTaskIndex;
     this.tvTaskInfo = tvTaskInfo;
@@ -155,12 +156,6 @@ public final class ActivityTaskControlBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.btnSettings;
-      MaterialButton btnSettings = ViewBindings.findChildViewById(rootView, id);
-      if (btnSettings == null) {
-        break missingId;
-      }
-
       id = R.id.btnSpeedMinus;
       MaterialButton btnSpeedMinus = ViewBindings.findChildViewById(rootView, id);
       if (btnSpeedMinus == null) {
@@ -197,6 +192,12 @@ public final class ActivityTaskControlBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.llTaskNavigation;
+      LinearLayout llTaskNavigation = ViewBindings.findChildViewById(rootView, id);
+      if (llTaskNavigation == null) {
+        break missingId;
+      }
+
       id = R.id.toolbar;
       MaterialToolbar toolbar = ViewBindings.findChildViewById(rootView, id);
       if (toolbar == null) {
@@ -222,8 +223,8 @@ public final class ActivityTaskControlBinding implements ViewBinding {
       }
 
       return new ActivityTaskControlBinding((CoordinatorLayout) rootView, appBarLayout,
-          btnForwardReverse, btnJogContinuous, btnNextTask, btnPreviousTask, btnSettings,
-          btnSpeedMinus, btnSpeedPlus, btnStartPause, btnStop, btnTorqueMinus, btnTorquePlus,
+          btnForwardReverse, btnJogContinuous, btnNextTask, btnPreviousTask, btnSpeedMinus,
+          btnSpeedPlus, btnStartPause, btnStop, btnTorqueMinus, btnTorquePlus, llTaskNavigation,
           toolbar, tvTaskIndex, tvTaskInfo, tvTorqueSpeed);
     }
     String missingId = rootView.getResources().getResourceName(id);

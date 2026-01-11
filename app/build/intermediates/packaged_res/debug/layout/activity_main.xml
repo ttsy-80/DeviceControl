@@ -10,7 +10,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/spacing_large">
+        android:paddingHorizontal="@dimen/spacing_large"
+        android:paddingVertical="@dimen/spacing_medium">
 
     <!-- Title -->
     <TextView
@@ -26,7 +27,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/spacing_xlarge" />
+        android:layout_marginTop="@dimen/spacing_medium" />
 
     <!-- Subtitle -->
     <TextView
@@ -46,7 +47,7 @@
         android:id="@+id/cardModelManagement"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_xlarge"
+        android:layout_marginTop="@dimen/spacing_medium"
         app:cardCornerRadius="@dimen/card_corner_radius"
         app:cardElevation="@dimen/card_elevation"
         app:strokeWidth="0dp"
@@ -75,6 +76,7 @@
                 android:layout_height="wrap_content"
                 android:text="管理发动机型号和配置项"
                 android:textSize="14sp"
+                android:visibility="gone"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="@dimen/spacing_medium" />
 
@@ -121,6 +123,7 @@
                 android:layout_height="wrap_content"
                 android:text="创建新的发动机控制任务"
                 android:textSize="14sp"
+                android:visibility="gone"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="@dimen/spacing_medium" />
 

@@ -71,9 +71,12 @@
     <dimen name="card_margin">16dp</dimen>
     <dimen name="card_padding">16dp</dimen>
     <dimen name="control_button_corner_radius">16dp</dimen>
-    <dimen name="control_button_margin">12dp</dimen>
-    <dimen name="control_button_size">120dp</dimen>
-    <dimen name="control_panel_padding">24dp</dimen>
+    <dimen name="control_button_margin">10dp</dimen>
+    <dimen name="control_button_margin_top">5dp</dimen>
+    <dimen name="control_button_size">90dp</dimen>
+    <dimen name="control_button_size2">45dp</dimen>
+    <dimen name="control_button_size3">120dp</dimen>
+    <dimen name="control_panel_padding">10dp</dimen>
     <dimen name="dialog_corner_radius">28dp</dimen>
     <dimen name="dialog_padding">24dp</dimen>
     <dimen name="elevation_high">8dp</dimen>
@@ -153,7 +156,7 @@
     </style>
     <style name="ControlButton" parent="Widget.Material3.Button">
         <item name="android:layout_height">@dimen/control_button_size</item>
-        <item name="android:minHeight">@dimen/control_button_size</item>
+
         <item name="cornerRadius">@dimen/control_button_corner_radius</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">14sp</item>

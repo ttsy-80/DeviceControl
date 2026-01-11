@@ -71,7 +71,10 @@ dimen card_margin
 dimen card_padding
 dimen control_button_corner_radius
 dimen control_button_margin
+dimen control_button_margin_top
 dimen control_button_size
+dimen control_button_size2
+dimen control_button_size3
 dimen control_panel_padding
 dimen dialog_corner_radius
 dimen dialog_padding
@@ -109,7 +112,6 @@ id btnModelManagement
 id btnNewModel
 id btnNextTask
 id btnPreviousTask
-id btnSettings
 id btnSpeedMinus
 id btnSpeedPlus
 id btnStartPause
@@ -124,6 +126,7 @@ id etGearRatio
 id etJogCount
 id etModelName
 id etPosition
+id llTaskNavigation
 id rvGearRatios
 id rvModelList
 id tableHeader

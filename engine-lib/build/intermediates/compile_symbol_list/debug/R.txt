@@ -70,7 +70,10 @@ int dimen card_margin 0x0
 int dimen card_padding 0x0
 int dimen control_button_corner_radius 0x0
 int dimen control_button_margin 0x0
+int dimen control_button_margin_top 0x0
 int dimen control_button_size 0x0
+int dimen control_button_size2 0x0
+int dimen control_button_size3 0x0
 int dimen control_panel_padding 0x0
 int dimen dialog_corner_radius 0x0
 int dimen dialog_padding 0x0
@@ -108,7 +111,6 @@ int id btnModelManagement 0x0
 int id btnNewModel 0x0
 int id btnNextTask 0x0
 int id btnPreviousTask 0x0
-int id btnSettings 0x0
 int id btnSpeedMinus 0x0
 int id btnSpeedPlus 0x0
 int id btnStartPause 0x0
@@ -123,6 +125,7 @@ int id etGearRatio 0x0
 int id etJogCount 0x0
 int id etModelName 0x0
 int id etPosition 0x0
+int id llTaskNavigation 0x0
 int id rvGearRatios 0x0
 int id rvModelList 0x0
 int id tableHeader 0x0
