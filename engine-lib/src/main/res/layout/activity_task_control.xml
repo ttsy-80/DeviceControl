@@ -20,66 +20,6 @@
             app:title="任务控制"
             app:titleTextColor="@color/on_primary"
             app:navigationIconTint="@color/on_primary" />
-
-        <!-- Task Info Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/spacing_medium"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="@dimen/elevation_medium"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="@color/primary_container">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_medium">
-
-                <TextView
-                    android:id="@+id/tvTaskInfo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="CFM56-3B | LPC2-33/46 | 点动"
-                    android:textColor="@color/on_primary_container"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="@dimen/spacing_small" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:id="@+id/tvTorqueSpeed"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/engine_torque_speed"
-                        android:textColor="@color/on_primary_container"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/tvTaskIndex"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="任务 1/1"
-                        android:textColor="@color/on_primary_container"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:background="@drawable/bg_task_index"
-                        android:paddingStart="@dimen/spacing_medium"
-                        android:paddingEnd="@dimen/spacing_medium"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:paddingBottom="@dimen/spacing_small"
-                        android:visibility="gone" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Control Panel -->
@@ -91,18 +31,19 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:padding="@dimen/control_panel_padding"
-            android:gravity="center">
+            android:gravity="center_vertical">
 
-            <!-- Control Buttons Grid -->
+            <!-- Left: Control Buttons Grid (weight=1) -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="2.0"
+                android:layout_marginEnd="@dimen/spacing_medium"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
-                app:strokeWidth="0dp"
-                android:layout_marginBottom="@dimen/spacing_large">
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -120,7 +61,7 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnStartPause"
                             android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_height="@dimen/control_button_size"
                             android:layout_marginTop="0dp"
                             android:layout_marginHorizontal="@dimen/control_button_margin"
                             android:text="@string/start_pause"
@@ -131,7 +72,7 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnForwardReverse"
                             android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_height="@dimen/control_button_size"
                             android:layout_marginTop="0dp"
                             android:layout_marginHorizontal="@dimen/control_button_margin"
                             android:text="@string/forward_reverse"
@@ -142,7 +83,7 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnJogContinuous"
                             android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_height="@dimen/control_button_size"
                             android:layout_marginTop="0dp"
                             android:layout_marginHorizontal="@dimen/control_button_margin"
                             android:text="@string/jog_continuous"
@@ -153,7 +94,7 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnStop"
                             android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size2"
+                            android:layout_height="@dimen/control_button_size"
                             android:layout_marginTop="0dp"
                             android:layout_marginHorizontal="@dimen/control_button_margin"
                             android:text="@string/stop"
@@ -268,6 +209,77 @@
                                 android:minHeight="0dp" />
                         </LinearLayout>
                     </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Center: Placeholder (weight=2) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:layout_marginHorizontal="@dimen/spacing_medium"
+                android:orientation="vertical">
+                <!-- Placeholder - empty for now -->
+            </LinearLayout>
+
+            <!-- Right: Task Info Card (weight=1) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:layout_marginStart="@dimen/spacing_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/elevation_medium"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/primary_container">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_medium">
+
+                    <TextView
+                        android:id="@+id/tvTaskInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="CFM56-3B | LPC2-33/46 | 点动"
+                        android:textColor="@color/on_primary_container"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="@dimen/spacing_small" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvTorqueSpeed"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/engine_torque_speed"
+                            android:textColor="@color/on_primary_container"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvTaskIndex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="任务 1/1"
+                        android:textColor="@color/on_primary_container"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_task_index"
+                        android:paddingEnd="@dimen/spacing_medium"
+                        android:paddingTop="@dimen/spacing_small"
+                        android:paddingBottom="@dimen/spacing_small"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
