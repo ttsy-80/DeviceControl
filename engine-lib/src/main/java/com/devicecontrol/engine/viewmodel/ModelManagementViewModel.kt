@@ -172,14 +172,20 @@ class ModelManagementViewModel(private val repository: EngineRepository) : ViewM
                     return@launch
                 }
                 
+                // 如果变速比改变了，批量更新该型号下所有配置项的变速比
+                if (configItem.gearRatio != gearRatio) {
+                    repository.updateAllConfigItemsGearRatioByModelId(configItem.modelId, gearRatio)
+                }
+                
+                // 更新当前配置项的其他字段（位置、叶片数、点动次数）
                 val updatedConfigItem = configItem.copy(
-                    gearRatio = gearRatio,
+                    gearRatio = gearRatio, // 使用新的变速比
                     position = position.trim(),
                     bladeCount = bladeCount,
                     jogCount = jogCount
                 )
-                
                 repository.updateConfigItem(updatedConfigItem)
+                
                 onSuccess()
             } catch (e: Exception) {
                 onError("操作失败: ${e.message}")

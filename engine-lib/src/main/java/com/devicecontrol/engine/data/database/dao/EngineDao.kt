@@ -53,6 +53,9 @@ interface EngineDao {
     @Update
     suspend fun updateConfigItem(configItem: ConfigItem)
     
+    @Query("UPDATE config_items SET gearRatio = :newGearRatio WHERE modelId = :modelId")
+    suspend fun updateAllConfigItemsGearRatioByModelId(modelId: Long, newGearRatio: Double)
+    
     @Query("DELETE FROM config_items WHERE id = :configItemId")
     suspend fun deleteConfigItemById(configItemId: Long)
     

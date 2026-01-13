@@ -143,22 +143,32 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun showConfigItemDialog(modelId: Long) {
-        val dialog = ConfigItemDialog(modelId = modelId, existingConfigItem = null) { gearRatio, position, bladeCount, jogCount ->
-            viewModel.addConfigItem(
+        // 获取该型号的第一个配置项的变速比
+        lifecycleScope.launch {
+            val configItems = repository.getConfigItemsByModelId(modelId)
+            val firstGearRatio = configItems.firstOrNull()?.gearRatio
+            
+            val dialog = ConfigItemDialog(
                 modelId = modelId,
-                gearRatio = gearRatio,
-                position = position,
-                bladeCount = bladeCount,
-                jogCount = jogCount,
-                onSuccess = {
-                    Toast.makeText(this, "配置项添加成功", Toast.LENGTH_SHORT).show()
-                },
-                onError = { error ->
-                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
-                }
-            )
+                existingConfigItem = null,
+                firstGearRatio = firstGearRatio
+            ) { gearRatio, position, bladeCount, jogCount ->
+                viewModel.addConfigItem(
+                    modelId = modelId,
+                    gearRatio = gearRatio,
+                    position = position,
+                    bladeCount = bladeCount,
+                    jogCount = jogCount,
+                    onSuccess = {
+                        Toast.makeText(this@ModelManagementActivity, "配置项添加成功", Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { error ->
+                        Toast.makeText(this@ModelManagementActivity, error, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+            dialog.show(supportFragmentManager, "ConfigItemDialog")
         }
-        dialog.show(supportFragmentManager, "ConfigItemDialog")
     }
     
     private fun showEditConfigItemDialog(configItem: ConfigItem) {

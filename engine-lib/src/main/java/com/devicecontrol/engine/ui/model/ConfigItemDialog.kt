@@ -13,6 +13,7 @@ import com.devicecontrol.engine.databinding.DialogConfigItemBinding
 class ConfigItemDialog(
     private val modelId: Long? = null,
     private val existingConfigItem: com.devicecontrol.engine.data.model.ConfigItem? = null,
+    private val firstGearRatio: Double? = null, // 第一个配置项的变速比（用于添加模式）
     private val onConfirm: (Double, String, Int, Int) -> Unit
 ) : DialogFragment() {
 
@@ -36,6 +37,11 @@ class ConfigItemDialog(
             binding.etPosition.setText(existingConfigItem.position)
             binding.etBladeCount.setText(existingConfigItem.bladeCount.toString())
             binding.etJogCount.setText(existingConfigItem.jogCount.toString())
+        } else if (!isEditMode && firstGearRatio != null) {
+            // 添加模式：如果提供了第一个配置项的变速比，自动填充并设为只读
+            binding.etGearRatio.setText(firstGearRatio.toString())
+            // 禁用整个 TextInputLayout，这样视觉效果更好
+            binding.tilGearRatio.isEnabled = false
         }
 
         val dialog = AlertDialog.Builder(requireContext())
@@ -98,21 +104,23 @@ class ConfigItemDialog(
     }
     
     private fun setupImeActions() {
-        // 设置输入法选项
-        binding.etGearRatio.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        // 设置输入法选项（变速比如果是只读的，不需要设置）
+        if (binding.etGearRatio.isEnabled) {
+            binding.etGearRatio.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+            // 设置输入法的下一步/完成行为
+            binding.etGearRatio.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                    binding.etPosition.requestFocus()
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        
         binding.etPosition.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
         binding.etBladeCount.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
         binding.etJogCount.imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        
-        // 设置输入法的下一步/完成行为
-        binding.etGearRatio.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                binding.etPosition.requestFocus()
-                true
-            } else {
-                false
-            }
-        }
         
         binding.etPosition.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_NEXT) {
