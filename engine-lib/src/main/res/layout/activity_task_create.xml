@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="创建任务"
+            app:title="检测任务"
             app:titleTextColor="@color/on_primary"
             app:navigationIconTint="@color/on_primary" />
     </com.google.android.material.appbar.AppBarLayout>

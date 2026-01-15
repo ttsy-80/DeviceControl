@@ -112,7 +112,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="创建任务"
+                android:text="检测任务"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_background"
@@ -121,7 +121,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="创建新的发动机控制任务"
+                android:text="创建新的发动机检测任务"
                 android:textSize="14sp"
                 android:visibility="gone"
                 android:textColor="@color/text_secondary"
@@ -131,7 +131,7 @@
                 android:id="@+id/btnTaskCreate"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
-                android:text="创建任务"
+                android:text="检测任务"
                 style="@style/AccentButton" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
