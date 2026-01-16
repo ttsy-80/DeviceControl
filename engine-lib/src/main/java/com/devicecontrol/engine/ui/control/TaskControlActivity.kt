@@ -84,16 +84,12 @@ class TaskControlActivity : AppCompatActivity() {
                 android.util.Log.d("TaskControl", "Task loaded: configItemIds.size = ${it.configItemIds.size}, hasMultipleTasks = $hasMultipleTasks")
                 if (hasMultipleTasks) {
                     binding.tvTaskIndex.visibility = android.view.View.VISIBLE
-                    // 多任务时：上一个任务/下一个任务在第一行最后一个位置上下排列
+                    // 多任务时：在TaskInfo区域显示导航按钮
                     binding.llTaskNavigation.visibility = android.view.View.VISIBLE
-                    binding.btnPreviousTask.visibility = android.view.View.VISIBLE
-                    binding.btnNextTask.visibility = android.view.View.VISIBLE
                 } else {
                     binding.tvTaskIndex.visibility = android.view.View.GONE
-                    // 单任务时：隐藏任务导航容器，第一行最后一个位置显示空位
+                    // 单任务时：隐藏任务导航容器
                     binding.llTaskNavigation.visibility = android.view.View.GONE
-                    binding.btnPreviousTask.visibility = android.view.View.GONE
-                    binding.btnNextTask.visibility = android.view.View.GONE
                 }
             }
         }
@@ -101,12 +97,12 @@ class TaskControlActivity : AppCompatActivity() {
         viewModel.canGoPrevious.observe(this) { canGo ->
             // 更新按钮状态
             binding.btnPreviousTask.isEnabled = canGo
+            binding.btnPreviousTask.alpha = if (canGo) 1.0f else 0.5f
         }
 
         viewModel.canGoNext.observe(this) { canGo ->
             // 更新按钮状态
             binding.btnNextTask.isEnabled = canGo
-            // 单选时置灰不可点击，多选时可点击
             binding.btnNextTask.alpha = if (canGo) 1.0f else 0.5f
         }
         
