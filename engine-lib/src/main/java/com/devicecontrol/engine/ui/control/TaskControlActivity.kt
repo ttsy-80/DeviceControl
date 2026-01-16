@@ -116,25 +116,32 @@ class TaskControlActivity : AppCompatActivity() {
     }
 
     private fun updateSpeedDisplay(speed: Double) {
-        val display = "速度: ${decimalFormat.format(speed)}"
+        val display = "速度: ${decimalFormat.format(speed)} ${getString(R.string.speed_unit)}"
         binding.tvSpeed.text = display
     }
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
         // 更新启动/暂停按钮状态
         val isRunning = execution.status == com.devicecontrol.engine.data.model.TaskStatus.RUNNING
+        // 启动状态时，启动按钮置灰，暂停按钮可用
+        binding.btnStartPause.isEnabled = !isRunning
+        binding.btnStartPause.alpha = if (isRunning) 0.5f else 1.0f
         binding.btnPause.isEnabled = isRunning
         binding.btnPause.alpha = if (isRunning) 1.0f else 0.5f
         
-        // 更新正转/反转按钮状态
+        // 更新正转/反转按钮状态 - 选中的按钮置灰
         val isForward = execution.rotationDirection == com.devicecontrol.engine.data.model.RotationDirection.FORWARD
-        binding.btnForward.isSelected = isForward
-        binding.btnReverse.isSelected = !isForward
+        binding.btnForward.isEnabled = !isForward
+        binding.btnForward.alpha = if (isForward) 0.5f else 1.0f
+        binding.btnReverse.isEnabled = isForward
+        binding.btnReverse.alpha = if (isForward) 1.0f else 0.5f
         
-        // 更新点动/连续按钮状态
+        // 更新点动/连续按钮状态 - 选中的按钮置灰
         val isJog = execution.operationMode == com.devicecontrol.engine.data.model.OperationMode.JOG
-        binding.btnJog.isSelected = isJog
-        binding.btnContinuous.isSelected = !isJog
+        binding.btnJog.isEnabled = !isJog
+        binding.btnJog.alpha = if (isJog) 0.5f else 1.0f
+        binding.btnContinuous.isEnabled = isJog
+        binding.btnContinuous.alpha = if (isJog) 1.0f else 0.5f
     }
     
     private fun showRecordDetailDialog(record: com.devicecontrol.engine.data.model.TaskRecord) {

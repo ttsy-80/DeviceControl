@@ -52,6 +52,7 @@
     <string name="playback">回放</string>
     <string name="record_detail">记录详情</string>
     <string name="blade_number_label">第%1$d个</string>
+    <string name="speed_unit">分钟/圈</string>
     
     <!-- 错误提示 -->
     <string name="error_model_name_empty">型号名称不能为空</string>

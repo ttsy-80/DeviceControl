@@ -98,16 +98,21 @@ class TaskControlViewModel(
                 val configItem = model.configItems.find { it.id == configItemId }
                 _currentConfigItem.value = configItem
                 
-                // 获取当前执行状态以显示操作模式
+                // 获取当前执行状态以显示操作模式和旋转方向
                 val execution = _taskExecution.value
                 val operationModeText = when (execution?.operationMode) {
                     OperationMode.JOG -> "点动"
                     OperationMode.CONTINUOUS -> "连续"
                     null -> "点动"
                 }
+                val rotationDirectionText = when (execution?.rotationDirection) {
+                    RotationDirection.FORWARD -> "正转"
+                    RotationDirection.REVERSE -> "反转"
+                    null -> "正转"
+                }
                 
-                // 更新显示信息，包含操作模式
-                val displayText = "${task.modelName} | ${configItem?.position ?: ""} | $operationModeText"
+                // 更新显示信息，包含操作模式和旋转方向
+                val displayText = "${task.modelName} | ${configItem?.position ?: ""} | $operationModeText | $rotationDirectionText"
                 _displayInfo.value = displayText
             }
         }
@@ -143,18 +148,30 @@ class TaskControlViewModel(
     
     fun start() {
         updateTaskStatus(TaskStatus.RUNNING)
+        // 更新header显示
+        val task = _task.value ?: return
+        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun pause() {
         updateTaskStatus(TaskStatus.PAUSED)
+        // 更新header显示
+        val task = _task.value ?: return
+        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun setForward() {
         updateExecution { it.copy(rotationDirection = RotationDirection.FORWARD) }
+        // 更新header显示
+        val task = _task.value ?: return
+        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun setReverse() {
         updateExecution { it.copy(rotationDirection = RotationDirection.REVERSE) }
+        // 更新header显示
+        val task = _task.value ?: return
+        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun setJog() {
@@ -174,13 +191,20 @@ class TaskControlViewModel(
     }
     
     fun increaseSpeed() {
-        updateExecution { it.copy(speed = it.speed + 1.0) }
+        val execution = _taskExecution.value ?: return
+        // 速度调整频率：5分钟/一圈，每次增加5
+        val newSpeed = execution.speed + 5.0
+        updateExecution { it.copy(speed = newSpeed) }
     }
     
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
-        if (execution.speed > 0) {
-            updateExecution { it.copy(speed = execution.speed - 1.0) }
+        // 速度调整频率：5分钟/一圈，每次减少5，最小为0
+        if (execution.speed >= 5.0) {
+            val newSpeed = execution.speed - 5.0
+            updateExecution { it.copy(speed = newSpeed) }
+        } else {
+            updateExecution { it.copy(speed = 0.0) }
         }
     }
     
@@ -227,3 +251,4 @@ class TaskControlViewModel(
         }
     }
 }
+
