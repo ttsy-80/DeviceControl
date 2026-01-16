@@ -95,15 +95,19 @@ class TaskControlActivity : AppCompatActivity() {
         }
 
         viewModel.canGoPrevious.observe(this) { canGo ->
-            // 更新按钮状态
+            // 更新按钮状态和可见性
             binding.btnPreviousTask.isEnabled = canGo
             binding.btnPreviousTask.alpha = if (canGo) 1.0f else 0.5f
+            // 即使不可用也显示按钮，只是置灰
+            binding.btnPreviousTask.visibility = android.view.View.VISIBLE
         }
 
         viewModel.canGoNext.observe(this) { canGo ->
-            // 更新按钮状态
+            // 更新按钮状态和可见性
             binding.btnNextTask.isEnabled = canGo
             binding.btnNextTask.alpha = if (canGo) 1.0f else 0.5f
+            // 即使不可用也显示按钮，只是置灰
+            binding.btnNextTask.visibility = android.view.View.VISIBLE
         }
         
         viewModel.taskRecords.observe(this) { records ->

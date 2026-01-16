@@ -93,7 +93,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center"
+                    android:gravity="end"
                     android:layout_marginTop="@dimen/spacing_small"
                     android:visibility="gone">
 
@@ -104,12 +104,14 @@
                         android:layout_marginEnd="@dimen/spacing_small"
                         android:text="@string/previous_task"
                         android:textSize="14sp"
-                        android:drawableStart="@drawable/ic_arrow_back"
-                        android:drawablePadding="@dimen/spacing_small"
-                        android:drawableTint="@color/on_primary_container"
+                        app:icon="@drawable/ic_arrow_back"
+                        app:iconGravity="start"
+                        app:iconPadding="@dimen/spacing_small"
+                        app:iconTint="@color/on_primary_container"
                         style="@style/Widget.Material3.Button.TextButton"
                         app:backgroundTint="@android:color/transparent"
-                        android:textColor="@color/on_primary_container" />
+                        android:textColor="@color/on_primary_container"
+                        android:visibility="visible" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNextTask"
@@ -118,12 +120,14 @@
                         android:layout_marginStart="@dimen/spacing_small"
                         android:text="@string/next_task"
                         android:textSize="14sp"
-                        android:drawableEnd="@drawable/ic_arrow_forward"
-                        android:drawablePadding="@dimen/spacing_small"
-                        android:drawableTint="@color/on_primary_container"
+                        app:icon="@drawable/ic_arrow_forward"
+                        app:iconGravity="end"
+                        app:iconPadding="@dimen/spacing_small"
+                        app:iconTint="@color/on_primary_container"
                         style="@style/Widget.Material3.Button.TextButton"
                         app:backgroundTint="@android:color/transparent"
-                        android:textColor="@color/on_primary_container" />
+                        android:textColor="@color/on_primary_container"
+                        android:visibility="visible" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
