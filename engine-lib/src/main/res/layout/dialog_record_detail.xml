@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/spacing_large">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/record_detail"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_background"
+        android:layout_marginBottom="@dimen/spacing_medium" />
+
+    <!-- Position -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/spacing_medium">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/position"
+            android:textSize="16sp"
+            android:textColor="@color/on_background" />
+
+        <TextView
+            android:id="@+id/tvPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_background" />
+    </LinearLayout>
+
+    <!-- Current Blade Count -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/spacing_large">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/current_blade_count"
+            android:textSize="16sp"
+            android:textColor="@color/on_background" />
+
+        <TextView
+            android:id="@+id/tvBladeNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="第1个"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_background" />
+    </LinearLayout>
+
+    <!-- Playback Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlayback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/playback"
+        android:textSize="16sp"
+        style="@style/PrimaryButton"
+        app:backgroundTint="@color/accent_green" />
+
+</LinearLayout>
+
