@@ -3,6 +3,7 @@ package com.devicecontrol.engine.data.repository
 import com.devicecontrol.engine.data.database.dao.TaskDao
 import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
+import com.devicecontrol.engine.data.model.TaskRecord
 import kotlinx.coroutines.flow.Flow
 
 class TaskRepository(private val taskDao: TaskDao) {
@@ -53,5 +54,33 @@ class TaskRepository(private val taskDao: TaskDao) {
     
     suspend fun updateTaskExecution(execution: TaskExecution) {
         taskDao.updateTaskExecution(execution)
+    }
+    
+    // TaskRecord相关方法
+    suspend fun getTaskRecordsByTaskIdAndIndex(taskId: Long, gearRatioIndex: Int): List<TaskRecord> {
+        return taskDao.getTaskRecordsByTaskIdAndIndex(taskId, gearRatioIndex)
+    }
+    
+    fun getTaskRecordsByTaskIdAndIndexFlow(taskId: Long, gearRatioIndex: Int): Flow<List<TaskRecord>> {
+        return taskDao.getTaskRecordsByTaskIdAndIndexFlow(taskId, gearRatioIndex)
+    }
+    
+    suspend fun getTaskRecordById(recordId: Long): TaskRecord? {
+        return taskDao.getTaskRecordById(recordId)
+    }
+    
+    suspend fun insertTaskRecord(record: TaskRecord): Long {
+        // 获取当前最大记录号
+        val maxRecordNumber = taskDao.getMaxRecordNumber(record.taskId, record.gearRatioIndex) ?: 0
+        val newRecord = record.copy(recordNumber = maxRecordNumber + 1)
+        return taskDao.insertTaskRecord(newRecord)
+    }
+    
+    suspend fun deleteTaskRecord(record: TaskRecord) {
+        taskDao.deleteTaskRecord(record)
+    }
+    
+    suspend fun deleteTaskRecordsByTaskIdAndIndex(taskId: Long, gearRatioIndex: Int) {
+        taskDao.deleteTaskRecordsByTaskIdAndIndex(taskId, gearRatioIndex)
     }
 }

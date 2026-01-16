@@ -3,6 +3,7 @@ package com.devicecontrol.engine.data.database.dao
 import androidx.room.*
 import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
+import com.devicecontrol.engine.data.model.TaskRecord
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -40,4 +41,26 @@ interface TaskDao {
     
     @Query("DELETE FROM task_executions WHERE taskId = :taskId")
     suspend fun deleteTaskExecutionByTaskId(taskId: Long)
+    
+    // TaskRecord相关方法
+    @Query("SELECT * FROM task_records WHERE taskId = :taskId AND gearRatioIndex = :gearRatioIndex ORDER BY recordNumber ASC")
+    suspend fun getTaskRecordsByTaskIdAndIndex(taskId: Long, gearRatioIndex: Int): List<TaskRecord>
+    
+    @Query("SELECT * FROM task_records WHERE taskId = :taskId AND gearRatioIndex = :gearRatioIndex ORDER BY recordNumber ASC")
+    fun getTaskRecordsByTaskIdAndIndexFlow(taskId: Long, gearRatioIndex: Int): Flow<List<TaskRecord>>
+    
+    @Query("SELECT * FROM task_records WHERE recordId = :recordId")
+    suspend fun getTaskRecordById(recordId: Long): TaskRecord?
+    
+    @Query("SELECT MAX(recordNumber) FROM task_records WHERE taskId = :taskId AND gearRatioIndex = :gearRatioIndex")
+    suspend fun getMaxRecordNumber(taskId: Long, gearRatioIndex: Int): Int?
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTaskRecord(record: TaskRecord): Long
+    
+    @Delete
+    suspend fun deleteTaskRecord(record: TaskRecord)
+    
+    @Query("DELETE FROM task_records WHERE taskId = :taskId AND gearRatioIndex = :gearRatioIndex")
+    suspend fun deleteTaskRecordsByTaskIdAndIndex(taskId: Long, gearRatioIndex: Int)
 }

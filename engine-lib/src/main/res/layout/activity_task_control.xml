@@ -22,218 +22,18 @@
             app:navigationIconTint="@color/on_primary" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Control Panel -->
+    <!-- Main Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:padding="@dimen/control_panel_padding"
-        android:gravity="center_vertical"
+        android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Left: Control Buttons Grid (scrollable) -->
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2.0"
-            android:layout_marginEnd="@dimen/spacing_medium"
-            android:fillViewport="true">
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="@dimen/card_elevation"
-                app:strokeWidth="0dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/spacing_medium"
-                    android:gravity="center">
-
-                    <!-- Row 1: 2个按钮 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnStartPause"
-                            android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size"
-                            android:layout_margin="@dimen/control_button_margin"
-                            android:text="@string/start_pause"
-                            android:textSize="14sp"
-                            style="@style/ControlButton"
-                            app:backgroundTint="@color/accent_green" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnForwardReverse"
-                            android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size"
-                            android:layout_margin="@dimen/control_button_margin"
-                            android:text="@string/forward_reverse"
-                            android:textSize="14sp"
-                            style="@style/ControlButton"
-                            app:backgroundTint="@color/accent_blue" />
-                    </LinearLayout>
-
-                    <!-- Row 2: 2个按钮 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnJogContinuous"
-                            android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size"
-                            android:layout_margin="@dimen/control_button_margin"
-                            android:text="@string/jog_continuous"
-                            android:textSize="14sp"
-                            style="@style/ControlButton"
-                            app:backgroundTint="@color/secondary" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnStop"
-                            android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size"
-                            android:layout_margin="@dimen/control_button_margin"
-                            android:text="@string/stop"
-                            android:textSize="14sp"
-                            style="@style/ControlButton"
-                            app:backgroundTint="@color/error" />
-                    </LinearLayout>
-
-                    <!-- Row 3: 2个按钮（力矩+/-、速度+/-） -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center">
-
-                        <!-- 力矩+/- 上下排列 -->
-                        <LinearLayout
-                            android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size"
-                            android:layout_margin="@dimen/control_button_margin"
-                            android:orientation="vertical"
-                            android:gravity="center">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnTorquePlus"
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:text="@string/torque_plus"
-                                android:textSize="12sp"
-                                style="@style/ControlButton"
-                                app:backgroundTint="@color/accent_orange"
-                                android:minHeight="0dp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnTorqueMinus"
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:text="@string/torque_minus"
-                                android:textSize="12sp"
-                                style="@style/ControlButton"
-                                app:backgroundTint="@color/accent_orange"
-                                android:minHeight="0dp" />
-                        </LinearLayout>
-
-                        <!-- 速度+/- 上下排列 -->
-                        <LinearLayout
-                            android:layout_width="@dimen/control_button_size"
-                            android:layout_height="@dimen/control_button_size"
-                            android:layout_margin="@dimen/control_button_margin"
-                            android:orientation="vertical"
-                            android:gravity="center">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnSpeedPlus"
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:text="@string/speed_plus"
-                                android:textSize="12sp"
-                                style="@style/ControlButton"
-                                app:backgroundTint="@color/accent_blue"
-                                android:minHeight="0dp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnSpeedMinus"
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:text="@string/speed_minus"
-                                android:textSize="12sp"
-                                style="@style/ControlButton"
-                                app:backgroundTint="@color/accent_blue"
-                                android:minHeight="0dp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Row 4: 上一个任务/下一个任务（多任务时显示） -->
-                    <LinearLayout
-                        android:id="@+id/llTaskNavigation"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center"
-                        android:visibility="gone">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnPreviousTask"
-                            android:layout_width="@dimen/control_button_size3"
-                            android:layout_height="@dimen/control_button_size2"
-                            android:layout_marginEnd="@dimen/control_button_margin"
-                            android:layout_weight="1"
-                            android:text="@string/previous_task"
-                            android:textSize="12sp"
-                            style="@style/ControlButton"
-                            app:backgroundTint="@color/accent_orange"
-                            android:visibility="gone"
-                            android:minHeight="0dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnNextTask"
-                            android:layout_width="@dimen/control_button_size3"
-                            android:layout_marginStart="@dimen/control_button_margin"
-                            android:layout_height="@dimen/control_button_size2"
-                            android:layout_weight="1"
-                            android:text="@string/next_task"
-                            android:textSize="12sp"
-                            style="@style/ControlButton"
-                            app:backgroundTint="@color/accent_orange"
-                            android:visibility="gone"
-                            android:minHeight="0dp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </androidx.core.widget.NestedScrollView>
-
-        <!-- Center: Placeholder (fixed, no scroll) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:layout_marginHorizontal="@dimen/spacing_medium"
-            android:orientation="vertical">
-            <!-- Placeholder - empty for now -->
-        </LinearLayout>
-
-        <!-- Right: Task Info Card (fixed, no scroll) -->
+        <!-- Task Info Card (Top) -->
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/spacing_medium"
             app:cardCornerRadius="@dimen/card_corner_radius"
             app:cardElevation="@dimen/elevation_medium"
             app:strokeWidth="0dp"
@@ -263,7 +63,7 @@
                     android:gravity="center_vertical">
 
                     <TextView
-                        android:id="@+id/tvTorqueSpeed"
+                        android:id="@+id/tvSpeed"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -271,23 +71,261 @@
                         android:textColor="@color/on_primary_container"
                         android:textSize="16sp" />
 
+                    <TextView
+                        android:id="@+id/tvTaskIndex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="任务 1/1"
+                        android:textColor="@color/on_primary_container"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_task_index"
+                        android:paddingStart="@dimen/spacing_medium"
+                        android:paddingEnd="@dimen/spacing_medium"
+                        android:paddingTop="@dimen/spacing_small"
+                        android:paddingBottom="@dimen/spacing_small"
+                        android:visibility="gone" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvTaskIndex"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="任务 1/1"
-                    android:textColor="@color/on_primary_container"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_task_index"
-                    android:paddingEnd="@dimen/spacing_medium"
-                    android:paddingTop="@dimen/spacing_small"
-                    android:paddingBottom="@dimen/spacing_small"
-                    android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Control Panel (Below Task Info Card) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:padding="@dimen/control_panel_padding"
+            android:gravity="center_vertical">
+
+        <!-- Left: Control Buttons Grid (scrollable) -->
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2.0"
+            android:layout_marginEnd="@dimen/spacing_medium"
+            android:fillViewport="true">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_medium"
+                    android:gravity="center">
+
+                    <!-- Row 1: 启动 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStartPause"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/start"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_green" />
+                    </LinearLayout>
+
+                    <!-- Row 2: 正转、反转、暂停 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnForward"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/forward"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_blue" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnReverse"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/reverse"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_blue" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnPause"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/pause"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/secondary" />
+                    </LinearLayout>
+
+                    <!-- Row 3: 速度-、速度+、拍照 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSpeedMinus"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/speed_minus"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_blue" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSpeedPlus"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/speed_plus"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_blue" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnPhoto"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/photo"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/secondary" />
+                    </LinearLayout>
+
+                    <!-- Row 4: 连续、点动、下一个 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnContinuous"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/continuous"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnJog"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/jog"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNextTask"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/next_task"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_orange"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- Row 5: 上一个任务（多任务时显示） -->
+                    <LinearLayout
+                        android:id="@+id/llTaskNavigation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnPreviousTask"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/previous_task"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/accent_orange"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- Row 6: Add Record Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddRecord"
+                        android:layout_width="@dimen/control_button_size"
+                        android:layout_height="@dimen/control_button_size"
+                        android:layout_margin="@dimen/control_button_margin"
+                        android:layout_marginTop="@dimen/spacing_medium"
+                        android:text="@string/record"
+                        android:textSize="14sp"
+                        style="@style/ControlButton"
+                        app:backgroundTint="@color/accent_green" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- Right: Records List -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.5"
+            android:layout_marginStart="@dimen/spacing_medium"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="@dimen/elevation_medium"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/primary_container">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_medium">
+
+                <!-- Records List Section Title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="记录列表"
+                    android:textColor="@color/on_primary_container"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="@dimen/spacing_small" />
+
+                <!-- Records List -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecords"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

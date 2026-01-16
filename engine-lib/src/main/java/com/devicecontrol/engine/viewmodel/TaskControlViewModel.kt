@@ -35,6 +35,9 @@ class TaskControlViewModel(
     private val _canGoNext = MutableLiveData<Boolean>(false)
     val canGoNext: LiveData<Boolean> = _canGoNext
     
+    private val _taskRecords = MutableLiveData<List<TaskRecord>>(emptyList())
+    val taskRecords: LiveData<List<TaskRecord>> = _taskRecords
+    
     private var currentGearRatioIndex: Int = 0
     
     fun loadTask(taskId: Long) {
@@ -74,6 +77,16 @@ class TaskControlViewModel(
             
             // 更新导航按钮状态
             updateNavigationButtons(task, configItemIndex)
+            
+            // 加载记录列表
+            loadTaskRecords(taskId, configItemIndex)
+        }
+    }
+    
+    private fun loadTaskRecords(taskId: Long, gearRatioIndex: Int) {
+        viewModelScope.launch {
+            val records = taskRepository.getTaskRecordsByTaskIdAndIndex(taskId, gearRatioIndex)
+            _taskRecords.value = records
         }
     }
     
@@ -128,49 +141,36 @@ class TaskControlViewModel(
         }
     }
     
-    fun toggleStartPause() {
-        val execution = _taskExecution.value ?: return
-        val newStatus = when (execution.status) {
-            TaskStatus.STOPPED, TaskStatus.PAUSED -> TaskStatus.RUNNING
-            TaskStatus.RUNNING -> TaskStatus.PAUSED
-        }
-        updateTaskStatus(newStatus)
+    fun start() {
+        updateTaskStatus(TaskStatus.RUNNING)
     }
     
-    fun stop() {
-        updateTaskStatus(TaskStatus.STOPPED)
+    fun pause() {
+        updateTaskStatus(TaskStatus.PAUSED)
     }
     
-    fun toggleRotationDirection() {
-        val execution = _taskExecution.value ?: return
-        val newDirection = when (execution.rotationDirection) {
-            RotationDirection.FORWARD -> RotationDirection.REVERSE
-            RotationDirection.REVERSE -> RotationDirection.FORWARD
-        }
-        updateExecution { it.copy(rotationDirection = newDirection) }
+    fun setForward() {
+        updateExecution { it.copy(rotationDirection = RotationDirection.FORWARD) }
     }
     
-    fun toggleOperationMode() {
+    fun setReverse() {
+        updateExecution { it.copy(rotationDirection = RotationDirection.REVERSE) }
+    }
+    
+    fun setJog() {
         val execution = _taskExecution.value ?: return
-        val newMode = when (execution.operationMode) {
-            OperationMode.JOG -> OperationMode.CONTINUOUS
-            OperationMode.CONTINUOUS -> OperationMode.JOG
-        }
-        updateExecution { it.copy(operationMode = newMode) }
+        updateExecution { it.copy(operationMode = OperationMode.JOG) }
         // 更新header显示
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
-    fun increaseTorque() {
-        updateExecution { it.copy(torque = it.torque + 1.0) }
-    }
-    
-    fun decreaseTorque() {
+    fun setContinuous() {
         val execution = _taskExecution.value ?: return
-        if (execution.torque > 0) {
-            updateExecution { it.copy(torque = execution.torque - 1.0) }
-        }
+        updateExecution { it.copy(operationMode = OperationMode.CONTINUOUS) }
+        // 更新header显示
+        val task = _task.value ?: return
+        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun increaseSpeed() {
@@ -181,6 +181,35 @@ class TaskControlViewModel(
         val execution = _taskExecution.value ?: return
         if (execution.speed > 0) {
             updateExecution { it.copy(speed = execution.speed - 1.0) }
+        }
+    }
+    
+    fun takePhoto() {
+        // 拍照功能：无对应功能，暂时不实现
+    }
+    
+    fun addRecord(position: Int, bladeNumber: Int) {
+        val task = _task.value ?: return
+        viewModelScope.launch {
+            val record = TaskRecord(
+                taskId = task.id,
+                gearRatioIndex = currentGearRatioIndex,
+                recordNumber = 0, // 会在Repository中自动设置
+                position = position,
+                bladeNumber = bladeNumber
+            )
+            taskRepository.insertTaskRecord(record)
+            loadTaskRecords(task.id, currentGearRatioIndex)
+        }
+    }
+    
+    fun playbackRecord(record: TaskRecord) {
+        // 回放功能：发送指令给电机
+        // TODO: 实现电机通信逻辑
+        viewModelScope.launch {
+            // 这里应该发送指令给电机
+            // 暂时只记录日志
+            android.util.Log.d("TaskControlViewModel", "Playback record: $record")
         }
     }
     

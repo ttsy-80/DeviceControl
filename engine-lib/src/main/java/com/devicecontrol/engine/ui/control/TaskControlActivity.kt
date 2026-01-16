@@ -1,22 +1,26 @@
 package com.devicecontrol.engine.ui.control
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.data.database.AppDatabase
 import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.databinding.ActivityTaskControlBinding
+import com.devicecontrol.engine.databinding.DialogRecordDetailBinding
 import com.devicecontrol.engine.viewmodel.TaskControlViewModel
 import java.text.DecimalFormat
 
 class TaskControlActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTaskControlBinding
+    private lateinit var recordAdapter: TaskRecordAdapter
 
     private val database by lazy { AppDatabase.getDatabase(this) }
     private val taskRepository by lazy { TaskRepository(database.taskDao()) }
@@ -37,6 +41,13 @@ class TaskControlActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+
+        // Setup Records RecyclerView
+        recordAdapter = TaskRecordAdapter { record ->
+            showRecordDetailDialog(record)
+        }
+        binding.rvRecords.layoutManager = LinearLayoutManager(this)
+        binding.rvRecords.adapter = recordAdapter
 
         val taskId = intent.getLongExtra("taskId", -1)
         if (taskId == -1L) {
@@ -61,7 +72,7 @@ class TaskControlActivity : AppCompatActivity() {
 
         viewModel.taskExecution.observe(this) { execution ->
             execution?.let {
-                updateTorqueSpeedDisplay(it.torque, it.speed)
+                updateSpeedDisplay(it.speed)
                 updateButtonStates(it)
             }
         }
@@ -95,64 +106,77 @@ class TaskControlActivity : AppCompatActivity() {
         viewModel.canGoNext.observe(this) { canGo ->
             // 更新按钮状态
             binding.btnNextTask.isEnabled = canGo
+            // 单选时置灰不可点击，多选时可点击
+            binding.btnNextTask.alpha = if (canGo) 1.0f else 0.5f
+        }
+        
+        viewModel.taskRecords.observe(this) { records ->
+            recordAdapter.submitList(records)
         }
     }
 
-    private fun updateTorqueSpeedDisplay(torque: Double, speed: Double) {
-        val display = "力矩: ${decimalFormat.format(torque)} | 速度: ${decimalFormat.format(speed)}"
-        binding.tvTorqueSpeed.text = display
+    private fun updateSpeedDisplay(speed: Double) {
+        val display = "速度: ${decimalFormat.format(speed)}"
+        binding.tvSpeed.text = display
     }
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
-        // 更新启动/暂停按钮
-        when (execution.status) {
-            com.devicecontrol.engine.data.model.TaskStatus.RUNNING -> {
-                binding.btnStartPause.text = getString(R.string.pause)
-            }
-            com.devicecontrol.engine.data.model.TaskStatus.PAUSED -> {
-                binding.btnStartPause.text = getString(R.string.start)
-            }
-            com.devicecontrol.engine.data.model.TaskStatus.STOPPED -> {
-                binding.btnStartPause.text = getString(R.string.start)
-            }
+        // 更新启动/暂停按钮状态
+        val isRunning = execution.status == com.devicecontrol.engine.data.model.TaskStatus.RUNNING
+        binding.btnPause.isEnabled = isRunning
+        binding.btnPause.alpha = if (isRunning) 1.0f else 0.5f
+        
+        // 更新正转/反转按钮状态
+        val isForward = execution.rotationDirection == com.devicecontrol.engine.data.model.RotationDirection.FORWARD
+        binding.btnForward.isSelected = isForward
+        binding.btnReverse.isSelected = !isForward
+        
+        // 更新点动/连续按钮状态
+        val isJog = execution.operationMode == com.devicecontrol.engine.data.model.OperationMode.JOG
+        binding.btnJog.isSelected = isJog
+        binding.btnContinuous.isSelected = !isJog
+    }
+    
+    private fun showRecordDetailDialog(record: com.devicecontrol.engine.data.model.TaskRecord) {
+        val dialogBinding = DialogRecordDetailBinding.inflate(layoutInflater)
+        dialogBinding.tvPosition.text = record.position.toString()
+        dialogBinding.tvBladeNumber.text = getString(R.string.blade_number_label, record.bladeNumber)
+        
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
+        
+        dialogBinding.btnPlayback.setOnClickListener {
+            viewModel.playbackRecord(record)
+            dialog.dismiss()
         }
         
-        // 更新正转/反转按钮 - 显示当前状态
-        binding.btnForwardReverse.text = when (execution.rotationDirection) {
-            com.devicecontrol.engine.data.model.RotationDirection.FORWARD -> getString(R.string.forward)
-            com.devicecontrol.engine.data.model.RotationDirection.REVERSE -> getString(R.string.reverse)
-        }
-        
-        // 更新点动/连续按钮 - 显示当前状态
-        binding.btnJogContinuous.text = when (execution.operationMode) {
-            com.devicecontrol.engine.data.model.OperationMode.JOG -> getString(R.string.jog)
-            com.devicecontrol.engine.data.model.OperationMode.CONTINUOUS -> getString(R.string.continuous)
-        }
+        dialog.show()
     }
 
     private fun setupListeners() {
         binding.btnStartPause.setOnClickListener {
-            viewModel.toggleStartPause()
+            viewModel.start()
         }
 
-        binding.btnStop.setOnClickListener {
-            viewModel.stop()
+        binding.btnPause.setOnClickListener {
+            viewModel.pause()
         }
 
-        binding.btnForwardReverse.setOnClickListener {
-            viewModel.toggleRotationDirection()
+        binding.btnForward.setOnClickListener {
+            viewModel.setForward()
         }
 
-        binding.btnJogContinuous.setOnClickListener {
-            viewModel.toggleOperationMode()
+        binding.btnReverse.setOnClickListener {
+            viewModel.setReverse()
         }
 
-        binding.btnTorquePlus.setOnClickListener {
-            viewModel.increaseTorque()
+        binding.btnJog.setOnClickListener {
+            viewModel.setJog()
         }
 
-        binding.btnTorqueMinus.setOnClickListener {
-            viewModel.decreaseTorque()
+        binding.btnContinuous.setOnClickListener {
+            viewModel.setContinuous()
         }
 
         binding.btnSpeedPlus.setOnClickListener {
@@ -163,6 +187,10 @@ class TaskControlActivity : AppCompatActivity() {
             viewModel.decreaseSpeed()
         }
 
+        binding.btnPhoto.setOnClickListener {
+            viewModel.takePhoto()
+        }
+
         binding.btnPreviousTask.setOnClickListener {
             viewModel.goToPreviousTask()
         }
@@ -170,6 +198,25 @@ class TaskControlActivity : AppCompatActivity() {
         binding.btnNextTask.setOnClickListener {
             viewModel.goToNextTask()
         }
+
+        binding.btnAddRecord.setOnClickListener {
+            showAddRecordDialog()
+        }
+    }
+    
+    private fun showAddRecordDialog() {
+        val task = viewModel.task.value ?: return
+        val configItem = viewModel.currentConfigItem.value ?: return
+        
+        // 这里应该发送指令给电机，然后获取回传的叶片数
+        // 暂时使用模拟数据
+        val position = configItem.position.toIntOrNull() ?: 1
+        val bladeNumber = 1 // TODO: 从电机获取实际数据 - 电机回传的数据
+        
+        // TODO: 实际应该先发送指令给电机，等待回传数据后再创建记录
+        // 这里暂时直接创建记录
+        viewModel.addRecord(position, bladeNumber)
+        Toast.makeText(this, "记录已添加", Toast.LENGTH_SHORT).show()
     }
 }
 

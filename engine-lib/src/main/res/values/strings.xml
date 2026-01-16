@@ -45,6 +45,13 @@
     <string name="previous_task">上一个任务</string>
     <string name="next_task">下一个任务</string>
     <string name="task_index">任务 %1$d/%2$d</string>
+    <string name="photo">拍照</string>
+    <string name="record">记录</string>
+    <string name="record_number">记录%1$d</string>
+    <string name="current_blade_count">当前叶片数</string>
+    <string name="playback">回放</string>
+    <string name="record_detail">记录详情</string>
+    <string name="blade_number_label">第%1$d个</string>
     
     <!-- 错误提示 -->
     <string name="error_model_name_empty">型号名称不能为空</string>
