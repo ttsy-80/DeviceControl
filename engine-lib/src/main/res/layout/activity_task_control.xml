@@ -273,12 +273,12 @@
                             app:backgroundTint="@color/accent_green" />
                     </LinearLayout>
 
-                    <!-- Row 4: 连续、点动（居中显示） -->
+                    <!-- Row 4: 连续、点动、设置 -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center">
+                        android:gravity="start">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnContinuous"
@@ -296,6 +296,16 @@
                             android:layout_height="@dimen/control_button_size"
                             android:layout_margin="@dimen/control_button_margin"
                             android:text="@string/jog"
+                            android:textSize="14sp"
+                            style="@style/ControlButton"
+                            app:backgroundTint="@color/secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSettings"
+                            android:layout_width="@dimen/control_button_size"
+                            android:layout_height="@dimen/control_button_size"
+                            android:layout_margin="@dimen/control_button_margin"
+                            android:text="@string/settings"
                             android:textSize="14sp"
                             style="@style/ControlButton"
                             app:backgroundTint="@color/secondary" />

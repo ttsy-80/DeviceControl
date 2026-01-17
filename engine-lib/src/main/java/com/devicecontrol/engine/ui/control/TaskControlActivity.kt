@@ -209,21 +209,30 @@ class TaskControlActivity : AppCompatActivity() {
         binding.btnAddRecord.setOnClickListener {
             showAddRecordDialog()
         }
+
+        binding.btnSettings.setOnClickListener {
+            // TODO: 实现设置功能
+            Toast.makeText(this, "设置功能待实现", Toast.LENGTH_SHORT).show()
+        }
     }
     
     private fun showAddRecordDialog() {
         val task = viewModel.task.value ?: return
         val configItem = viewModel.currentConfigItem.value ?: return
         
-        // 这里应该发送指令给电机，然后获取回传的叶片数
-        // 暂时使用模拟数据
+        // 获取位置数据
         val position = configItem.position.toIntOrNull() ?: 1
-        val bladeNumber = 1 // TODO: 从电机获取实际数据 - 电机回传的数据
         
-        // TODO: 实际应该先发送指令给电机，等待回传数据后再创建记录
-        // 这里暂时直接创建记录
+        // 生成随机叶片数（1到配置项的bladeCount之间）
+        val bladeCount = configItem.bladeCount
+        val bladeNumber = if (bladeCount > 0) {
+            (1..bladeCount).random()
+        } else {
+            1
+        }
+        
+        // 创建记录
         viewModel.addRecord(position, bladeNumber)
-        Toast.makeText(this, "记录已添加", Toast.LENGTH_SHORT).show()
     }
 }
 

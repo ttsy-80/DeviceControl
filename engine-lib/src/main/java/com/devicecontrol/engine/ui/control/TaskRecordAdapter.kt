@@ -38,11 +38,20 @@ class TaskRecordAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(record: TaskRecord) {
-            binding.btnRecord.text = binding.root.context.getString(
+            // 显示记录序号
+            binding.tvRecordNumber.text = binding.root.context.getString(
                 R.string.record_number,
                 record.recordNumber
             )
-            binding.btnRecord.setOnClickListener {
+            
+            // 显示叶片信息
+            binding.tvBladeInfo.text = binding.root.context.getString(
+                R.string.blade_number_label,
+                record.bladeNumber
+            )
+            
+            // 整个item可点击查看详情
+            binding.root.setOnClickListener {
                 onRecordClick(record)
             }
         }
