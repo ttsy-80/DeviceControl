@@ -3,8 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="@dimen/spacing_small"
-    android:layout_marginEnd="@dimen/spacing_small"
     android:layout_marginTop="@dimen/spacing_tiny"
     android:layout_marginBottom="@dimen/spacing_tiny"
     app:cardCornerRadius="0dp"
@@ -20,7 +18,7 @@
         android:gravity="center_vertical"
         android:minHeight="@dimen/table_row_min_height">
 
-        <!-- 型号列 -->
+        <!-- 型号列 (2列) -->
         <TextView
             android:id="@+id/tvModelName"
             android:layout_width="0dp"
@@ -32,7 +30,7 @@
             android:gravity="start|center_vertical"
             android:paddingEnd="@dimen/spacing_small" />
 
-        <!-- 变速比列 -->
+        <!-- 变速比列 (1列) -->
         <TextView
             android:id="@+id/tvGearRatio"
             android:layout_width="0dp"
@@ -42,7 +40,7 @@
             android:textSize="15sp"
             android:gravity="center" />
 
-        <!-- 位置列 -->
+        <!-- 位置列 (1列) -->
         <TextView
             android:id="@+id/tvPosition"
             android:layout_width="0dp"
@@ -52,7 +50,7 @@
             android:textSize="15sp"
             android:gravity="center" />
 
-        <!-- 叶片数列 -->
+        <!-- 叶片数列 (1列) -->
         <TextView
             android:id="@+id/tvBladeCount"
             android:layout_width="0dp"
@@ -62,7 +60,7 @@
             android:textSize="15sp"
             android:gravity="center" />
 
-        <!-- 点动次数列 - 隐藏但保留布局 -->
+        <!-- 点动次数列 - 隐藏但保留布局 (1列) -->
         <TextView
             android:id="@+id/tvJogCount"
             android:layout_width="0dp"
@@ -73,58 +71,70 @@
             android:textSize="15sp"
             android:gravity="center" />
 
-        <!-- 操作列 -->
+        <!-- 操作列 (2列) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.5"
+            android:layout_weight="2"
             android:orientation="horizontal"
             android:gravity="center"
-            android:minWidth="200dp">
+            android:paddingStart="@dimen/spacing_tiny"
+            android:paddingEnd="@dimen/spacing_tiny">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddConfigItem"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/add_config_item"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textColor="@color/primary"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@android:color/transparent"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
+                android:layout_marginEnd="@dimen/spacing_tiny"
                 android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEdit"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/edit"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textColor="@color/primary"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@android:color/transparent"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
+                android:minHeight="0dp"
+                android:layout_marginEnd="@dimen/spacing_tiny" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDelete"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/delete"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textColor="@color/error"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                app:strokeColor="@color/error"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@android:color/transparent"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp" />
         </LinearLayout>

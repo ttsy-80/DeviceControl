@@ -49,7 +49,7 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        layoutManager = GridLayoutManager(this, 6) // 6列：型号(2) + 变速比(1) + 位置(1) + 叶片数(1) + 操作(1)（点动次数已隐藏）
+        layoutManager = GridLayoutManager(this, 7) // 7列：型号(2) + 变速比(1) + 位置(1) + 叶片数(1) + 操作(2)（点动次数已隐藏）
         adapter = ModelListAdapter(
             onAddConfigItem = { modelId ->
                 showConfigItemDialog(modelId)
@@ -69,7 +69,7 @@ class ModelManagementActivity : AppCompatActivity() {
         binding.rvModelList.adapter = adapter
 
         // 设置合并单元格
-        // 6列布局：型号(2列) + 变速比(1列) + 位置(1列) + 叶片数(1列) + 操作(1列)（点动次数已隐藏）
+        // 7列布局：型号(2列) + 变速比(1列) + 位置(1列) + 叶片数(1列) + 操作(2列)（点动次数已隐藏）
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 // 找到当前position对应的model和configItem
@@ -77,12 +77,12 @@ class ModelManagementActivity : AppCompatActivity() {
                 viewModel.modelsWithConfigItems.value?.forEach { model ->
                     if (position < currentPosition + model.configItems.size) {
                         val itemIndex = position - currentPosition
-                        // 每个item占据6列
-                        return 6
+                        // 每个item占据7列
+                        return 7
                     }
                     currentPosition += model.configItems.size
                 }
-                return 6
+                return 7
             }
         }
     }

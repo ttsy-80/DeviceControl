@@ -4,12 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/table_header_height"
     android:orientation="horizontal"
-    android:paddingStart="@dimen/table_cell_padding"
-    android:paddingEnd="@dimen/table_cell_padding"
-    android:paddingVertical="@dimen/spacing_medium"
+    android:padding="@dimen/table_cell_padding"
     android:background="@color/primary_container"
     android:gravity="center_vertical">
 
+    <!-- 型号列 (2列) -->
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -19,8 +18,10 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-medium"
-        android:gravity="start|center_vertical" />
+        android:gravity="start|center_vertical"
+        android:paddingEnd="@dimen/spacing_small" />
 
+    <!-- 变速比列 (1列) -->
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -32,6 +33,7 @@
         android:fontFamily="sans-serif-medium"
         android:gravity="center" />
 
+    <!-- 位置列 (1列) -->
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -43,6 +45,7 @@
         android:fontFamily="sans-serif-medium"
         android:gravity="center" />
 
+    <!-- 叶片数列 (1列) -->
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -54,6 +57,7 @@
         android:fontFamily="sans-serif-medium"
         android:gravity="center" />
 
+    <!-- 点动次数列 - 隐藏但保留布局 (1列) -->
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -66,10 +70,11 @@
         android:fontFamily="sans-serif-medium"
         android:gravity="center" />
 
+    <!-- 操作列 (2列) -->
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="2"
         android:text="操作"
         android:textColor="@color/on_primary_container"
         android:textSize="14sp"
