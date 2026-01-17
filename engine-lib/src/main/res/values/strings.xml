@@ -53,6 +53,12 @@
     <string name="record_detail">记录详情</string>
     <string name="blade_number_label">第%1$d个</string>
     <string name="speed_unit">分钟/圈</string>
+    <string name="speed_step">速度</string>
+    <string name="speed_step_hint">单位：分钟/圈（例如：1分钟/圈，2分钟/圈）</string>
+    <string name="continuous_cycles">连续</string>
+    <string name="continuous_cycles_hint">连续循环圈数（例如：1，2，3）</string>
+    <string name="jog_interval">点动间隔</string>
+    <string name="jog_interval_hint">单位：秒（例如：1s，2s，3s）</string>
     
     <!-- 错误提示 -->
     <string name="error_model_name_empty">型号名称不能为空</string>

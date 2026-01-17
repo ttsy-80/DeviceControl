@@ -17,7 +17,7 @@ import com.devicecontrol.engine.data.model.TaskRecord
 
 @Database(
     entities = [EngineModel::class, ConfigItem::class, Task::class, TaskExecution::class, TaskRecord::class],
-    version = 4,  // 版本升级：添加TaskRecord表
+    version = 5,  // 版本升级：添加TaskExecution配置字段
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -52,6 +52,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
         
+        // 数据库迁移：从版本4升级到版本5，添加TaskExecution配置字段
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // 添加配置字段，使用默认值
+                database.execSQL("ALTER TABLE task_executions ADD COLUMN speedStep REAL NOT NULL DEFAULT 1.0")
+                database.execSQL("ALTER TABLE task_executions ADD COLUMN continuousCycles INTEGER NOT NULL DEFAULT 1")
+                database.execSQL("ALTER TABLE task_executions ADD COLUMN jogInterval INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+        
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -59,7 +69,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "engine_control_database"
                 )
-                    .addMigrations(MIGRATION_3_4)
+                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
                     .fallbackToDestructiveMigration() // 仅在开发阶段使用，生产环境应移除
                     .build()
                 INSTANCE = instance

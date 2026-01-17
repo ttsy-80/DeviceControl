@@ -61,9 +61,20 @@ class TaskControlViewModel(
             // 加载或创建该子任务的执行记录
             var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex)
             if (execution == null) {
+                // 检查是否有上一个任务的执行记录，用于复制配置
+                val previousExecution = if (configItemIndex > 0) {
+                    taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex - 1)
+                } else {
+                    null
+                }
+                
                 execution = TaskExecution(
                     taskId = taskId,
-                    gearRatioIndex = configItemIndex
+                    gearRatioIndex = configItemIndex,
+                    speed = previousExecution?.speedStep ?: 1.0, // 默认速度使用speedStep的值
+                    speedStep = previousExecution?.speedStep ?: 1.0, // 复制配置或使用默认值
+                    continuousCycles = previousExecution?.continuousCycles ?: 1,
+                    jogInterval = previousExecution?.jogInterval ?: 1
                 )
                 taskRepository.insertOrUpdateTaskExecution(execution)
             }
@@ -132,8 +143,37 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         
         if (currentGearRatioIndex > 0) {
-            currentGearRatioIndex--
-            loadTaskExecution(task.id, currentGearRatioIndex)
+            // 保存当前任务的配置到上一个任务
+            val currentExecution = _taskExecution.value
+            val targetIndex = currentGearRatioIndex - 1
+            
+            viewModelScope.launch {
+                if (currentExecution != null) {
+                    var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, targetIndex)
+                    if (targetExecution == null) {
+                        // 创建新的执行记录，复制配置
+                        targetExecution = TaskExecution(
+                            taskId = task.id,
+                            gearRatioIndex = targetIndex,
+                            speed = currentExecution.speedStep, // 使用配置的默认速度
+                            speedStep = currentExecution.speedStep,
+                            continuousCycles = currentExecution.continuousCycles,
+                            jogInterval = currentExecution.jogInterval
+                        )
+                    } else {
+                        // 更新已有记录的配置项
+                        targetExecution = targetExecution.copy(
+                            speedStep = currentExecution.speedStep,
+                            continuousCycles = currentExecution.continuousCycles,
+                            jogInterval = currentExecution.jogInterval
+                        )
+                    }
+                    taskRepository.insertOrUpdateTaskExecution(targetExecution)
+                }
+                
+                currentGearRatioIndex = targetIndex
+                loadTaskExecution(task.id, currentGearRatioIndex)
+            }
         }
     }
     
@@ -141,8 +181,37 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         
         if (currentGearRatioIndex < task.configItemIds.size - 1) {
-            currentGearRatioIndex++
-            loadTaskExecution(task.id, currentGearRatioIndex)
+            // 保存当前任务的配置到下一个任务
+            val currentExecution = _taskExecution.value
+            val targetIndex = currentGearRatioIndex + 1
+            
+            viewModelScope.launch {
+                if (currentExecution != null) {
+                    var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, targetIndex)
+                    if (targetExecution == null) {
+                        // 创建新的执行记录，复制配置
+                        targetExecution = TaskExecution(
+                            taskId = task.id,
+                            gearRatioIndex = targetIndex,
+                            speed = currentExecution.speedStep, // 使用配置的默认速度
+                            speedStep = currentExecution.speedStep,
+                            continuousCycles = currentExecution.continuousCycles,
+                            jogInterval = currentExecution.jogInterval
+                        )
+                    } else {
+                        // 更新已有记录的配置项
+                        targetExecution = targetExecution.copy(
+                            speedStep = currentExecution.speedStep,
+                            continuousCycles = currentExecution.continuousCycles,
+                            jogInterval = currentExecution.jogInterval
+                        )
+                    }
+                    taskRepository.insertOrUpdateTaskExecution(targetExecution)
+                }
+                
+                currentGearRatioIndex = targetIndex
+                loadTaskExecution(task.id, currentGearRatioIndex)
+            }
         }
     }
     
@@ -192,20 +261,37 @@ class TaskControlViewModel(
     
     fun increaseSpeed() {
         val execution = _taskExecution.value ?: return
-        // 速度调整频率：5分钟/一圈，每次增加5
-        val newSpeed = execution.speed + 5.0
+        // 使用配置的步长调整速度
+        val newSpeed = execution.speed + execution.speedStep
         updateExecution { it.copy(speed = newSpeed) }
     }
     
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
-        // 速度调整频率：5分钟/一圈，每次减少5，最小为0
-        if (execution.speed >= 5.0) {
-            val newSpeed = execution.speed - 5.0
+        // 使用配置的步长调整速度，最小为0
+        if (execution.speed >= execution.speedStep) {
+            val newSpeed = execution.speed - execution.speedStep
             updateExecution { it.copy(speed = newSpeed) }
         } else {
             updateExecution { it.copy(speed = 0.0) }
         }
+    }
+    
+    fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int) {
+        val execution = _taskExecution.value ?: return
+        updateExecution { 
+            it.copy(
+                speedStep = speedStep,
+                continuousCycles = continuousCycles,
+                jogInterval = jogInterval
+            )
+        }
+    }
+    
+    // 获取当前配置项，用于后续对接指令
+    fun getCurrentSettings(): Triple<Double, Int, Int>? {
+        val execution = _taskExecution.value ?: return null
+        return Triple(execution.speedStep, execution.continuousCycles, execution.jogInterval)
     }
     
     fun takePhoto() {

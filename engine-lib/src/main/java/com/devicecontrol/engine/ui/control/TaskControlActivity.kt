@@ -211,9 +211,21 @@ class TaskControlActivity : AppCompatActivity() {
         }
 
         binding.btnSettings.setOnClickListener {
-            // TODO: 实现设置功能
-            Toast.makeText(this, "设置功能待实现", Toast.LENGTH_SHORT).show()
+            showSettingsDialog()
         }
+    }
+    
+    private fun showSettingsDialog() {
+        val execution = viewModel.taskExecution.value ?: return
+        
+        val dialog = SettingsDialog(
+            currentSpeedStep = execution.speedStep,
+            currentContinuousCycles = execution.continuousCycles,
+            currentJogInterval = execution.jogInterval
+        ) { speedStep, continuousCycles, jogInterval ->
+            viewModel.updateSettings(speedStep, continuousCycles, jogInterval)
+        }
+        dialog.show(supportFragmentManager, "SettingsDialog")
     }
     
     private fun showAddRecordDialog() {
