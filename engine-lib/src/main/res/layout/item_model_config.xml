@@ -62,12 +62,13 @@
             android:textSize="15sp"
             android:gravity="center" />
 
-        <!-- 点动次数列 -->
+        <!-- 点动次数列 - 隐藏但保留布局 -->
         <TextView
             android:id="@+id/tvJogCount"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:visibility="gone"
             android:textColor="@color/on_surface"
             android:textSize="15sp"
             android:gravity="center" />

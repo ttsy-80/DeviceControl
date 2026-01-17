@@ -31,12 +31,15 @@ class ConfigItemDialog(
         }
         binding.tvDialogTitle.text = title
         
+        // 隐藏点动次数输入框
+        binding.tilJogCount.visibility = android.view.View.GONE
+        
         // 如果是编辑模式，预填充数据
         if (isEditMode && existingConfigItem != null) {
             binding.etGearRatio.setText(existingConfigItem.gearRatio.toString())
             binding.etPosition.setText(existingConfigItem.position)
             binding.etBladeCount.setText(existingConfigItem.bladeCount.toString())
-            binding.etJogCount.setText(existingConfigItem.jogCount.toString())
+            // 点动次数字段已隐藏，但数据会保留
         } else if (!isEditMode && firstGearRatio != null) {
             // 添加模式：如果提供了第一个配置项的变速比，自动填充并设为只读
             binding.etGearRatio.setText(firstGearRatio.toString())
@@ -71,10 +74,11 @@ class ConfigItemDialog(
             val gearRatioText = binding.etGearRatio.text.toString()
             val position = binding.etPosition.text.toString()
             val bladeCountText = binding.etBladeCount.text.toString()
-            val jogCountText = binding.etJogCount.text.toString()
+            // 点动次数使用默认值1（数据库字段保留）
+            val jogCount = 1
 
             if (gearRatioText.isBlank() || position.isBlank() || 
-                bladeCountText.isBlank() || jogCountText.isBlank()) {
+                bladeCountText.isBlank()) {
                 Toast.makeText(context, "请填写所有字段", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -82,9 +86,8 @@ class ConfigItemDialog(
             try {
                 val gearRatio = gearRatioText.toDouble()
                 val bladeCount = bladeCountText.toInt()
-                val jogCount = jogCountText.toInt()
 
-                if (gearRatio <= 0 || bladeCount <= 0 || jogCount <= 0) {
+                if (gearRatio <= 0 || bladeCount <= 0) {
                     Toast.makeText(context, "请输入有效的数值", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -119,8 +122,8 @@ class ConfigItemDialog(
         }
         
         binding.etPosition.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        binding.etBladeCount.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        binding.etJogCount.imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        // 叶片数现在是最后一个输入框，设置为完成
+        binding.etBladeCount.imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
         
         binding.etPosition.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_NEXT) {
@@ -132,19 +135,10 @@ class ConfigItemDialog(
         }
         
         binding.etBladeCount.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                binding.etJogCount.requestFocus()
-                true
-            } else {
-                false
-            }
-        }
-        
-        binding.etJogCount.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 // 隐藏输入法
                 val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-                imm.hideSoftInputFromWindow(binding.etJogCount.windowToken, 0)
+                imm.hideSoftInputFromWindow(binding.etBladeCount.windowToken, 0)
                 // 触发确认按钮
                 binding.btnConfirm.performClick()
                 true

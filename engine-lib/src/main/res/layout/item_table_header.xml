@@ -58,6 +58,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:visibility="gone"
         android:text="@string/jog_count"
         android:textColor="@color/on_primary_container"
         android:textSize="14sp"

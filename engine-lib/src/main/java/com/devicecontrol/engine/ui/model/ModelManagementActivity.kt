@@ -49,7 +49,7 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        layoutManager = GridLayoutManager(this, 7) // 7列：型号(2) + 变速比(1) + 位置(1) + 叶片数(1) + 点动次数(1) + 操作(1)
+        layoutManager = GridLayoutManager(this, 6) // 6列：型号(2) + 变速比(1) + 位置(1) + 叶片数(1) + 操作(1)（点动次数已隐藏）
         adapter = ModelListAdapter(
             onAddConfigItem = { modelId ->
                 showConfigItemDialog(modelId)
@@ -69,7 +69,7 @@ class ModelManagementActivity : AppCompatActivity() {
         binding.rvModelList.adapter = adapter
 
         // 设置合并单元格
-        // 7列布局：型号(2列) + 变速比(1列) + 位置(1列) + 叶片数(1列) + 点动次数(1列) + 操作(1列)
+        // 6列布局：型号(2列) + 变速比(1列) + 位置(1列) + 叶片数(1列) + 操作(1列)（点动次数已隐藏）
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 // 找到当前position对应的model和configItem
@@ -77,12 +77,12 @@ class ModelManagementActivity : AppCompatActivity() {
                 viewModel.modelsWithConfigItems.value?.forEach { model ->
                     if (position < currentPosition + model.configItems.size) {
                         val itemIndex = position - currentPosition
-                        // 每个item占据7列
-                        return 7
+                        // 每个item占据6列
+                        return 6
                     }
                     currentPosition += model.configItems.size
                 }
-                return 7
+                return 6
             }
         }
     }
@@ -124,13 +124,13 @@ class ModelManagementActivity : AppCompatActivity() {
     }
 
     private fun showConfigItemDialogForNewModel(modelName: String) {
-        val dialog = ConfigItemDialog(modelId = null, existingConfigItem = null) { gearRatio, position, bladeCount, jogCount ->
+        val dialog = ConfigItemDialog(modelId = null, existingConfigItem = null) { gearRatio, position, bladeCount, _ ->
             viewModel.createModelWithConfigItem(
                 modelName = modelName,
                 gearRatio = gearRatio,
                 position = position,
                 bladeCount = bladeCount,
-                jogCount = jogCount,
+                jogCount = 1, // 默认值
                 onSuccess = {
                     Toast.makeText(this, "型号创建成功", Toast.LENGTH_SHORT).show()
                 },
@@ -152,13 +152,13 @@ class ModelManagementActivity : AppCompatActivity() {
                 modelId = modelId,
                 existingConfigItem = null,
                 firstGearRatio = firstGearRatio
-            ) { gearRatio, position, bladeCount, jogCount ->
+            ) { gearRatio, position, bladeCount, _ ->
                 viewModel.addConfigItem(
                     modelId = modelId,
                     gearRatio = gearRatio,
                     position = position,
                     bladeCount = bladeCount,
-                    jogCount = jogCount,
+                    jogCount = 1, // 默认值
                     onSuccess = {
                         Toast.makeText(this@ModelManagementActivity, "配置项添加成功", Toast.LENGTH_SHORT).show()
                     },
@@ -175,13 +175,13 @@ class ModelManagementActivity : AppCompatActivity() {
         val dialog = ConfigItemDialog(
             modelId = configItem.modelId,
             existingConfigItem = configItem
-        ) { gearRatio, position, bladeCount, jogCount ->
+        ) { gearRatio, position, bladeCount, _ ->
             viewModel.updateConfigItem(
                 configItem = configItem,
                 gearRatio = gearRatio,
                 position = position,
                 bladeCount = bladeCount,
-                jogCount = jogCount,
+                jogCount = configItem.jogCount, // 保留原值
                 onSuccess = {
                     Toast.makeText(this, "配置项更新成功", Toast.LENGTH_SHORT).show()
                 },

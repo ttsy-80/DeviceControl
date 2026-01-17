@@ -61,8 +61,8 @@ class ModelManagementViewModel(private val repository: EngineRepository) : ViewM
                     return@launch
                 }
                 
-                // 验证配置项数据
-                if (gearRatio <= 0 || bladeCount <= 0 || jogCount <= 0) {
+                // 验证配置项数据（移除点动次数验证）
+                if (gearRatio <= 0 || bladeCount <= 0) {
                     onError("请输入有效的数值")
                     return@launch
                 }
@@ -100,8 +100,8 @@ class ModelManagementViewModel(private val repository: EngineRepository) : ViewM
     ) {
         viewModelScope.launch {
             try {
-                // 验证配置项数据
-                if (gearRatio <= 0 || bladeCount <= 0 || jogCount <= 0) {
+                // 验证配置项数据（移除点动次数验证）
+                if (gearRatio <= 0 || bladeCount <= 0) {
                     onError("请输入有效的数值")
                     return@launch
                 }
@@ -161,8 +161,8 @@ class ModelManagementViewModel(private val repository: EngineRepository) : ViewM
     ) {
         viewModelScope.launch {
             try {
-                // 验证配置项数据
-                if (gearRatio <= 0 || bladeCount <= 0 || jogCount <= 0) {
+                // 验证配置项数据（移除点动次数验证）
+                if (gearRatio <= 0 || bladeCount <= 0) {
                     onError("请输入有效的数值")
                     return@launch
                 }
@@ -177,12 +177,12 @@ class ModelManagementViewModel(private val repository: EngineRepository) : ViewM
                     repository.updateAllConfigItemsGearRatioByModelId(configItem.modelId, gearRatio)
                 }
                 
-                // 更新当前配置项的其他字段（位置、叶片数、点动次数）
+                // 更新当前配置项的其他字段（位置、叶片数，点动次数保留原值）
                 val updatedConfigItem = configItem.copy(
                     gearRatio = gearRatio, // 使用新的变速比
                     position = position.trim(),
                     bladeCount = bladeCount,
-                    jogCount = jogCount
+                    jogCount = configItem.jogCount // 保留原值，不更新
                 )
                 repository.updateConfigItem(updatedConfigItem)
                 

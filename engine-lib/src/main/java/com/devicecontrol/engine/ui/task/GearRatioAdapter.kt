@@ -33,7 +33,7 @@ class GearRatioAdapter(
         private val tvGearRatioInfo: TextView = itemView.findViewById(R.id.tvGearRatioInfo)
 
         fun bind(configItem: ConfigItem, isSelected: Boolean) {
-            val info = "变速比: ${configItem.gearRatio} | 位置: ${configItem.position} | 叶片数: ${configItem.bladeCount} | 点动次数: ${configItem.jogCount}"
+            val info = "变速比: ${configItem.gearRatio} | 位置: ${configItem.position} | 叶片数: ${configItem.bladeCount}"
             tvGearRatioInfo.text = info
             cbGearRatio.isChecked = isSelected
 

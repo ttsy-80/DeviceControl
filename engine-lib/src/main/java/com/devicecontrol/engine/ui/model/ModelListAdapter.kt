@@ -104,7 +104,8 @@ class ModelListAdapter(
             tvGearRatio.text = configItem.gearRatio.toString()
             tvPosition.text = configItem.position
             tvBladeCount.text = configItem.bladeCount.toString()
-            tvJogCount.text = configItem.jogCount.toString()
+            // 隐藏点动次数显示
+            tvJogCount.visibility = android.view.View.GONE
 
             // 重置所有按钮状态，确保正确显示
             btnAddConfigItem.visibility = View.GONE
