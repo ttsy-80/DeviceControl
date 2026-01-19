@@ -2,7 +2,7 @@
 <resources>
     <!-- Material Design 3 颜色系统 -->
     <!-- Primary Colors -->
-    <color name="primary">#6750A4</color>
+    <color name="primary">#4E68E2</color>
     <color name="on_primary">#FFFFFF</color>
     <color name="primary_container">#EADDFF</color>
     <color name="on_primary_container">#21005D</color>
@@ -32,7 +32,8 @@
     <color name="on_surface">#1C1B1F</color>
     <color name="surface_variant">#E7E0EC</color>
     <color name="on_surface_variant">#49454F</color>
-    
+    <color name="on_surface_variant_new">#ECEFFF</color>
+
     <!-- Dark Theme Background -->
     <color name="background_dark">#1C1B1F</color>
     <color name="on_background_dark">#E6E1E5</color>
@@ -87,4 +88,8 @@
     <color name="status_running">#4CAF50</color>
     <color name="status_paused">#FF9800</color>
     <color name="status_stopped">#9E9E9E</color>
+
+    <color name="color_666666">#666666</color>
+    <color name="color_black">#000000</color>
+    <color name="color_white">#ffffff</color>
 </resources>

@@ -122,8 +122,8 @@ class TaskControlViewModel(
                     null -> "正转"
                 }
                 
-                // 更新显示信息，包含操作模式和旋转方向
-                val displayText = "${task.modelName} | ${configItem?.position ?: ""} | $operationModeText | $rotationDirectionText"
+                // 更新显示信息，格式：型号 位置 操作模式
+                val displayText = "${task.modelName} ${configItem?.position ?: ""} $operationModeText"
                 _displayInfo.value = displayText
             }
         }

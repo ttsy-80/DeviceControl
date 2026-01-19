@@ -63,11 +63,18 @@ class TaskControlActivity : AppCompatActivity() {
 
     private fun setupObservers() {
         viewModel.displayInfo.observe(this) { info ->
-            binding.tvTaskInfo.text = info
+            // 更新状态栏显示
+            updateStatusBar(info)
         }
 
         viewModel.taskIndex.observe(this) { index ->
-            binding.tvTaskIndex.text = index
+            binding.tvTaskIndex.text = "任务: $index"
+        }
+
+        viewModel.taskExecution.observe(this) { execution ->
+            execution?.let {
+                updateStatusBar(viewModel.displayInfo.value ?: "")
+            }
         }
 
         viewModel.taskExecution.observe(this) { execution ->
@@ -81,67 +88,85 @@ class TaskControlActivity : AppCompatActivity() {
             task?.let {
                 // 如果任务有多个配置项，显示任务切换按钮和任务序号
                 val hasMultipleTasks = it.configItemIds.size > 1
-                android.util.Log.d("TaskControl", "Task loaded: configItemIds.size = ${it.configItemIds.size}, hasMultipleTasks = $hasMultipleTasks")
                 if (hasMultipleTasks) {
+                    binding.btnSwitchTask.visibility = android.view.View.VISIBLE
                     binding.tvTaskIndex.visibility = android.view.View.VISIBLE
-                    // 多任务时：在TaskInfo区域显示导航按钮
-                    binding.llTaskNavigation.visibility = android.view.View.VISIBLE
                 } else {
+                    binding.btnSwitchTask.visibility = android.view.View.GONE
                     binding.tvTaskIndex.visibility = android.view.View.GONE
-                    // 单任务时：隐藏任务导航容器
-                    binding.llTaskNavigation.visibility = android.view.View.GONE
                 }
             }
-        }
-
-        viewModel.canGoPrevious.observe(this) { canGo ->
-            // 更新按钮状态和可见性
-            binding.btnPreviousTask.isEnabled = canGo
-            binding.btnPreviousTask.alpha = if (canGo) 1.0f else 0.5f
-            // 即使不可用也显示按钮，只是置灰
-            binding.btnPreviousTask.visibility = android.view.View.VISIBLE
-        }
-
-        viewModel.canGoNext.observe(this) { canGo ->
-            // 更新按钮状态和可见性
-            binding.btnNextTask.isEnabled = canGo
-            binding.btnNextTask.alpha = if (canGo) 1.0f else 0.5f
-            // 即使不可用也显示按钮，只是置灰
-            binding.btnNextTask.visibility = android.view.View.VISIBLE
         }
         
         viewModel.taskRecords.observe(this) { records ->
             recordAdapter.submitList(records)
         }
+        
+        viewModel.currentConfigItem.observe(this) { configItem ->
+            configItem?.let {
+                recordAdapter.setBladeCount(it.bladeCount)
+            }
+        }
     }
 
     private fun updateSpeedDisplay(speed: Double) {
-        val display = "速度: ${decimalFormat.format(speed)} ${getString(R.string.speed_unit)}"
-        binding.tvSpeed.text = display
+        // 速度显示已整合到状态栏中
+    }
+    
+    private fun updateStatusBar(displayInfo: String) {
+        val execution = viewModel.taskExecution.value
+        val speed = execution?.speed ?: 0.0
+        val speedText = "速度: ${decimalFormat.format(speed)}${getString(R.string.speed_unit)}"
+        binding.tvStatusBar.text = "状态栏: $displayInfo $speedText"
     }
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
+        val activeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FF6B35"))
+        val inactiveColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E7E0EC"))
+        val activeTextColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FFFFFF"))
+        val inactiveTextColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#49454F"))
+        
         // 更新启动/暂停按钮状态
         val isRunning = execution.status == com.devicecontrol.engine.data.model.TaskStatus.RUNNING
-        // 启动状态时，启动按钮置灰，暂停按钮可用
-        binding.btnStartPause.isEnabled = !isRunning
-        binding.btnStartPause.alpha = if (isRunning) 0.5f else 1.0f
-        binding.btnPause.isEnabled = isRunning
-        binding.btnPause.alpha = if (isRunning) 1.0f else 0.5f
+        if (isRunning) {
+            binding.btnStartPause.backgroundTintList = inactiveColor
+            binding.btnStartPause.setTextColor(inactiveTextColor)
+            binding.btnPause.backgroundTintList = activeColor
+            binding.btnPause.setTextColor(activeTextColor)
+        } else {
+            binding.btnStartPause.backgroundTintList = activeColor
+            binding.btnStartPause.setTextColor(activeTextColor)
+            binding.btnPause.backgroundTintList = inactiveColor
+            binding.btnPause.setTextColor(inactiveTextColor)
+        }
         
-        // 更新正转/反转按钮状态 - 选中的按钮置灰
+        // 更新正转/反转按钮状态
         val isForward = execution.rotationDirection == com.devicecontrol.engine.data.model.RotationDirection.FORWARD
-        binding.btnForward.isEnabled = !isForward
-        binding.btnForward.alpha = if (isForward) 0.5f else 1.0f
-        binding.btnReverse.isEnabled = isForward
-        binding.btnReverse.alpha = if (isForward) 1.0f else 0.5f
+        if (isForward) {
+            binding.btnForward.backgroundTintList = activeColor
+            binding.btnForward.setTextColor(activeTextColor)
+            binding.btnReverse.backgroundTintList = inactiveColor
+            binding.btnReverse.setTextColor(inactiveTextColor)
+        } else {
+            binding.btnForward.backgroundTintList = inactiveColor
+            binding.btnForward.setTextColor(inactiveTextColor)
+            binding.btnReverse.backgroundTintList = activeColor
+            binding.btnReverse.setTextColor(activeTextColor)
+        }
         
-        // 更新点动/连续按钮状态 - 选中的按钮置灰
+        // 更新点动/连续按钮状态
         val isJog = execution.operationMode == com.devicecontrol.engine.data.model.OperationMode.JOG
-        binding.btnJog.isEnabled = !isJog
-        binding.btnJog.alpha = if (isJog) 0.5f else 1.0f
-        binding.btnContinuous.isEnabled = isJog
-        binding.btnContinuous.alpha = if (isJog) 1.0f else 0.5f
+        if (isJog) {
+            binding.btnJog.backgroundTintList = inactiveColor
+            binding.btnJog.setTextColor(inactiveTextColor)
+            binding.btnContinuous.backgroundTintList = activeColor
+            binding.btnContinuous.setTextColor(activeTextColor)
+        } else {
+            binding.btnJog.backgroundTintList = inactiveColor
+            binding.btnJog.setTextColor(inactiveTextColor)
+            binding.btnContinuous.backgroundTintList = activeColor
+            binding.btnContinuous.setTextColor(activeTextColor)
+        }
     }
     
     private fun showRecordDetailDialog(record: com.devicecontrol.engine.data.model.TaskRecord) {
@@ -198,11 +223,16 @@ class TaskControlActivity : AppCompatActivity() {
             viewModel.takePhoto()
         }
 
-        binding.btnPreviousTask.setOnClickListener {
-            viewModel.goToPreviousTask()
-        }
+//        binding.btnPreviousTask.setOnClickListener {
+//            viewModel.goToPreviousTask()
+//        }
+//
+//        binding.btnNextTask.setOnClickListener {
+//            viewModel.goToNextTask()
+//        }
 
-        binding.btnNextTask.setOnClickListener {
+        binding.btnSwitchTask.setOnClickListener {
+            // 切换任务功能：可以弹出任务选择对话框或直接切换到下一个
             viewModel.goToNextTask()
         }
 

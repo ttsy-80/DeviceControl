@@ -12,9 +12,15 @@ class TaskRecordAdapter(
 ) : RecyclerView.Adapter<TaskRecordAdapter.ViewHolder>() {
 
     private var records: List<TaskRecord> = emptyList()
+    private var currentBladeCount: Int = 0
 
     fun submitList(newRecords: List<TaskRecord>) {
         records = newRecords
+        notifyDataSetChanged()
+    }
+    
+    fun setBladeCount(bladeCount: Int) {
+        currentBladeCount = bladeCount
         notifyDataSetChanged()
     }
 
@@ -38,17 +44,9 @@ class TaskRecordAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(record: TaskRecord) {
-            // 显示记录序号
-            binding.tvRecordNumber.text = binding.root.context.getString(
-                R.string.record_number,
-                record.recordNumber
-            )
-            
-            // 显示叶片信息
-            binding.tvBladeInfo.text = binding.root.context.getString(
-                R.string.blade_number_label,
-                record.bladeNumber
-            )
+            // 显示格式：记录X-第Y/总数叶片
+            val text = "记录${record.recordNumber}-第${record.bladeNumber}/${this@TaskRecordAdapter.currentBladeCount}叶片"
+            binding.tvRecordItem.text = text
             
             // 整个item可点击查看详情
             binding.root.setOnClickListener {
