@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="#F6F6F6">
 
     <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
@@ -91,20 +91,21 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="2.0"
+                android:layout_weight="2.5"
+                android:layout_marginEnd="25dp"
                 android:background="@drawable/bg_task_control_bottom"
                 android:orientation="vertical">
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginEnd="25dp"
                     android:fillViewport="true">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@null"
                         app:cardElevation="0dp"
                         app:strokeWidth="0dp">
 
@@ -237,7 +238,7 @@
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:gravity="start"
+                                android:gravity="center"
                                 android:orientation="horizontal">
 
                                 <Button
@@ -287,13 +288,13 @@
                 android:layout_weight="1.5"
                 android:background="@drawable/bg_task_control_bottom"
                 android:orientation="vertical"
-                android:paddingHorizontal="18dp"
-                android:paddingTop="26dp">
+                android:paddingHorizontal="18dp">
 
                 <!-- Records List -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvRecords"
                     android:layout_width="match_parent"
+                    android:paddingTop="16dp"
                     android:layout_height="match_parent"
                     android:clipToPadding="false" />
             </LinearLayout>

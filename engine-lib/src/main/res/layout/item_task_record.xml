@@ -4,10 +4,11 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="@dimen/spacing_medium"
+    android:layout_marginBottom="@dimen/spacing_medium"
     android:background="@drawable/bg_record_item"
     android:clickable="true"
     android:focusable="true"
-    android:gravity="center_vertical">
+    android:gravity="center">
 
     <TextView
         android:id="@+id/tvRecordNumber"
