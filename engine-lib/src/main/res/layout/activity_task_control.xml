@@ -60,7 +60,7 @@
                 android:includeFontPadding="false"
                 android:gravity="center"
                 android:textColor="@color/white"
-                android:textSize="14sp"
+                android:textSize="@dimen/control_top_button_text_size"
                 android:background="@drawable/bg_switch_task_button"
                 android:textAllCaps="false" />
 
@@ -70,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:text="任务: 1/2"
                 android:textColor="@color/color_666666"
-                android:textSize="14sp"
+                android:textSize="@dimen/control_top_button_text_size"
                 android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
@@ -82,16 +82,16 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="25dp"
-            android:paddingTop="20dp"
-            android:paddingBottom="15dp">
+            android:paddingHorizontal="@dimen/control_panel_margin_horizontal"
+            android:paddingTop="@dimen/control_panel_padding_top"
+            android:paddingBottom="@dimen/control_panel_padding_bottom">
 
             <!-- Left: Control Buttons Grid (scrollable) -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="2.5"
-                android:layout_marginEnd="25dp"
+                android:layout_marginEnd="@dimen/control_panel_margin_between"
                 android:background="@drawable/bg_task_control_bottom"
                 android:orientation="vertical"
                 android:gravity="center_horizontal">
@@ -116,7 +116,7 @@
                             android:gravity="center"
                             android:orientation="vertical"
                             android:layout_gravity="center_horizontal"
-                            android:padding="@dimen/spacing_medium">
+                            android:padding="@dimen/control_panel_inner_padding">
 
                             <!-- Row 1: 启动、暂停（中间空一格） -->
                             <LinearLayout
@@ -131,7 +131,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/start"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -149,7 +149,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/pause"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -169,7 +169,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/forward"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -181,7 +181,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/reverse"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -193,7 +193,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/photo"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -213,7 +213,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/speed_plus"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -225,7 +225,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/speed_minus"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -237,7 +237,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/record"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -257,7 +257,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/continuous"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -269,7 +269,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/jog"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"
@@ -281,7 +281,7 @@
                                     android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/settings"
-                                    android:textSize="14sp"
+                                    android:textSize="@dimen/control_button_text_size"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
                                     android:textAllCaps="false"

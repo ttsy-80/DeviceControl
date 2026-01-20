@@ -46,6 +46,17 @@
     <dimen name="control_top_button_task_width">87dp</dimen>
     <dimen name="control_top_button_task_height">36dp</dimen>
     <dimen name="control_top_button_corner">4dp</dimen>
+    <dimen name="control_top_button_text_size">14sp</dimen>
+    
+    <!-- Control button text size -->
+    <dimen name="control_button_text_size">14sp</dimen>
+    
+    <!-- Control panel margins and padding -->
+    <dimen name="control_panel_margin_horizontal">25dp</dimen>
+    <dimen name="control_panel_margin_between">25dp</dimen>
+    <dimen name="control_panel_padding_top">20dp</dimen>
+    <dimen name="control_panel_padding_bottom">15dp</dimen>
+    <dimen name="control_panel_inner_padding">16dp</dimen>
 
     <!-- Dialog -->
     <dimen name="dialog_corner_radius">28dp</dimen>
