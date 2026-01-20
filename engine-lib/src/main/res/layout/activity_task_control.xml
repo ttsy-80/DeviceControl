@@ -69,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:text="任务: 1/2"
                 android:textColor="@color/color_666666"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
@@ -92,7 +92,8 @@
                 android:layout_weight="2.5"
                 android:layout_marginEnd="25dp"
                 android:background="@drawable/bg_task_control_bottom"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
@@ -100,9 +101,10 @@
                     android:fillViewport="true">
 
                     <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="0dp"
+                        android:layout_gravity="center_horizontal"
                         app:cardBackgroundColor="@null"
                         app:cardElevation="0dp"
                         app:strokeWidth="0dp">
@@ -112,6 +114,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:orientation="vertical"
+                            android:layout_gravity="center_horizontal"
                             android:padding="@dimen/spacing_medium">
 
                             <!-- Row 1: 启动、暂停（中间空一格） -->
@@ -130,7 +133,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <!-- 空位 -->
                                 <View
@@ -147,7 +151,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
                             </LinearLayout>
 
                             <!-- Row 2: 正转、反转、拍照 -->
@@ -166,7 +171,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnReverse"
@@ -177,7 +183,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnPhoto"
@@ -188,7 +195,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
                             </LinearLayout>
 
                             <!-- Row 3: 速度+、速度-、记录 -->
@@ -207,7 +215,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnSpeedMinus"
@@ -218,7 +227,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnAddRecord"
@@ -229,7 +239,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
                             </LinearLayout>
 
                             <!-- Row 4: 连续、点动、设置 -->
@@ -248,7 +259,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnJog"
@@ -259,7 +271,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnSettings"
@@ -270,7 +283,8 @@
                                     android:textSize="14sp"
                                     android:background="@drawable/selector_control_button"
                                     android:textColor="@color/selector_control_button_text"
-                                    android:textAllCaps="false" />
+                                    android:textAllCaps="false"
+                                    app:backgroundTint="@null" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>

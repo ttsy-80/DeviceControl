@@ -122,7 +122,7 @@ class TaskControlActivity : AppCompatActivity() {
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
         // 更新启动/暂停按钮状态 - 使用enabled状态控制selector
-        val isRunning = execution.status == com.devicecontrol.engine.data.model.TaskStatus.RUNNING
+        val isRunning = execution.status == TaskStatus.RUNNING
         binding.btnStartPause.isEnabled = !isRunning
         binding.btnPause.isEnabled = isRunning
         
