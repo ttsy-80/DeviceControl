@@ -236,10 +236,16 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         
         if (index >= 0 && index < task.configItemIds.size) {
-            // 保存当前任务的配置到目标任务
+            // 先保存当前任务的所有状态
             val currentExecution = _taskExecution.value
             
             viewModelScope.launch {
+                // 保存当前任务的所有状态（包括status, speed, rotationDirection, operationMode等）
+                if (currentExecution != null) {
+                    taskRepository.insertOrUpdateTaskExecution(currentExecution)
+                }
+                
+                // 如果切换到不同的任务，更新目标任务的配置项
                 if (currentExecution != null && index != currentGearRatioIndex) {
                     var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, index)
                     if (targetExecution == null) {
@@ -253,7 +259,7 @@ class TaskControlViewModel(
                             jogInterval = currentExecution.jogInterval
                         )
                     } else {
-                        // 更新已有记录的配置项
+                        // 更新已有记录的配置项（但不覆盖状态）
                         targetExecution = targetExecution.copy(
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,

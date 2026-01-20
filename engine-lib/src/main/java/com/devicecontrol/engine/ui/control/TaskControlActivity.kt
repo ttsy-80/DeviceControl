@@ -79,7 +79,6 @@ class TaskControlActivity : AppCompatActivity() {
 
         viewModel.taskExecution.observe(this) { execution ->
             execution?.let {
-                updateSpeedDisplay(it.speed)
                 updateButtonStates(it)
             }
         }
@@ -107,10 +106,6 @@ class TaskControlActivity : AppCompatActivity() {
                 recordAdapter.setBladeCount(it.bladeCount)
             }
         }
-    }
-
-    private fun updateSpeedDisplay(speed: Double) {
-        // 速度显示已整合到状态栏中
     }
     
     private fun updateStatusBar(displayInfo: String) {
@@ -220,14 +215,6 @@ class TaskControlActivity : AppCompatActivity() {
         binding.btnPhoto.setOnClickListener {
             viewModel.takePhoto()
         }
-
-//        binding.btnPreviousTask.setOnClickListener {
-//            viewModel.goToPreviousTask()
-//        }
-//
-//        binding.btnNextTask.setOnClickListener {
-//            viewModel.goToNextTask()
-//        }
 
         binding.btnSwitchTask.setOnClickListener {
             showTaskSwitchDialog()

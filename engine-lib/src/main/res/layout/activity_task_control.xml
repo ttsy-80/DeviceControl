@@ -57,6 +57,7 @@
                 android:layout_height="@dimen/control_top_button_task_height"
                 android:layout_marginEnd="@dimen/spacing_small"
                 android:text="切换任务"
+                android:includeFontPadding="false"
                 android:gravity="center"
                 android:textColor="@color/white"
                 android:textSize="14sp"
