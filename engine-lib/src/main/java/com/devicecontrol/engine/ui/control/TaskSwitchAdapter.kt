@@ -39,6 +39,10 @@ class TaskSwitchAdapter(
         fun bind(taskItem: com.devicecontrol.engine.viewmodel.TaskControlViewModel.TaskItem, isSelected: Boolean) {
             binding.tvTaskName.text = taskItem.displayName
             binding.rbTask.isChecked = isSelected
+            
+            // 禁用 RadioButton 的点击，只通过整个 item 来控制
+            binding.rbTask.isClickable = false
+            binding.rbTask.isFocusable = false
 
             binding.root.setOnClickListener {
                 // 如果点击的是已选中的任务，不需要响应
