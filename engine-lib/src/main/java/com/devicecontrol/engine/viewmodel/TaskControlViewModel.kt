@@ -131,7 +131,7 @@ class TaskControlViewModel(
     
     private fun updateTaskIndex(task: Task, index: Int) {
         val total = task.configItemIds.size
-        _taskIndex.value = "任务 ${index + 1}/$total"
+        _taskIndex.value = "任务: ${index + 1}/$total"
     }
     
     private fun updateNavigationButtons(task: Task, index: Int) {
@@ -210,6 +210,60 @@ class TaskControlViewModel(
                 }
                 
                 currentGearRatioIndex = targetIndex
+                loadTaskExecution(task.id, currentGearRatioIndex)
+            }
+        }
+    }
+    
+    data class TaskItem(
+        val index: Int,
+        val displayName: String
+    )
+    
+    fun getTaskItems(): List<TaskItem> {
+        val task = _task.value ?: return emptyList()
+        return task.configItemIds.mapIndexed { index, _ ->
+            TaskItem(
+                index = index,
+                displayName = "任务 ${index + 1}/${task.configItemIds.size}"
+            )
+        }
+    }
+    
+    fun getCurrentTaskIndex(): Int = currentGearRatioIndex
+    
+    fun switchToTask(index: Int) {
+        val task = _task.value ?: return
+        
+        if (index >= 0 && index < task.configItemIds.size) {
+            // 保存当前任务的配置到目标任务
+            val currentExecution = _taskExecution.value
+            
+            viewModelScope.launch {
+                if (currentExecution != null && index != currentGearRatioIndex) {
+                    var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, index)
+                    if (targetExecution == null) {
+                        // 创建新的执行记录，复制配置
+                        targetExecution = TaskExecution(
+                            taskId = task.id,
+                            gearRatioIndex = index,
+                            speed = currentExecution.speedStep,
+                            speedStep = currentExecution.speedStep,
+                            continuousCycles = currentExecution.continuousCycles,
+                            jogInterval = currentExecution.jogInterval
+                        )
+                    } else {
+                        // 更新已有记录的配置项
+                        targetExecution = targetExecution.copy(
+                            speedStep = currentExecution.speedStep,
+                            continuousCycles = currentExecution.continuousCycles,
+                            jogInterval = currentExecution.jogInterval
+                        )
+                    }
+                    taskRepository.insertOrUpdateTaskExecution(targetExecution)
+                }
+                
+                currentGearRatioIndex = index
                 loadTaskExecution(task.id, currentGearRatioIndex)
             }
         }

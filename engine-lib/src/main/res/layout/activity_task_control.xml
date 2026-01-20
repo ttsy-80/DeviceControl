@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/primary"
             app:navigationIconTint="@color/on_primary"
             app:title="任务控制"
             app:titleTextColor="@color/on_primary" />
@@ -51,19 +51,17 @@
                 android:textColor="@color/color_black"
                 android:textSize="17sp" />
 
-            <com.google.android.material.button.MaterialButton
+            <Button
                 android:id="@+id/btnSwitchTask"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="@dimen/control_top_button_task_width"
                 android:layout_height="@dimen/control_top_button_task_height"
                 android:layout_marginEnd="@dimen/spacing_small"
-                android:gravity="center"
                 android:text="切换任务"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                app:backgroundTint="@android:color/transparent"
-                app:strokeColor="@color/primary"
-                app:strokeWidth="1dp" />
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:background="@drawable/bg_switch_task_button"
+                android:textAllCaps="false" />
 
             <TextView
                 android:id="@+id/tvTaskIndex"

@@ -68,7 +68,7 @@ class TaskControlActivity : AppCompatActivity() {
         }
 
         viewModel.taskIndex.observe(this) { index ->
-            binding.tvTaskIndex.text = "任务: $index"
+            binding.tvTaskIndex.text = "$index"
         }
 
         viewModel.taskExecution.observe(this) { execution ->
@@ -200,8 +200,7 @@ class TaskControlActivity : AppCompatActivity() {
 //        }
 
         binding.btnSwitchTask.setOnClickListener {
-            // 切换任务功能：可以弹出任务选择对话框或直接切换到下一个
-            viewModel.goToNextTask()
+            showTaskSwitchDialog()
         }
 
         binding.btnAddRecord.setOnClickListener {
@@ -224,6 +223,23 @@ class TaskControlActivity : AppCompatActivity() {
             viewModel.updateSettings(speedStep, continuousCycles, jogInterval)
         }
         dialog.show(supportFragmentManager, "SettingsDialog")
+    }
+    
+    private fun showTaskSwitchDialog() {
+        val taskItems = viewModel.getTaskItems()
+        if (taskItems.isEmpty()) {
+            Toast.makeText(this, "没有可切换的任务", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val currentIndex = viewModel.getCurrentTaskIndex()
+        val dialog = TaskSwitchDialog(
+            taskItems = taskItems,
+            currentTaskIndex = currentIndex
+        ) { selectedIndex ->
+            viewModel.switchToTask(selectedIndex)
+        }
+        dialog.show(supportFragmentManager, "TaskSwitchDialog")
     }
     
     private fun showAddRecordDialog() {
