@@ -69,11 +69,12 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnPlayback"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="42dp"
         android:text="@string/playback"
         android:textSize="16sp"
-        style="@style/PrimaryButton"
-        app:backgroundTint="@color/accent_green" />
+        android:textColor="@color/color_white"
+        android:background="@drawable/bg_control_button_active"
+        style="@style/PrimaryButton" />
 
 </LinearLayout>
 

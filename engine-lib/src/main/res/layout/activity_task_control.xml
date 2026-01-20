@@ -38,7 +38,6 @@
             android:background="@drawable/bg_task_control_top"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="@dimen/spacing_medium"
             android:paddingHorizontal="@dimen/status_bar_padding_horizontal">
 
             <TextView
@@ -55,14 +54,13 @@
                 android:id="@+id/btnSwitchTask"
                 android:layout_width="@dimen/control_top_button_task_width"
                 android:layout_height="@dimen/control_top_button_task_height"
-                android:layout_marginEnd="@dimen/spacing_small"
-                android:text="切换任务"
-                android:includeFontPadding="false"
-                android:gravity="center"
-                android:textColor="@color/white"
-                android:textSize="@dimen/control_top_button_text_size"
+                android:layout_marginEnd="@dimen/spacing_medium"
                 android:background="@drawable/bg_switch_task_button"
-                android:textAllCaps="false" />
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="切换任务"
+                android:textColor="@color/white"
+                android:textSize="@dimen/control_top_button_text_size" />
 
             <TextView
                 android:id="@+id/tvTaskIndex"
@@ -71,7 +69,6 @@
                 android:text="任务: 1/2"
                 android:textColor="@color/color_666666"
                 android:textSize="@dimen/control_top_button_text_size"
-                android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -90,11 +87,11 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="2.5"
                 android:layout_marginEnd="@dimen/control_panel_margin_between"
+                android:layout_weight="3.5"
                 android:background="@drawable/bg_task_control_bottom"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
@@ -104,24 +101,24 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="0dp"
                         android:layout_gravity="center_horizontal"
                         app:cardBackgroundColor="@null"
+                        app:cardCornerRadius="0dp"
                         app:cardElevation="0dp"
                         app:strokeWidth="0dp">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical"
                             android:layout_gravity="center_horizontal"
-                            android:padding="@dimen/control_panel_inner_padding">
+                            android:gravity="center"
+                            android:orientation="vertical">
 
                             <!-- Row 1: 启动、暂停（中间空一格） -->
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xlarge"
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
@@ -129,30 +126,30 @@
                                     android:id="@+id/btnStartPause"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/start"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/start"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <!-- 空位 -->
                                 <View
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin" />
+                                    android:layout_marginHorizontal="@dimen/control_button_margin" />
 
                                 <Button
                                     android:id="@+id/btnPause"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/pause"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/pause"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
                             </LinearLayout>
 
@@ -160,6 +157,7 @@
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xlarge"
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
@@ -167,36 +165,36 @@
                                     android:id="@+id/btnForward"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/forward"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/forward"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnReverse"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/reverse"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/reverse"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnPhoto"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/photo"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/photo"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
                             </LinearLayout>
 
@@ -204,6 +202,7 @@
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xlarge"
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
@@ -211,36 +210,36 @@
                                     android:id="@+id/btnSpeedPlus"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/speed_plus"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/speed_plus"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnSpeedMinus"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/speed_minus"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/speed_minus"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnAddRecord"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/record"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/record"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
                             </LinearLayout>
 
@@ -248,6 +247,7 @@
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xlarge"
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
@@ -255,36 +255,36 @@
                                     android:id="@+id/btnContinuous"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/continuous"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/continuous"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnJog"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/jog"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/jog"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
 
                                 <Button
                                     android:id="@+id/btnSettings"
                                     android:layout_width="@dimen/control_button_size"
                                     android:layout_height="@dimen/control_button_height"
-                                    android:layout_margin="@dimen/control_button_margin"
-                                    android:text="@string/settings"
-                                    android:textSize="@dimen/control_button_text_size"
+                                    android:layout_marginHorizontal="@dimen/control_button_margin"
                                     android:background="@drawable/selector_control_button"
-                                    android:textColor="@color/selector_control_button_text"
+                                    android:text="@string/settings"
                                     android:textAllCaps="false"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textSize="@dimen/control_button_text_size"
                                     app:backgroundTint="@null" />
                             </LinearLayout>
                         </LinearLayout>
@@ -307,9 +307,9 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvRecords"
                     android:layout_width="match_parent"
-                    android:paddingTop="@dimen/records_list_padding_top"
                     android:layout_height="match_parent"
-                    android:clipToPadding="false" />
+                    android:clipToPadding="false"
+                    android:paddingTop="@dimen/records_list_padding_top" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
