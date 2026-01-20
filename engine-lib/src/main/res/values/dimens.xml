@@ -57,6 +57,17 @@
     <dimen name="control_panel_padding_top">20dp</dimen>
     <dimen name="control_panel_padding_bottom">15dp</dimen>
     <dimen name="control_panel_inner_padding">16dp</dimen>
+    
+    <!-- Status Bar -->
+    <dimen name="status_bar_height">59dp</dimen>
+    <dimen name="status_bar_margin_horizontal">25dp</dimen>
+    <dimen name="status_bar_margin_top">15dp</dimen>
+    <dimen name="status_bar_padding_horizontal">18dp</dimen>
+    <dimen name="status_bar_text_size">17sp</dimen>
+    
+    <!-- Records List -->
+    <dimen name="records_list_padding_horizontal">18dp</dimen>
+    <dimen name="records_list_padding_top">16dp</dimen>
 
     <!-- Dialog -->
     <dimen name="dialog_corner_radius">28dp</dimen>

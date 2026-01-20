@@ -26,4 +26,15 @@
     
     <!-- 控制区域内边距：16dp → 24dp -->
     <dimen name="control_panel_inner_padding">24dp</dimen>
+    
+    <!-- Status Bar - 平板横屏保持不变（按要求） -->
+    <dimen name="status_bar_height">59dp</dimen>
+    <dimen name="status_bar_margin_horizontal">25dp</dimen>
+    <dimen name="status_bar_margin_top">15dp</dimen>
+    <dimen name="status_bar_padding_horizontal">18dp</dimen>
+    <dimen name="status_bar_text_size">17sp</dimen>
+    
+    <!-- Records List - 平板横屏适配 -->
+    <dimen name="records_list_padding_horizontal">28dp</dimen>
+    <dimen name="records_list_padding_top">24dp</dimen>
 </resources>
