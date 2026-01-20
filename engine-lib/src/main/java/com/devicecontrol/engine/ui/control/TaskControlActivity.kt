@@ -121,20 +121,50 @@ class TaskControlActivity : AppCompatActivity() {
     }
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
-        // 更新启动/暂停按钮状态 - 使用enabled状态控制selector
         val isRunning = execution.status == TaskStatus.RUNNING
+        
+        // 更新启动/暂停按钮状态 - 使用enabled状态控制selector
         binding.btnStartPause.isEnabled = !isRunning
-        binding.btnPause.isEnabled = isRunning
         
-        // 更新正转/反转按钮状态
-        val isForward = execution.rotationDirection == com.devicecontrol.engine.data.model.RotationDirection.FORWARD
-        binding.btnForward.isEnabled = isForward
-        binding.btnReverse.isEnabled = !isForward
-        
-        // 更新点动/连续按钮状态
-        val isJog = execution.operationMode == com.devicecontrol.engine.data.model.OperationMode.JOG
-        binding.btnJog.isEnabled = isJog
-        binding.btnContinuous.isEnabled = !isJog
+        if (isRunning) {
+            // 运行状态：暂停、速度+/速度-/记录可以点击
+            binding.btnPause.isEnabled = true
+            binding.btnSpeedPlus.isEnabled = true
+            binding.btnSpeedMinus.isEnabled = true
+            binding.btnAddRecord.isEnabled = true
+            
+            // 正转/反转按钮：按照各自现有的状态显示可点击还是不可以点击状态
+            // 当前是正转时，正转按钮不可点击（已选中），反转按钮可点击（可切换）
+            // 当前是反转时，反转按钮不可点击（已选中），正转按钮可点击（可切换）
+            val isForward = execution.rotationDirection == com.devicecontrol.engine.data.model.RotationDirection.FORWARD
+            // 当前是正转时，正转按钮禁用（已选中状态），反转按钮启用（可切换）
+            // 当前是反转时，反转按钮禁用（已选中状态），正转按钮启用（可切换）
+            binding.btnForward.isEnabled = !isForward
+            binding.btnReverse.isEnabled = isForward
+            
+            // 连续/点动按钮：按照各自现有的状态显示可点击还是不可以点击状态
+            // 当前是点动时，点动按钮不可点击（已选中），连续按钮可点击（可切换）
+            // 当前是连续时，连续按钮不可点击（已选中），点动按钮可点击（可切换）
+            val isJog = execution.operationMode == com.devicecontrol.engine.data.model.OperationMode.JOG
+            // 当前是点动时，点动按钮禁用（已选中状态），连续按钮启用（可切换）
+            // 当前是连续时，连续按钮禁用（已选中状态），点动按钮启用（可切换）
+            binding.btnJog.isEnabled = !isJog
+            binding.btnContinuous.isEnabled = isJog
+            
+            // 拍照按钮：运行状态时可以点击
+            binding.btnPhoto.isEnabled = true
+        } else {
+            // 非运行状态：暂停、正转/反转/拍照、速度+/速度-/记录、连续/点动按钮都不能点击
+            binding.btnPause.isEnabled = false
+            binding.btnForward.isEnabled = false
+            binding.btnReverse.isEnabled = false
+            binding.btnPhoto.isEnabled = false
+            binding.btnSpeedPlus.isEnabled = false
+            binding.btnSpeedMinus.isEnabled = false
+            binding.btnAddRecord.isEnabled = false
+            binding.btnJog.isEnabled = false
+            binding.btnContinuous.isEnabled = false
+        }
     }
     
     private fun showRecordDetailDialog(record: com.devicecontrol.engine.data.model.TaskRecord) {
