@@ -122,37 +122,33 @@
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnStartPause"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size2"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/start"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
                                 <!-- 空位 -->
                                 <View
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size2"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnPause"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size2"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/pause"
-                                    android:textColor="@color/on_surface_variant"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/surface_variant"
-                                    app:strokeColor="@color/surface_variant"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
                             </LinearLayout>
 
                             <!-- Row 2: 正转、反转、拍照 -->
@@ -162,44 +158,38 @@
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnForward"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/forward"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnReverse"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/reverse"
-                                    android:textColor="@color/on_surface_variant"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/surface_variant"
-                                    app:strokeColor="@color/surface_variant"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnPhoto"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/photo"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
                             </LinearLayout>
 
                             <!-- Row 3: 速度+、速度-、记录 -->
@@ -209,44 +199,38 @@
                                 android:gravity="center"
                                 android:orientation="horizontal">
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnSpeedPlus"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/speed_plus"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnSpeedMinus"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/speed_minus"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnAddRecord"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/record"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
                             </LinearLayout>
 
                             <!-- Row 4: 连续、点动、设置 -->
@@ -256,44 +240,38 @@
                                 android:gravity="start"
                                 android:orientation="horizontal">
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnContinuous"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/continuous"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnJog"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/jog"
-                                    android:textColor="@color/on_surface_variant"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/surface_variant"
-                                    app:strokeColor="@color/surface_variant"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <Button
                                     android:id="@+id/btnSettings"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
                                     android:layout_width="@dimen/control_button_size"
-                                    android:layout_height="@dimen/control_button_size"
+                                    android:layout_height="@dimen/control_button_height"
                                     android:layout_margin="@dimen/control_button_margin"
                                     android:text="@string/settings"
-                                    android:textColor="@color/white"
                                     android:textSize="14sp"
-                                    app:backgroundTint="@color/accent_orange"
-                                    app:strokeColor="@color/accent_orange"
-                                    app:strokeWidth="2dp" />
+                                    android:background="@drawable/selector_control_button"
+                                    android:textColor="@color/selector_control_button_text"
+                                    android:textAllCaps="false" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>

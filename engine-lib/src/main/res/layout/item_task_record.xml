@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/tvRecordItem"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:padding="@dimen/spacing_medium"
-    android:text="记录1-第99/108叶片"
-    android:textSize="15sp"
-    android:textColor="@color/on_surface_variant"
-    android:background="?android:attr/selectableItemBackground"
+    android:background="@drawable/bg_record_item"
     android:clickable="true"
-    android:focusable="true" />
+    android:focusable="true"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/tvRecordNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="记录1-"
+        android:textSize="15sp"
+        android:textColor="#000000" />
+
+    <TextView
+        android:id="@+id/tvBladeInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="第99/108叶片"
+        android:textSize="15sp"
+        android:textColor="#666666" />
+</LinearLayout>
 

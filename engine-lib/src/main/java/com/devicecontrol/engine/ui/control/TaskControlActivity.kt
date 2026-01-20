@@ -121,52 +121,20 @@ class TaskControlActivity : AppCompatActivity() {
     }
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {
-        val activeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FF6B35"))
-        val inactiveColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E7E0EC"))
-        val activeTextColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FFFFFF"))
-        val inactiveTextColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#49454F"))
-        
-        // 更新启动/暂停按钮状态
+        // 更新启动/暂停按钮状态 - 使用enabled状态控制selector
         val isRunning = execution.status == com.devicecontrol.engine.data.model.TaskStatus.RUNNING
-        if (isRunning) {
-            binding.btnStartPause.backgroundTintList = inactiveColor
-            binding.btnStartPause.setTextColor(inactiveTextColor)
-            binding.btnPause.backgroundTintList = activeColor
-            binding.btnPause.setTextColor(activeTextColor)
-        } else {
-            binding.btnStartPause.backgroundTintList = activeColor
-            binding.btnStartPause.setTextColor(activeTextColor)
-            binding.btnPause.backgroundTintList = inactiveColor
-            binding.btnPause.setTextColor(inactiveTextColor)
-        }
+        binding.btnStartPause.isEnabled = !isRunning
+        binding.btnPause.isEnabled = isRunning
         
         // 更新正转/反转按钮状态
         val isForward = execution.rotationDirection == com.devicecontrol.engine.data.model.RotationDirection.FORWARD
-        if (isForward) {
-            binding.btnForward.backgroundTintList = activeColor
-            binding.btnForward.setTextColor(activeTextColor)
-            binding.btnReverse.backgroundTintList = inactiveColor
-            binding.btnReverse.setTextColor(inactiveTextColor)
-        } else {
-            binding.btnForward.backgroundTintList = inactiveColor
-            binding.btnForward.setTextColor(inactiveTextColor)
-            binding.btnReverse.backgroundTintList = activeColor
-            binding.btnReverse.setTextColor(activeTextColor)
-        }
+        binding.btnForward.isEnabled = isForward
+        binding.btnReverse.isEnabled = !isForward
         
         // 更新点动/连续按钮状态
         val isJog = execution.operationMode == com.devicecontrol.engine.data.model.OperationMode.JOG
-        if (isJog) {
-            binding.btnJog.backgroundTintList = inactiveColor
-            binding.btnJog.setTextColor(inactiveTextColor)
-            binding.btnContinuous.backgroundTintList = activeColor
-            binding.btnContinuous.setTextColor(activeTextColor)
-        } else {
-            binding.btnJog.backgroundTintList = inactiveColor
-            binding.btnJog.setTextColor(inactiveTextColor)
-            binding.btnContinuous.backgroundTintList = activeColor
-            binding.btnContinuous.setTextColor(activeTextColor)
-        }
+        binding.btnJog.isEnabled = isJog
+        binding.btnContinuous.isEnabled = !isJog
     }
     
     private fun showRecordDetailDialog(record: com.devicecontrol.engine.data.model.TaskRecord) {
