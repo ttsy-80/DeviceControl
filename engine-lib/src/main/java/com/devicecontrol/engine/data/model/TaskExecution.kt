@@ -37,5 +37,6 @@ data class TaskExecution(
     val progress: Int = 0,
     val speedStep: Double = 1.0, // 速度调整步长（配置项，默认1.0分钟/圈）
     val continuousCycles: Int = 1, // 连续循环圈数（配置项，默认1圈）
-    val jogInterval: Int = 1 // 点动间隔（配置项，默认1秒）
+    val jogInterval: Int = 1, // 点动间隔（配置项，默认1秒）
+    val playbackSpeed: Double = 1.0 // 回溯速度（配置项，默认1秒/圈）
 )

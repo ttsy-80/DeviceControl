@@ -74,7 +74,8 @@ class TaskControlViewModel(
                     speed = previousExecution?.speedStep ?: 1.0, // 默认速度使用speedStep的值
                     speedStep = previousExecution?.speedStep ?: 1.0, // 复制配置或使用默认值
                     continuousCycles = previousExecution?.continuousCycles ?: 1,
-                    jogInterval = previousExecution?.jogInterval ?: 1
+                    jogInterval = previousExecution?.jogInterval ?: 1,
+                    playbackSpeed = previousExecution?.playbackSpeed ?: 1.0 // 复制回溯速度或使用默认值
                 )
                 taskRepository.insertOrUpdateTaskExecution(execution)
             }
@@ -158,14 +159,16 @@ class TaskControlViewModel(
                             speed = currentExecution.speedStep, // 使用配置的默认速度
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval
+                            jogInterval = currentExecution.jogInterval,
+                            playbackSpeed = currentExecution.playbackSpeed
                         )
                     } else {
                         // 更新已有记录的配置项
                         targetExecution = targetExecution.copy(
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval
+                            jogInterval = currentExecution.jogInterval,
+                            playbackSpeed = currentExecution.playbackSpeed
                         )
                     }
                     taskRepository.insertOrUpdateTaskExecution(targetExecution)
@@ -196,14 +199,16 @@ class TaskControlViewModel(
                             speed = currentExecution.speedStep, // 使用配置的默认速度
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval
+                            jogInterval = currentExecution.jogInterval,
+                            playbackSpeed = currentExecution.playbackSpeed
                         )
                     } else {
                         // 更新已有记录的配置项
                         targetExecution = targetExecution.copy(
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval
+                            jogInterval = currentExecution.jogInterval,
+                            playbackSpeed = currentExecution.playbackSpeed
                         )
                     }
                     taskRepository.insertOrUpdateTaskExecution(targetExecution)
@@ -256,14 +261,16 @@ class TaskControlViewModel(
                             speed = currentExecution.speedStep,
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval
+                            jogInterval = currentExecution.jogInterval,
+                            playbackSpeed = currentExecution.playbackSpeed
                         )
                     } else {
                         // 更新已有记录的配置项（但不覆盖状态）
                         targetExecution = targetExecution.copy(
                             speedStep = currentExecution.speedStep,
                             continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval
+                            jogInterval = currentExecution.jogInterval,
+                            playbackSpeed = currentExecution.playbackSpeed
                         )
                     }
                     taskRepository.insertOrUpdateTaskExecution(targetExecution)
@@ -337,13 +344,14 @@ class TaskControlViewModel(
         }
     }
     
-    fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int) {
+    fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int, playbackSpeed: Double) {
         val execution = _taskExecution.value ?: return
         updateExecution { 
             it.copy(
                 speedStep = speedStep,
                 continuousCycles = continuousCycles,
-                jogInterval = jogInterval
+                jogInterval = jogInterval,
+                playbackSpeed = playbackSpeed
             )
         }
     }
@@ -377,9 +385,11 @@ class TaskControlViewModel(
         // 回放功能：发送指令给电机
         // TODO: 实现电机通信逻辑
         viewModelScope.launch {
-            // 这里应该发送指令给电机
+            val execution = _taskExecution.value
+            val playbackSpeed = execution?.playbackSpeed ?: 1.0
+            // 这里应该发送指令给电机，包含回溯速度参数
             // 暂时只记录日志
-            android.util.Log.d("TaskControlViewModel", "Playback record: $record")
+            android.util.Log.d("TaskControlViewModel", "Playback record: $record, playbackSpeed: $playbackSpeed 秒/圈")
         }
     }
     

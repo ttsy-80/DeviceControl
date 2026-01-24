@@ -235,9 +235,10 @@ class TaskControlActivity : AppCompatActivity() {
         val dialog = SettingsDialog(
             currentSpeedStep = execution.speedStep,
             currentContinuousCycles = execution.continuousCycles,
-            currentJogInterval = execution.jogInterval
-        ) { speedStep, continuousCycles, jogInterval ->
-            viewModel.updateSettings(speedStep, continuousCycles, jogInterval)
+            currentJogInterval = execution.jogInterval,
+            currentPlaybackSpeed = execution.playbackSpeed
+        ) { speedStep, continuousCycles, jogInterval, playbackSpeed ->
+            viewModel.updateSettings(speedStep, continuousCycles, jogInterval, playbackSpeed)
         }
         dialog.show(supportFragmentManager, "SettingsDialog")
     }

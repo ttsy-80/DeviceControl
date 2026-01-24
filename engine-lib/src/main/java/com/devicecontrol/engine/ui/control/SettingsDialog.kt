@@ -13,7 +13,8 @@ class SettingsDialog(
     private val currentSpeedStep: Double,
     private val currentContinuousCycles: Int,
     private val currentJogInterval: Int,
-    private val onConfirm: (Double, Int, Int) -> Unit
+    private val currentPlaybackSpeed: Double,
+    private val onConfirm: (Double, Int, Int, Double) -> Unit
 ) : DialogFragment() {
 
     private var _binding: DialogSettingsBinding? = null
@@ -26,6 +27,7 @@ class SettingsDialog(
         binding.etSpeedStep.setText(currentSpeedStep.toString())
         binding.etContinuousCycles.setText(currentContinuousCycles.toString())
         binding.etJogInterval.setText(currentJogInterval.toString())
+        binding.etPlaybackSpeed.setText(currentPlaybackSpeed.toString())
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(binding.root)
@@ -53,8 +55,9 @@ class SettingsDialog(
             val speedStepText = binding.etSpeedStep.text.toString()
             val continuousCyclesText = binding.etContinuousCycles.text.toString()
             val jogIntervalText = binding.etJogInterval.text.toString()
+            val playbackSpeedText = binding.etPlaybackSpeed.text.toString()
 
-            if (speedStepText.isBlank() || continuousCyclesText.isBlank() || jogIntervalText.isBlank()) {
+            if (speedStepText.isBlank() || continuousCyclesText.isBlank() || jogIntervalText.isBlank() || playbackSpeedText.isBlank()) {
                 Toast.makeText(context, "请填写所有字段", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -63,13 +66,14 @@ class SettingsDialog(
                 val speedStep = speedStepText.toDouble()
                 val continuousCycles = continuousCyclesText.toInt()
                 val jogInterval = jogIntervalText.toInt()
+                val playbackSpeed = playbackSpeedText.toDouble()
 
-                if (speedStep <= 0 || continuousCycles <= 0 || jogInterval <= 0) {
+                if (speedStep <= 0 || continuousCycles <= 0 || jogInterval <= 0 || playbackSpeed <= 0) {
                     Toast.makeText(context, "请输入有效的数值（必须大于0）", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
-                onConfirm(speedStep, continuousCycles, jogInterval)
+                onConfirm(speedStep, continuousCycles, jogInterval, playbackSpeed)
                 dialog.dismiss()
             } catch (e: NumberFormatException) {
                 Toast.makeText(context, "请输入有效的数值", Toast.LENGTH_SHORT).show()
@@ -86,7 +90,8 @@ class SettingsDialog(
     private fun setupImeActions() {
         binding.etSpeedStep.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
         binding.etContinuousCycles.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        binding.etJogInterval.imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        binding.etJogInterval.imeOptions = EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        binding.etPlaybackSpeed.imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
         
         binding.etSpeedStep.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_NEXT) {
@@ -107,9 +112,18 @@ class SettingsDialog(
         }
         
         binding.etJogInterval.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                binding.etPlaybackSpeed.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+        
+        binding.etPlaybackSpeed.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-                imm.hideSoftInputFromWindow(binding.etJogInterval.windowToken, 0)
+                imm.hideSoftInputFromWindow(binding.etPlaybackSpeed.windowToken, 0)
                 binding.btnConfirm.performClick()
                 true
             } else {

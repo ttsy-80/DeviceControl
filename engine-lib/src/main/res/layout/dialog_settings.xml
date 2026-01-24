@@ -82,7 +82,7 @@
         android:id="@+id/tilJogInterval"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/spacing_large"
+        android:layout_marginBottom="@dimen/spacing_medium"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:hint="@string/jog_interval"
         app:boxCornerRadiusTopStart="@dimen/button_corner_radius"
@@ -99,6 +99,32 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="number"
+            android:imeOptions="actionNext"
+            android:minHeight="@dimen/button_height_compact" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Playback Speed -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPlaybackSpeed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_large"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:hint="@string/playback_speed"
+        app:boxCornerRadiusTopStart="@dimen/button_corner_radius"
+        app:boxCornerRadiusTopEnd="@dimen/button_corner_radius"
+        app:boxCornerRadiusBottomStart="@dimen/button_corner_radius"
+        app:boxCornerRadiusBottomEnd="@dimen/button_corner_radius"
+        app:startIconDrawable="@android:drawable/ic_menu_recent_history"
+        app:startIconTint="@color/primary"
+        app:helperText="@string/playback_speed_hint"
+        app:helperTextEnabled="true">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPlaybackSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned"
             android:imeOptions="actionDone"
             android:minHeight="@dimen/button_height_compact" />
     </com.google.android.material.textfield.TextInputLayout>
