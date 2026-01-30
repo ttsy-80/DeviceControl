@@ -15,6 +15,9 @@ class TaskListViewModel(
     private val _tasks = MutableLiveData<List<Task>>(emptyList())
     val tasks: LiveData<List<Task>> = _tasks
     
+    private val _isLoading = MutableLiveData<Boolean>(true)
+    val isLoading: LiveData<Boolean> = _isLoading
+    
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> = _errorMessage
     
@@ -25,11 +28,14 @@ class TaskListViewModel(
     private fun loadTasks() {
         viewModelScope.launch {
             try {
+                _isLoading.postValue(true)
                 taskRepository.getAllTasks().collect { taskList ->
                     _tasks.postValue(taskList)
+                    _isLoading.postValue(false)
                 }
             } catch (e: Exception) {
                 _errorMessage.postValue("加载任务列表失败: ${e.message}")
+                _isLoading.postValue(false)
             }
         }
     }

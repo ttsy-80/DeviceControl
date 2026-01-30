@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="@dimen/spacing_small"
-    android:layout_marginEnd="@dimen/spacing_small"
+    android:layout_marginStart="@dimen/spacing_medium"
+    android:layout_marginEnd="@dimen/spacing_medium"
     android:layout_marginTop="@dimen/spacing_small"
     android:layout_marginBottom="@dimen/spacing_small"
     app:cardCornerRadius="@dimen/card_corner_radius"
@@ -16,51 +16,52 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="@dimen/spacing_medium">
 
-        <!-- Engine Name -->
+        <!-- Left: Task Info -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/spacing_small">
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginEnd="@dimen/spacing_medium">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Engine Name -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/engine_name"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:layout_marginEnd="@dimen/spacing_small" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_tiny">
 
-            <TextView
-                android:id="@+id/tvEngineName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="发动机型号名称"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface" />
-        </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/engine_name"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginEnd="@dimen/spacing_small" />
 
-        <!-- Task ID and Subtask Count -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/spacing_medium">
+                <TextView
+                    android:id="@+id/tvEngineName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="发动机型号名称"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface" />
+            </LinearLayout>
 
             <!-- Task ID -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_tiny">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -81,9 +82,8 @@
 
             <!-- Subtask Count -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -105,11 +105,12 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Enter Task Control Button -->
+        <!-- Right: Enter Task Control Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEnterTaskControl"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="@dimen/button_height_compact"
+            android:minWidth="100dp"
             android:text="@string/enter_task_control"
             android:textSize="14sp"
             style="@style/AccentButton" />

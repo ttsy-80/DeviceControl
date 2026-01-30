@@ -47,17 +47,41 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- Loading Indicator -->
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/progressIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="@dimen/spacing_large"
+                        android:indeterminate="true"
+                        android:visibility="gone" />
+
                     <!-- Empty State -->
-                    <TextView
-                        android:id="@+id/tvEmptyState"
+                    <LinearLayout
+                        android:id="@+id/llEmptyState"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/no_tasks"
-                        android:textSize="16sp"
-                        android:textColor="@color/text_secondary"
+                        android:orientation="vertical"
                         android:gravity="center"
                         android:padding="@dimen/spacing_large"
-                        android:visibility="gone" />
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/no_tasks"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginBottom="@dimen/spacing_medium" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCreateTask"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/button_height_compact"
+                            android:text="@string/create_task"
+                            style="@style/AccentButton" />
+                    </LinearLayout>
 
                     <!-- Task List -->
                     <androidx.recyclerview.widget.RecyclerView
@@ -66,7 +90,8 @@
                         android:layout_height="wrap_content"
                         android:minHeight="400dp"
                         android:clipToPadding="false"
-                        android:paddingBottom="@dimen/spacing_medium" />
+                        android:paddingBottom="@dimen/spacing_medium"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

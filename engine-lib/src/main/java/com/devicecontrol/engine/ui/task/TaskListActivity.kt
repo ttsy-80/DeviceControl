@@ -46,21 +46,41 @@ class TaskListActivity : AppCompatActivity() {
         binding.rvTaskList.layoutManager = LinearLayoutManager(this)
         binding.rvTaskList.adapter = taskAdapter
 
+        // Setup Create Task Button
+        binding.btnCreateTask.setOnClickListener {
+            val intent = Intent(this, TaskCreateActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
         setupObservers()
     }
 
     private fun setupObservers() {
-        viewModel.tasks.observe(this) { tasks ->
-            if (tasks.isEmpty()) {
-                binding.tvEmptyState.visibility = android.view.View.VISIBLE
+        // Loading state
+        viewModel.isLoading.observe(this) { isLoading ->
+            if (isLoading) {
+                binding.progressIndicator.visibility = android.view.View.VISIBLE
+                binding.llEmptyState.visibility = android.view.View.GONE
                 binding.rvTaskList.visibility = android.view.View.GONE
             } else {
-                binding.tvEmptyState.visibility = android.view.View.GONE
+                binding.progressIndicator.visibility = android.view.View.GONE
+            }
+        }
+
+        // Tasks list
+        viewModel.tasks.observe(this) { tasks ->
+            if (tasks.isEmpty()) {
+                binding.llEmptyState.visibility = android.view.View.VISIBLE
+                binding.rvTaskList.visibility = android.view.View.GONE
+            } else {
+                binding.llEmptyState.visibility = android.view.View.GONE
                 binding.rvTaskList.visibility = android.view.View.VISIBLE
                 taskAdapter.submitList(tasks)
             }
         }
 
+        // Error message
         viewModel.errorMessage.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
