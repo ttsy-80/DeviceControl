@@ -19,6 +19,12 @@
             android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustNothing"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.task.TaskListActivity"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing"
+            android:exported="false" />
     </application>
     
 </manifest>

@@ -136,6 +136,53 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Task List Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardTaskList"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_medium"
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardElevation="@dimen/card_elevation"
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toBottomOf="@id/cardTaskCreate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.9">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/card_padding">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="任务列表"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/on_background"
+                android:layout_marginBottom="@dimen/spacing_small" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="查看和管理所有检测任务"
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="@dimen/spacing_medium" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTaskList"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height"
+                android:text="进入任务列表"
+                style="@style/AccentButton" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Task Control Card - Hidden for now -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardTaskControl"
@@ -146,7 +193,7 @@
         app:cardCornerRadius="@dimen/card_corner_radius"
         app:cardElevation="@dimen/card_elevation"
         app:strokeWidth="0dp"
-        app:layout_constraintTop_toBottomOf="@id/cardTaskCreate"
+        app:layout_constraintTop_toBottomOf="@id/cardTaskList"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.9">

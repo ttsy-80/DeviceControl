@@ -7,6 +7,7 @@ import com.devicecontrol.app.databinding.ActivityMainBinding
 import com.devicecontrol.engine.ui.control.TaskControlActivity
 import com.devicecontrol.engine.ui.model.ModelManagementActivity
 import com.devicecontrol.engine.ui.task.TaskCreateActivity
+import com.devicecontrol.engine.ui.task.TaskListActivity
 
 class MainActivity : AppCompatActivity() {
     
@@ -31,6 +32,14 @@ class MainActivity : AppCompatActivity() {
         
         binding.btnTaskCreate.setOnClickListener {
             startActivity(Intent(this, TaskCreateActivity::class.java))
+        }
+        
+        binding.cardTaskList.setOnClickListener {
+            startActivity(Intent(this, TaskListActivity::class.java))
+        }
+        
+        binding.btnTaskList.setOnClickListener {
+            startActivity(Intent(this, TaskListActivity::class.java))
         }
         
         binding.cardTaskControl.setOnClickListener {

@@ -25,6 +25,14 @@
     <string name="select_gear_ratios">选择变速比</string>
     <string name="create_task">检测任务</string>
     
+    <!-- 任务列表 -->
+    <string name="task_list">任务列表</string>
+    <string name="engine_name">发动机名称</string>
+    <string name="task_id">任务ID</string>
+    <string name="subtask_count">子任务数量</string>
+    <string name="enter_task_control">进入任务控制</string>
+    <string name="no_tasks">暂无任务</string>
+    
     <!-- 任务控制 -->
     <string name="task_control">任务控制</string>
     <string name="engine_torque_speed">机力矩/速度</string>
