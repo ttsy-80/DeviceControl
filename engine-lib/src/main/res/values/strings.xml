@@ -57,7 +57,7 @@
     <string name="record">记录</string>
     <string name="record_number">记录%1$d</string>
     <string name="current_blade_count">当前叶片数</string>
-    <string name="playback">回放</string>
+    <string name="playback">回查</string>
     <string name="record_detail">记录详情</string>
     <string name="blade_number_label">第%1$d个</string>
     <string name="speed_unit">分钟/圈</string>
@@ -67,7 +67,7 @@
     <string name="continuous_cycles_hint">连续循环圈数（例如：1，2，3）</string>
     <string name="jog_interval">点动间隔</string>
     <string name="jog_interval_hint">单位：秒（例如：1s，2s，3s）</string>
-    <string name="playback_speed">回溯速度</string>
+    <string name="playback_speed">回查速度</string>
     <string name="playback_speed_hint">单位：秒/圈（例如：1秒/圈，2秒/圈）</string>
     
     <!-- 错误提示 -->
