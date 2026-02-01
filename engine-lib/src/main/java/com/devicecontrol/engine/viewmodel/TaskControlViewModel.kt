@@ -4,7 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.devicecontrol.engine.data.model.*
+import com.devicecontrol.engine.data.model.ConfigItem
+import com.devicecontrol.engine.data.model.OperationMode
+import com.devicecontrol.engine.data.model.RotationDirection
+import com.devicecontrol.engine.data.model.Task
+import com.devicecontrol.engine.data.model.TaskExecution
+import com.devicecontrol.engine.data.model.TaskRecord
+import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
 import kotlinx.coroutines.launch
@@ -29,12 +35,6 @@ class TaskControlViewModel(
     private val _taskIndex = MutableLiveData<String>()
     val taskIndex: LiveData<String> = _taskIndex
     
-    private val _canGoPrevious = MutableLiveData<Boolean>(false)
-    val canGoPrevious: LiveData<Boolean> = _canGoPrevious
-    
-    private val _canGoNext = MutableLiveData<Boolean>(false)
-    val canGoNext: LiveData<Boolean> = _canGoNext
-    
     private val _taskRecords = MutableLiveData<List<TaskRecord>>(emptyList())
     val taskRecords: LiveData<List<TaskRecord>> = _taskRecords
     
@@ -47,9 +47,27 @@ class TaskControlViewModel(
             _task.value = task
             
             if (task != null) {
+                // 第一次进入页面时，重置所有子任务的状态为STOPPED
+                resetAllTaskExecutionsStatus(taskId, task.configItemIds.size)
+                
                 // 从第一个子任务开始
                 currentGearRatioIndex = 0
                 loadTaskExecution(taskId, currentGearRatioIndex)
+            }
+        }
+    }
+    
+    /**
+     * 重置所有子任务的状态为STOPPED（仅在第一次进入页面时调用）
+     */
+    private fun resetAllTaskExecutionsStatus(taskId: Long, configItemCount: Int) {
+        viewModelScope.launch {
+            for (index in 0 until configItemCount) {
+                val execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, index)
+                if (execution != null && execution.status != TaskStatus.STOPPED) {
+                    val resetExecution = execution.copy(status = TaskStatus.STOPPED)
+                    taskRepository.insertOrUpdateTaskExecution(resetExecution)
+                }
             }
         }
     }
@@ -86,9 +104,6 @@ class TaskControlViewModel(
             
             // 更新任务索引显示
             updateTaskIndex(task, configItemIndex)
-            
-            // 更新导航按钮状态
-            updateNavigationButtons(task, configItemIndex)
             
             // 加载记录列表
             loadTaskRecords(taskId, configItemIndex)
@@ -135,91 +150,6 @@ class TaskControlViewModel(
         _taskIndex.value = "任务: ${index + 1}/$total"
     }
     
-    private fun updateNavigationButtons(task: Task, index: Int) {
-        _canGoPrevious.value = index > 0
-        _canGoNext.value = index < task.configItemIds.size - 1
-    }
-    
-    fun goToPreviousTask() {
-        val task = _task.value ?: return
-        
-        if (currentGearRatioIndex > 0) {
-            // 保存当前任务的配置到上一个任务
-            val currentExecution = _taskExecution.value
-            val targetIndex = currentGearRatioIndex - 1
-            
-            viewModelScope.launch {
-                if (currentExecution != null) {
-                    var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, targetIndex)
-                    if (targetExecution == null) {
-                        // 创建新的执行记录，复制配置
-                        targetExecution = TaskExecution(
-                            taskId = task.id,
-                            gearRatioIndex = targetIndex,
-                            speed = currentExecution.speedStep, // 使用配置的默认速度
-                            speedStep = currentExecution.speedStep,
-                            continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval,
-                            playbackSpeed = currentExecution.playbackSpeed
-                        )
-                    } else {
-                        // 更新已有记录的配置项
-                        targetExecution = targetExecution.copy(
-                            speedStep = currentExecution.speedStep,
-                            continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval,
-                            playbackSpeed = currentExecution.playbackSpeed
-                        )
-                    }
-                    taskRepository.insertOrUpdateTaskExecution(targetExecution)
-                }
-                
-                currentGearRatioIndex = targetIndex
-                loadTaskExecution(task.id, currentGearRatioIndex)
-            }
-        }
-    }
-    
-    fun goToNextTask() {
-        val task = _task.value ?: return
-        
-        if (currentGearRatioIndex < task.configItemIds.size - 1) {
-            // 保存当前任务的配置到下一个任务
-            val currentExecution = _taskExecution.value
-            val targetIndex = currentGearRatioIndex + 1
-            
-            viewModelScope.launch {
-                if (currentExecution != null) {
-                    var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, targetIndex)
-                    if (targetExecution == null) {
-                        // 创建新的执行记录，复制配置
-                        targetExecution = TaskExecution(
-                            taskId = task.id,
-                            gearRatioIndex = targetIndex,
-                            speed = currentExecution.speedStep, // 使用配置的默认速度
-                            speedStep = currentExecution.speedStep,
-                            continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval,
-                            playbackSpeed = currentExecution.playbackSpeed
-                        )
-                    } else {
-                        // 更新已有记录的配置项
-                        targetExecution = targetExecution.copy(
-                            speedStep = currentExecution.speedStep,
-                            continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval,
-                            playbackSpeed = currentExecution.playbackSpeed
-                        )
-                    }
-                    taskRepository.insertOrUpdateTaskExecution(targetExecution)
-                }
-                
-                currentGearRatioIndex = targetIndex
-                loadTaskExecution(task.id, currentGearRatioIndex)
-            }
-        }
-    }
-    
     data class TaskItem(
         val index: Int,
         val displayName: String
@@ -241,41 +171,16 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         
         if (index >= 0 && index < task.configItemIds.size) {
-            // 先保存当前任务的所有状态
+            // 保存当前任务的状态
             val currentExecution = _taskExecution.value
             
             viewModelScope.launch {
-                // 保存当前任务的所有状态（包括status, speed, rotationDirection, operationMode等）
+                // 保存当前任务的状态
                 if (currentExecution != null) {
                     taskRepository.insertOrUpdateTaskExecution(currentExecution)
                 }
                 
-                // 如果切换到不同的任务，更新目标任务的配置项
-                if (currentExecution != null && index != currentGearRatioIndex) {
-                    var targetExecution = taskRepository.getTaskExecutionByTaskIdAndIndex(task.id, index)
-                    if (targetExecution == null) {
-                        // 创建新的执行记录，复制配置
-                        targetExecution = TaskExecution(
-                            taskId = task.id,
-                            gearRatioIndex = index,
-                            speed = currentExecution.speedStep,
-                            speedStep = currentExecution.speedStep,
-                            continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval,
-                            playbackSpeed = currentExecution.playbackSpeed
-                        )
-                    } else {
-                        // 更新已有记录的配置项（但不覆盖状态）
-                        targetExecution = targetExecution.copy(
-                            speedStep = currentExecution.speedStep,
-                            continuousCycles = currentExecution.continuousCycles,
-                            jogInterval = currentExecution.jogInterval,
-                            playbackSpeed = currentExecution.playbackSpeed
-                        )
-                    }
-                    taskRepository.insertOrUpdateTaskExecution(targetExecution)
-                }
-                
+                // 切换到目标任务，不改变目标任务的状态或配置
                 currentGearRatioIndex = index
                 loadTaskExecution(task.id, currentGearRatioIndex)
             }
