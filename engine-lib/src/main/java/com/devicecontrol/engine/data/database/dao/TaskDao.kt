@@ -15,6 +15,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTaskById(taskId: Long): Task?
     
+    @Query("SELECT * FROM tasks WHERE modelId = :modelId AND id != :excludeTaskId ORDER BY id DESC")
+    suspend fun getTasksByModelId(modelId: Long, excludeTaskId: Long = -1): List<Task>
+    
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: Task): Long
     
@@ -32,6 +35,9 @@ interface TaskDao {
     
     @Query("SELECT * FROM task_executions WHERE taskId = :taskId")
     fun getTaskExecutionByTaskIdFlow(taskId: Long): Flow<TaskExecution?>
+    
+    @Query("SELECT * FROM task_executions WHERE taskId IN (SELECT id FROM tasks WHERE modelId = :modelId AND id != :excludeTaskId) ORDER BY taskId DESC, gearRatioIndex ASC LIMIT 1")
+    suspend fun getLatestTaskExecutionByModelId(modelId: Long, excludeTaskId: Long = -1): TaskExecution?
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTaskExecution(execution: TaskExecution): Long

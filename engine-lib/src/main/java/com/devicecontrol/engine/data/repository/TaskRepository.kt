@@ -16,8 +16,16 @@ class TaskRepository(private val taskDao: TaskDao) {
         return taskDao.getTaskById(taskId)
     }
     
+    suspend fun getTasksByModelId(modelId: Long, excludeTaskId: Long = -1): List<Task> {
+        return taskDao.getTasksByModelId(modelId, excludeTaskId)
+    }
+    
     suspend fun insertTask(task: Task): Long {
         return taskDao.insertTask(task)
+    }
+    
+    suspend fun getLatestTaskExecutionByModelId(modelId: Long, excludeTaskId: Long = -1): TaskExecution? {
+        return taskDao.getLatestTaskExecutionByModelId(modelId, excludeTaskId)
     }
     
     suspend fun deleteTask(task: Task) {
