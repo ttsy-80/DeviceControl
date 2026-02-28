@@ -126,13 +126,32 @@ class UsbCommunicationManager private constructor(private val context: Context) 
     
     init {
         // 注册USB权限和设备广播接收器
-        val filter = IntentFilter().apply {
+        val permissionFilter = IntentFilter().apply {
             addAction(ACTION_USB_PERMISSION)
+        }
+        
+        val deviceFilter = IntentFilter().apply {
             addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
             addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         }
-        context.registerReceiver(usbPermissionReceiver, filter)
-        context.registerReceiver(usbDeviceReceiver, filter)
+        
+        // Android 12 (API 31) 及以上版本需要指定 RECEIVER_EXPORTED 或 RECEIVER_NOT_EXPORTED
+        // RECEIVER_NOT_EXPORTED 常量在 API 33 引入，但值为 0，可以直接使用
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // API 33+ 使用常量，API 31-32 使用常量值 0 (RECEIVER_NOT_EXPORTED = 0)
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Context.RECEIVER_NOT_EXPORTED
+            } else {
+                0 // RECEIVER_NOT_EXPORTED 的值
+            }
+            context.registerReceiver(usbPermissionReceiver, permissionFilter, flags)
+            context.registerReceiver(usbDeviceReceiver, deviceFilter, flags)
+        } else {
+            @Suppress("DEPRECATION")
+            context.registerReceiver(usbPermissionReceiver, permissionFilter)
+            @Suppress("DEPRECATION")
+            context.registerReceiver(usbDeviceReceiver, deviceFilter)
+        }
         
         refreshAvailableDevices()
     }
