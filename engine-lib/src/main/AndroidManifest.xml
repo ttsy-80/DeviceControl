@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
+    <!-- USB设备过滤器 - 支持HID和CDC/ACM设备 -->
+    <uses-feature android:name="android.hardware.usb.host" />
+    
     <application>
         <activity
             android:name=".ui.model.ModelManagementActivity"
