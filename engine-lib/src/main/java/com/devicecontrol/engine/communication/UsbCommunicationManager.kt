@@ -12,6 +12,7 @@ import android.os.Build
 import com.devicecontrol.engine.communication.model.UsbDeviceInfo
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
 import com.devicecontrol.engine.communication.protocol.CanOpenProtocol
+import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
 import com.devicecontrol.engine.communication.strategy.HidCommunicationStrategy
 import com.devicecontrol.engine.communication.strategy.VcpCommunicationStrategy
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -446,6 +447,147 @@ class UsbCommunicationManager private constructor(private val context: Context) 
             sendCanOpenMessage(message)
         } catch (e: Exception) {
             dataCallback?.onError("构建CAN Open消息失败: ${e.message}")
+            false
+        }
+    }
+    
+    // ========== CANUSB协议命令支持 ==========
+    
+    /**
+     * 设置CANUSB的CAN波特率
+     * 命令格式：S{baudrate}[CR]
+     * 必须在打开CAN通道之前调用
+     * 
+     * @param baudRate CAN波特率
+     * @return 是否发送成功
+     */
+    fun setCanBaudRate(baudRate: CanUsbProtocol.CanBaudRate): Boolean {
+        val command = CanUsbProtocol.setBaudRate(baudRate)
+        return sendText(command)
+    }
+    
+    /**
+     * 打开CANUSB的CAN通道
+     * 命令格式：O[CR]
+     * 必须在设置波特率后调用
+     * 
+     * @return 是否发送成功
+     */
+    fun openCanChannel(): Boolean {
+        val command = CanUsbProtocol.openCan()
+        return sendText(command)
+    }
+    
+    /**
+     * 关闭CANUSB的CAN通道
+     * 命令格式：C[CR]
+     * 
+     * @return 是否发送成功
+     */
+    fun closeCanChannel(): Boolean {
+        val command = CanUsbProtocol.closeCan()
+        return sendText(command)
+    }
+    
+    /**
+     * 获取CANUSB版本号
+     * 命令格式：V[CR]
+     * 返回格式：V{硬件版本}{软件版本}[CR]
+     * 
+     * @return 是否发送成功
+     */
+    fun getCanUsbVersion(): Boolean {
+        val command = CanUsbProtocol.getVersion()
+        return sendText(command)
+    }
+    
+    /**
+     * 获取CANUSB序列号
+     * 命令格式：N[CR]
+     * 返回格式：N{序列号}[CR]
+     * 
+     * @return 是否发送成功
+     */
+    fun getCanUsbSerialNumber(): Boolean {
+        val command = CanUsbProtocol.getSerialNumber()
+        return sendText(command)
+    }
+    
+    /**
+     * 读取CANUSB错误标志
+     * 命令格式：F[CR]
+     * 
+     * @return 是否发送成功
+     */
+    fun readCanUsbErrorFlags(): Boolean {
+        val command = CanUsbProtocol.readErrorFlags()
+        return sendText(command)
+    }
+    
+    /**
+     * 设置CANUSB时间戳开关
+     * 命令格式：Z{0|1}[CR]
+     * 
+     * @param enabled 是否启用时间戳
+     * @return 是否发送成功
+     */
+    fun setCanUsbTimeStamp(enabled: Boolean): Boolean {
+        val command = CanUsbProtocol.setTimeStamp(enabled)
+        return sendText(command)
+    }
+    
+    /**
+     * 发送标准CAN帧（11位ID）
+     * 命令格式：t{ID}{DLC}{DATA}[CR]
+     * 
+     * @param canId CAN ID（11位，0-0x7FF）
+     * @param dlc 数据长度（0-8）
+     * @param data 数据字节数组
+     * @return 是否发送成功
+     */
+    fun sendStandardCanFrame(canId: Int, dlc: Int, data: ByteArray): Boolean {
+        return try {
+            val command = CanUsbProtocol.sendStandardFrame(canId, dlc, data)
+            sendText(command)
+        } catch (e: Exception) {
+            dataCallback?.onError("发送标准CAN帧失败: ${e.message}")
+            false
+        }
+    }
+    
+    /**
+     * 发送扩展CAN帧（29位ID）
+     * 命令格式：T{ID}{DLC}{DATA}[CR]
+     * 
+     * @param canId CAN ID（29位，0-0x1FFFFFFF）
+     * @param dlc 数据长度（0-8）
+     * @param data 数据字节数组
+     * @return 是否发送成功
+     */
+    fun sendExtendedCanFrame(canId: Int, dlc: Int, data: ByteArray): Boolean {
+        return try {
+            val command = CanUsbProtocol.sendExtendedFrame(canId, dlc, data)
+            sendText(command)
+        } catch (e: Exception) {
+            dataCallback?.onError("发送扩展CAN帧失败: ${e.message}")
+            false
+        }
+    }
+    
+    /**
+     * 发送RTR（Remote Transmission Request）帧
+     * 
+     * @param canId CAN ID
+     * @param dlc 数据长度（0-8）
+     * @param extended 是否为扩展帧
+     * @return 是否发送成功
+     */
+    fun sendRtrFrame(canId: Int, dlc: Int, extended: Boolean = false): Boolean {
+        return try {
+            val command = CanUsbProtocol.sendRtrFrame(canId, dlc, extended)
+            sendText(command)
+        } catch (e: Exception) {
+            dataCallback?.onError("发送RTR帧失败: ${e.message}")
             false
         }
     }
