@@ -10,6 +10,8 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 import android.os.Build
 import com.devicecontrol.engine.communication.model.UsbDeviceInfo
+import com.devicecontrol.engine.communication.protocol.CanOpenMessage
+import com.devicecontrol.engine.communication.protocol.CanOpenProtocol
 import com.devicecontrol.engine.communication.strategy.HidCommunicationStrategy
 import com.devicecontrol.engine.communication.strategy.VcpCommunicationStrategy
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +30,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * 4. 调用 connect() 方法连接设备，将使用当前设置的协议
  * 5. 每次只能使用一个连接策略（要么HID，要么VCP）
  * 6. 切换协议后会自动刷新可用设备列表
+ * 
+ * CAN Open协议支持：
+ * - 使用 sendCanOpenMessage() 发送CAN Open消息
+ * - 接收到的数据会自动解析为CanOpenMessage（如果格式正确）
  */
 class UsbCommunicationManager private constructor(private val context: Context) {
     
@@ -52,6 +58,19 @@ class UsbCommunicationManager private constructor(private val context: Context) 
     private var currentDevice: UsbDevice? = null
     private var currentConnection: UsbDeviceConnection? = null
     private var dataCallback: UsbDataCallback? = null
+    
+    /**
+     * CAN Open消息回调接口
+     */
+    interface CanOpenMessageCallback {
+        /**
+         * 接收到CAN Open消息
+         * @param message 解析后的CAN Open消息
+         */
+        fun onCanOpenMessageReceived(message: CanOpenMessage)
+    }
+    
+    private var canOpenMessageCallback: CanOpenMessageCallback? = null
     
     /**
      * 当前使用的通信协议，默认为VCP
@@ -121,6 +140,41 @@ class UsbCommunicationManager private constructor(private val context: Context) 
                     refreshAvailableDevices()
                 }
             }
+        }
+    }
+    
+    // 包装数据回调，自动解析CAN Open消息
+    private val wrappedDataCallback = object : UsbDataCallback {
+        override fun onTextDataReceived(data: String) {
+            // 尝试解析为CAN Open消息
+            val messages = CanOpenProtocol.parseFromData(data.toByteArray(Charsets.US_ASCII))
+            if (messages.isNotEmpty()) {
+                // 如果成功解析，调用CAN Open回调
+                messages.forEach { message ->
+                    canOpenMessageCallback?.onCanOpenMessageReceived(message)
+                }
+            } else {
+                // 如果无法解析为CAN Open消息，调用原始文本回调
+                dataCallback?.onTextDataReceived(data)
+            }
+        }
+        
+        override fun onBinaryDataReceived(data: ByteArray) {
+            // 尝试解析为CAN Open消息
+            val messages = CanOpenProtocol.parseFromData(data)
+            if (messages.isNotEmpty()) {
+                // 如果成功解析，调用CAN Open回调
+                messages.forEach { message ->
+                    canOpenMessageCallback?.onCanOpenMessageReceived(message)
+                }
+            } else {
+                // 如果无法解析为CAN Open消息，调用原始二进制回调
+                dataCallback?.onBinaryDataReceived(data)
+            }
+        }
+        
+        override fun onError(error: String) {
+            dataCallback?.onError(error)
         }
     }
     
@@ -225,6 +279,14 @@ class UsbCommunicationManager private constructor(private val context: Context) 
     }
     
     /**
+     * 设置CAN Open消息回调
+     * @param callback CAN Open消息回调接口
+     */
+    fun setCanOpenMessageCallback(callback: CanOpenMessageCallback?) {
+        this.canOpenMessageCallback = callback
+    }
+    
+    /**
      * 连接到指定设备
      * 使用当前设置的通信协议（通过 setProtocol() 设置，默认为VCP）
      * 
@@ -275,8 +337,15 @@ class UsbCommunicationManager private constructor(private val context: Context) 
                 return
             }
             
+            // 使用包装后的回调（支持CAN Open解析）
+            val callbackToUse = if (canOpenMessageCallback != null || dataCallback != null) {
+                wrappedDataCallback
+            } else {
+                null
+            }
+            
             // 使用指定策略连接
-            if (strategy.connect(usbManager, device, connection, dataCallback)) {
+            if (strategy.connect(usbManager, device, connection, callbackToUse)) {
                 currentStrategy = strategy
                 currentDevice = device
                 currentConnection = connection
@@ -325,6 +394,58 @@ class UsbCommunicationManager private constructor(private val context: Context) 
             currentStrategy!!.sendBinary(data)
         } else {
             dataCallback?.onError("设备未连接")
+            false
+        }
+    }
+    
+    /**
+     * 发送CAN Open消息
+     * 
+     * @param message CAN Open消息对象
+     * @return 是否发送成功
+     */
+    fun sendCanOpenMessage(message: CanOpenMessage): Boolean {
+        if (!isConnected()) {
+            dataCallback?.onError("设备未连接")
+            return false
+        }
+        
+        // 将消息转换为协议字符串并发送
+        val protocolString = message.toProtocolString()
+        return sendText(protocolString)
+    }
+    
+    /**
+     * 发送CAN Open消息（便捷方法）
+     * 
+     * @param canId CAN ID
+     * @param dlc 数据长度（0-8）
+     * @param data 数据字节数组
+     * @return 是否发送成功
+     */
+    fun sendCanOpenMessage(canId: Int, dlc: Int, data: ByteArray): Boolean {
+        return try {
+            val message = CanOpenMessage(canId, dlc, data)
+            sendCanOpenMessage(message)
+        } catch (e: Exception) {
+            dataCallback?.onError("构建CAN Open消息失败: ${e.message}")
+            false
+        }
+    }
+    
+    /**
+     * 发送CAN Open消息（从十六进制字符串）
+     * 
+     * @param canId CAN ID
+     * @param dataHex 数据的十六进制字符串（例如："2B40600001000000"）
+     * @return 是否发送成功
+     */
+    fun sendCanOpenMessageFromHex(canId: Int, dataHex: String): Boolean {
+        return try {
+            val message = CanOpenProtocol.buildFromHex(canId, dataHex)
+            sendCanOpenMessage(message)
+        } catch (e: Exception) {
+            dataCallback?.onError("构建CAN Open消息失败: ${e.message}")
             false
         }
     }
