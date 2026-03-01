@@ -31,7 +31,7 @@ interface CommunicationTransport {
 
     /** 可用目标列表流（如 USB 插拔时更新；默认返回空列表流） */
     open fun getAvailableTargetsState(): StateFlow<List<ConnectTarget>> =
-        MutableStateFlow(emptyList()).asStateFlow()
+        MutableStateFlow(emptyList<ConnectTarget>()).asStateFlow()
 
     /** 释放资源（如注销广播） */
     fun release()

@@ -188,14 +188,14 @@ class TaskControlViewModel(
     }
     
     fun start() {
-        updateTaskStatus(TaskStatus.RUNNING)
+        updateExecution { it.copy(status = TaskStatus.RUNNING) }
         // 更新header显示
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
     
     fun pause() {
-        updateTaskStatus(TaskStatus.PAUSED)
+        updateExecution { it.copy(status = TaskStatus.PAUSED) }
         // 更新header显示
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
@@ -216,7 +216,6 @@ class TaskControlViewModel(
     }
     
     fun setJog() {
-        val execution = _taskExecution.value ?: return
         updateExecution { it.copy(operationMode = OperationMode.JOG) }
         // 更新header显示
         val task = _task.value ?: return
@@ -224,7 +223,6 @@ class TaskControlViewModel(
     }
     
     fun setContinuous() {
-        val execution = _taskExecution.value ?: return
         updateExecution { it.copy(operationMode = OperationMode.CONTINUOUS) }
         // 更新header显示
         val task = _task.value ?: return
@@ -250,7 +248,6 @@ class TaskControlViewModel(
     }
     
     fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int, playbackSpeed: Double) {
-        val execution = _taskExecution.value ?: return
         updateExecution { 
             it.copy(
                 speedStep = speedStep,
@@ -296,10 +293,6 @@ class TaskControlViewModel(
             // 暂时只记录日志
             android.util.Log.d("TaskControlViewModel", "Playback record: $record, playbackSpeed: $playbackSpeed 秒/圈")
         }
-    }
-    
-    private fun updateTaskStatus(status: TaskStatus) {
-        updateExecution { it.copy(status = status) }
     }
     
     private fun updateExecution(update: (TaskExecution) -> TaskExecution) {
