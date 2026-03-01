@@ -40,7 +40,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
     private var currentConnection: UsbDeviceConnection? = null
     private var dataCallback: DataCallback? = null
 
-    var currentProtocol: UsbProtocol = UsbProtocol.VCP
+    var currentProtocol: UsbProtocol = UsbProtocol.VSP
         set(value) {
             if (isConnected()) return
             field = value

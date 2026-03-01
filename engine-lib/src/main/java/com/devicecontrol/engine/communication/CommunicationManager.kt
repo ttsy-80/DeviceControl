@@ -82,25 +82,44 @@ class CommunicationManager private constructor() {
         dataCallback = callback
     }
 
-    /** 向当前设置的回调上报错误（供门面或传输层使用） */
-    fun reportError(message: String) {
-        dataCallback?.onError(message)
-    }
-
     fun setCanOpenMessageCallback(callback: CanOpenMessageCallback?) {
         canOpenMessageCallback = callback
     }
 
-    /** 连接：由业务传入 [ConnectTarget]（如从列表选择） */
-    fun connect(target: ConnectTarget, callback: DataCallback? = null) {
+//    /** 连接：由业务传入 [ConnectTarget]（如从列表选择） */
+//    fun connect(target: ConnectTarget, callback: DataCallback? = null) {
+//        if (callback != null) dataCallback = callback
+//        val transport = currentTransport
+//        if (transport == null) {
+//            dataCallback?.onError("未设置传输方式，请先 setTransport(UsbCommunicationTransport 或 WiFi 实现)")
+//            return
+//        }
+//        val toUse = if (dataCallback != null || canOpenMessageCallback != null) wrappedCallback else null
+//        transport.connect(target, toUse)
+//    }
+
+    /**
+     * 扫描并连接：先刷新可用目标，若扫到设备则直接连接第一个
+     * @param callback 可选，若传入则同时作为本次连接的数据回调
+     * @return true 已发起连接（扫到至少一个目标），false 未设置传输或未扫到设备
+     */
+    fun scanAndConnect(callback: DataCallback? = null): Boolean {
         if (callback != null) dataCallback = callback
         val transport = currentTransport
         if (transport == null) {
-            dataCallback?.onError("未设置传输方式，请先 setTransport(UsbCommunicationTransport 或 WiFi 实现)")
-            return
+            dataCallback?.onError("未设置传输方式，请先 setTransport(...)")
+            return false
+        }
+        refreshAvailableTargets()
+        val targets = getAvailableTargets()
+        val first = targets.firstOrNull()
+        if (first == null) {
+            dataCallback?.onError("未扫描到设备")
+            return false
         }
         val toUse = if (dataCallback != null || canOpenMessageCallback != null) wrappedCallback else null
-        transport.connect(target, toUse)
+        transport.connect(first, toUse)
+        return true
     }
 
     fun disconnect() {
