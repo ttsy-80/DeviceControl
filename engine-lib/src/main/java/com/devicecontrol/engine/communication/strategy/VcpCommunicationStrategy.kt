@@ -8,6 +8,7 @@ import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 import com.devicecontrol.engine.communication.UsbCommunicationStrategy
 import com.devicecontrol.engine.communication.UsbDataCallback
+import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,7 +21,11 @@ import kotlinx.coroutines.launch
  * 用于与CDC/ACM类USB设备（虚拟串口）进行通信
  */
 class VcpCommunicationStrategy : UsbCommunicationStrategy {
-    
+
+    companion object {
+        private const val TAG = "VcpStrategy"
+    }
+
     private var usbInterface: UsbInterface? = null
     private var inputEndpoint: UsbEndpoint? = null
     private var outputEndpoint: UsbEndpoint? = null
@@ -86,8 +91,10 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
                     }
                 }
             }
+            EngineLog.w(TAG, "connect: 未找到CDC/ACM接口")
             return false
         } catch (e: Exception) {
+            EngineLog.e(TAG, "connect: ${e.message}", e)
             callback?.onError("VCP连接失败: ${e.message}")
             return false
         }

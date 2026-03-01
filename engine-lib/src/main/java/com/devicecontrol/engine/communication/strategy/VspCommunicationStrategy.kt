@@ -7,6 +7,7 @@ import android.hardware.usb.UsbManager
 import com.devicecontrol.engine.communication.UsbCommunicationStrategy
 import com.devicecontrol.engine.communication.UsbDataCallback
 import com.hoho.android.usbserial.driver.UsbSerialPort
+import com.devicecontrol.engine.log.EngineLog
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,10 @@ import java.io.IOException
  * 基于 usb-serial-for-android 库，支持 CDC/ACM、FTDI、CH340、Cp21xx 等常见 USB 串口芯片
  */
 class VspCommunicationStrategy : UsbCommunicationStrategy {
+
+    companion object {
+        private const val TAG = "VspStrategy"
+    }
 
     private var port: UsbSerialPort? = null
     private var connection: UsbDeviceConnection? = null
@@ -59,29 +64,36 @@ class VspCommunicationStrategy : UsbCommunicationStrategy {
             val drivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
             val driver = drivers.find { it.device == device }
                 ?: run {
+                    EngineLog.w(TAG, "connect: 未找到设备对应串口驱动 vid=${device.vendorId} pid=${device.productId}")
                     callback?.onError("VSP: 未找到该设备对应的串口驱动")
                     return false
                 }
             val p = driver.ports.firstOrNull()
                 ?: run {
+                    EngineLog.w(TAG, "connect: 该设备无可用串口")
                     callback?.onError("VSP: 该设备无可用串口")
                     return false
                 }
             p.open(connection)
             p.setParameters(baudRate, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
             port = p
+            EngineLog.i(TAG, "connect: 成功 baudRate=$baudRate")
             true
         } catch (e: IOException) {
+            EngineLog.e(TAG, "connect: 失败 ${e.message}", e)
             callback?.onError("VSP 连接失败: ${e.message}")
             false
         }
     }
 
     override fun disconnect() {
+        EngineLog.d(TAG, "disconnect")
         stopReceiving()
         try {
             port?.close()
-        } catch (_: IOException) {}
+        } catch (e: IOException) {
+            EngineLog.w(TAG, "disconnect: port.close() ${e.message}")
+        }
         port = null
         connection?.close()
         connection = null
@@ -102,6 +114,7 @@ class VspCommunicationStrategy : UsbCommunicationStrategy {
             p.write(data, 2000)
             true
         } catch (e: IOException) {
+            EngineLog.e(TAG, "sendBinary: ${e.message}")
             callback?.onError("VSP 发送失败: ${e.message}")
             false
         }
@@ -129,7 +142,10 @@ class VspCommunicationStrategy : UsbCommunicationStrategy {
                         }
                     }
                 } catch (e: IOException) {
-                    if (isActive) callback?.onError("VSP 接收异常: ${e.message}")
+                    if (isActive) {
+                        EngineLog.e(TAG, "startReceiving: ${e.message}")
+                        callback?.onError("VSP 接收异常: ${e.message}")
+                    }
                     break
                 }
             }

@@ -13,13 +13,18 @@ import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
+import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.launch
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
     private val engineRepository: EngineRepository
 ) : ViewModel() {
-    
+
+    companion object {
+        private const val TAG = "TaskControlVM"
+    }
+
     private val _task = MutableLiveData<Task?>()
     val task: LiveData<Task?> = _task
     
@@ -43,7 +48,7 @@ class TaskControlViewModel(
     fun loadTask(taskId: Long) {
         viewModelScope.launch {
             val task = taskRepository.getTaskById(taskId)
-            android.util.Log.d("TaskControlViewModel", "Task loaded: id=$taskId, task=$task, configItemIds=${task?.configItemIds}, size=${task?.configItemIds?.size}")
+            EngineLog.d(TAG, "loadTask: id=$taskId, configItemIds=${task?.configItemIds?.size}")
             _task.value = task
             
             if (task != null) {

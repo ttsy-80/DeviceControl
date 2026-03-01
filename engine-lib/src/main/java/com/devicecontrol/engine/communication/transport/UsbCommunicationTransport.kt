@@ -20,6 +20,7 @@ import com.devicecontrol.engine.communication.model.UsbDeviceInfo
 import com.devicecontrol.engine.communication.strategy.HidCommunicationStrategy
 import com.devicecontrol.engine.communication.strategy.VcpCommunicationStrategy
 import com.devicecontrol.engine.communication.strategy.VspCommunicationStrategy
+import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class UsbCommunicationTransport(private val context: Context) : CommunicationTransport {
 
     companion object {
+        private const val TAG = "UsbTransport"
         private const val ACTION_USB_PERMISSION = "com.devicecontrol.engine.USB_PERMISSION"
     }
 
@@ -90,6 +92,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         device?.let { connectToDevice(it) }
                     } else {
+                        EngineLog.w(TAG, "USB权限被拒绝")
                         dataCallback?.onError("USB权限被拒绝")
                         _connectionState.value = ConnectionState.Disconnected
                     }
@@ -101,9 +104,15 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
     private val usbDeviceReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                UsbManager.ACTION_USB_DEVICE_ATTACHED -> refreshAvailableTargets()
+                UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
+                    EngineLog.d(TAG, "USB设备已连接")
+                    refreshAvailableTargets()
+                }
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
-                    if (intent.getUsbDeviceExtra() == currentDevice) disconnect()
+                    if (intent.getUsbDeviceExtra() == currentDevice) {
+                        EngineLog.i(TAG, "当前USB设备已拔出，断开连接")
+                        disconnect()
+                    }
                     refreshAvailableTargets()
                 }
             }
@@ -162,6 +171,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                 )
             }
         _availableTargets.value = list
+        EngineLog.d(TAG, "refreshAvailableTargets: protocol=${currentProtocol.name}, 数量=${list.size}")
     }
 
     override fun connect(target: ConnectTarget, callback: DataCallback?) {
@@ -169,14 +179,17 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
             is ConnectTarget.Usb -> {
                 dataCallback = callback
                 val device = target.deviceInfo.device
+                EngineLog.i(TAG, "connect: device=${device.deviceName}, vid=${device.vendorId}, pid=${device.productId}")
                 if (usbManager.hasPermission(device)) {
                     connectToDevice(device)
                 } else {
+                    EngineLog.d(TAG, "connect: 请求USB权限")
                     _connectionState.value = ConnectionState.RequestingPermission
                     usbManager.requestPermission(device, permissionIntent)
                 }
             }
             is ConnectTarget.Wifi -> {
+                EngineLog.w(TAG, "connect: USB传输不支持WiFi目标")
                 callback?.onError("USB 传输不支持 WiFi 目标，请使用 WiFi 传输实现")
             }
         }
@@ -191,12 +204,14 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                 UsbProtocol.VSP -> VspCommunicationStrategy().apply { baudRate = vspBaudRate }
             }
             if (!strategy.isDeviceSupported(device)) {
+                EngineLog.w(TAG, "connectToDevice: 设备不支持${currentProtocol.name}")
                 dataCallback?.onError("设备不支持${currentProtocol.name}协议")
                 _connectionState.value = ConnectionState.Disconnected
                 return
             }
             val connection = usbManager.openDevice(device)
             if (connection == null) {
+                EngineLog.e(TAG, "connectToDevice: 无法打开设备连接")
                 dataCallback?.onError("无法打开设备连接")
                 _connectionState.value = ConnectionState.Disconnected
                 return
@@ -208,18 +223,22 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                 currentConnection = connection
                 strategy.startReceiving()
                 _connectionState.value = ConnectionState.Connected("USB-${currentProtocol.name}")
+                EngineLog.i(TAG, "connectToDevice: 已连接 USB-${currentProtocol.name}")
             } else {
                 connection.close()
+                EngineLog.e(TAG, "connectToDevice: ${currentProtocol.name}策略连接失败")
                 dataCallback?.onError("${currentProtocol.name}连接失败")
                 _connectionState.value = ConnectionState.Disconnected
             }
         } catch (e: Exception) {
+            EngineLog.e(TAG, "connectToDevice: 异常", e)
             dataCallback?.onError("连接异常: ${e.message}")
             _connectionState.value = ConnectionState.Disconnected
         }
     }
 
     override fun disconnect() {
+        EngineLog.d(TAG, "disconnect")
         currentStrategy?.disconnect()
         currentStrategy = null
         currentDevice = null
@@ -252,11 +271,14 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
     override fun getAvailableTargetsState(): StateFlow<List<ConnectTarget>> = _availableTargets.asStateFlow()
 
     override fun release() {
+        EngineLog.d(TAG, "release: 注销广播")
         disconnect()
         try {
             context.unregisterReceiver(usbPermissionReceiver)
             context.unregisterReceiver(usbDeviceReceiver)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            EngineLog.w(TAG, "release: 注销Receiver异常 ${e.message}")
+        }
     }
 
     /** USB 专用：当前连接设备 */

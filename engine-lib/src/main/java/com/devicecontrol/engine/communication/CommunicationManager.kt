@@ -1,6 +1,7 @@
 package com.devicecontrol.engine.communication
 
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
+import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.communication.protocol.CanOpenProtocol
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class CommunicationManager private constructor() {
 
     companion object {
+        private const val TAG = "CommMgr"
         @Volatile
         private var INSTANCE: CommunicationManager? = null
         fun getInstance(): CommunicationManager =
@@ -60,12 +62,14 @@ class CommunicationManager private constructor() {
     /** 设置当前连接方式（USB / WiFi 等） */
     fun setTransport(transport: CommunicationTransport?) {
         if (currentTransport?.isConnected() == true) {
+            EngineLog.w(TAG, "setTransport: 已连接，请先断开")
             dataCallback?.onError("请先断开当前连接再切换传输方式")
             return
         }
         currentTransport?.release()
         currentTransport = transport
         if (transport == null) _defaultState.value = ConnectionState.Disconnected
+        EngineLog.i(TAG, "setTransport: ${if (transport != null) "已设置" else "已清除"}")
     }
 
     /** 当前使用的传输（如 USB 运输实例，便于扩展协议如 setProtocol） */
@@ -76,6 +80,7 @@ class CommunicationManager private constructor() {
 
     fun refreshAvailableTargets() {
         currentTransport?.refreshAvailableTargets()
+        EngineLog.d(TAG, "refreshAvailableTargets: 当前目标数=${getAvailableTargets().size}")
     }
 
     fun setDataCallback(callback: DataCallback?) {
@@ -107,6 +112,7 @@ class CommunicationManager private constructor() {
         if (callback != null) dataCallback = callback
         val transport = currentTransport
         if (transport == null) {
+            EngineLog.e(TAG, "scanAndConnect: 未设置传输方式")
             dataCallback?.onError("未设置传输方式，请先 setTransport(...)")
             return false
         }
@@ -114,9 +120,11 @@ class CommunicationManager private constructor() {
         val targets = getAvailableTargets()
         val first = targets.firstOrNull()
         if (first == null) {
+            EngineLog.w(TAG, "scanAndConnect: 未扫描到设备")
             dataCallback?.onError("未扫描到设备")
             return false
         }
+        EngineLog.i(TAG, "scanAndConnect: 扫到 ${targets.size} 个目标，连接第一个")
         val toUse = if (dataCallback != null || canOpenMessageCallback != null) wrappedCallback else null
         transport.connect(first, toUse)
         return true
@@ -124,14 +132,18 @@ class CommunicationManager private constructor() {
 
     fun disconnect() {
         currentTransport?.disconnect()
+        EngineLog.i(TAG, "disconnect: 已断开")
     }
 
     fun isConnected(): Boolean = currentTransport?.isConnected() ?: false
 
     fun sendText(text: String): Boolean {
         return if (currentTransport?.isConnected() == true) {
-            currentTransport!!.sendText(text)
+            val ok = currentTransport!!.sendText(text)
+            EngineLog.d(TAG, "sendText: ${if (ok) "ok" else "fail"}, len=${text.length}")
+            ok
         } else {
+            EngineLog.w(TAG, "sendText: 未连接")
             dataCallback?.onError("未连接")
             false
         }
@@ -139,8 +151,11 @@ class CommunicationManager private constructor() {
 
     fun sendBinary(data: ByteArray): Boolean {
         return if (currentTransport?.isConnected() == true) {
-            currentTransport!!.sendBinary(data)
+            val ok = currentTransport!!.sendBinary(data)
+            EngineLog.d(TAG, "sendBinary: ${if (ok) "ok" else "fail"}, len=${data.size}")
+            ok
         } else {
+            EngineLog.w(TAG, "sendBinary: 未连接")
             dataCallback?.onError("未连接")
             false
         }
@@ -202,6 +217,7 @@ class CommunicationManager private constructor() {
         }
 
     fun release() {
+        EngineLog.i(TAG, "release: 释放资源")
         disconnect()
         currentTransport?.release()
         currentTransport = null
