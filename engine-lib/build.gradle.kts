@@ -69,6 +69,9 @@ dependencies {
     // Gson
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // usb-serial-for-android: CDC/FTDI/CH340 等虚拟串口
+    implementation("com.github.mik3y:usb-serial-for-android:3.9.0")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

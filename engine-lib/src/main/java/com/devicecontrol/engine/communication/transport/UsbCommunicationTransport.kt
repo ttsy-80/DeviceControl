@@ -19,6 +19,7 @@ import com.devicecontrol.engine.communication.UsbProtocol
 import com.devicecontrol.engine.communication.model.UsbDeviceInfo
 import com.devicecontrol.engine.communication.strategy.HidCommunicationStrategy
 import com.devicecontrol.engine.communication.strategy.VcpCommunicationStrategy
+import com.devicecontrol.engine.communication.strategy.VspCommunicationStrategy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +45,12 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
             if (isConnected()) return
             field = value
             refreshAvailableTargets()
+        }
+
+    /** VSP 策略使用的波特率（仅 currentProtocol == VSP 时生效），默认 115200 */
+    var vspBaudRate: Int = 115200
+        set(value) {
+            if (!isConnected()) field = value
         }
 
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
@@ -138,6 +145,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
         val strategy = when (currentProtocol) {
             UsbProtocol.HID -> HidCommunicationStrategy()
             UsbProtocol.VCP -> VcpCommunicationStrategy()
+            UsbProtocol.VSP -> VspCommunicationStrategy().apply { baudRate = vspBaudRate }
         }
         val list = usbManager.deviceList.values
             .filter { strategy.isDeviceSupported(it) }
@@ -180,6 +188,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
             val strategy = when (currentProtocol) {
                 UsbProtocol.HID -> HidCommunicationStrategy()
                 UsbProtocol.VCP -> VcpCommunicationStrategy()
+                UsbProtocol.VSP -> VspCommunicationStrategy().apply { baudRate = vspBaudRate }
             }
             if (!strategy.isDeviceSupported(device)) {
                 dataCallback?.onError("设备不支持${currentProtocol.name}协议")
