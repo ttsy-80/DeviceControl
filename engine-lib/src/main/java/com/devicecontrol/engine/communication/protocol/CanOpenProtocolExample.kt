@@ -1,6 +1,6 @@
 package com.devicecontrol.engine.communication.protocol
 
-import com.devicecontrol.engine.communication.UsbCommunicationManager
+import com.devicecontrol.engine.communication.CommunicationManager
 
 /**
  * CAN Open协议使用示例
@@ -20,29 +20,20 @@ object CanOpenProtocolExample {
     /**
      * 示例：发送CAN Open消息
      */
-    fun sendCanOpenMessageExample(usbManager: UsbCommunicationManager) {
+    fun sendCanOpenMessageExample(manager: CommunicationManager) {
         // 示例数据：t60182B40600001000000\r
-        // CAN ID: 0x601 (十进制 1537)
-        // DLC: 8 (8字节)
-        // 数据: 2B 40 60 00 01 00 00 00
-        
-        // 方法1：使用CanOpenMessage对象
         val message = CanOpenMessage(
             canId = 0x601,
             dlc = 8,
             data = byteArrayOf(0x2B, 0x40, 0x60, 0x00, 0x01, 0x00, 0x00, 0x00)
         )
-        usbManager.sendCanOpenMessage(message)
-        
-        // 方法2：直接使用参数
-        usbManager.sendCanOpenMessage(
+        manager.sendCanOpenMessage(message)
+        manager.sendCanOpenMessage(
             canId = 0x601,
             dlc = 8,
             data = byteArrayOf(0x2B, 0x40, 0x60, 0x00, 0x01, 0x00, 0x00, 0x00)
         )
-        
-        // 方法3：使用十六进制字符串
-        usbManager.sendCanOpenMessageFromHex(
+        manager.sendCanOpenMessageFromHex(
             canId = 0x601,
             dataHex = "2B40600001000000"
         )
@@ -51,9 +42,8 @@ object CanOpenProtocolExample {
     /**
      * 示例：接收CAN Open消息
      */
-    fun receiveCanOpenMessageExample(usbManager: UsbCommunicationManager) {
-        // 设置CAN Open消息回调
-        usbManager.setCanOpenMessageCallback(object : UsbCommunicationManager.CanOpenMessageCallback {
+    fun receiveCanOpenMessageExample(manager: CommunicationManager) {
+        manager.setCanOpenMessageCallback(object : CommunicationManager.CanOpenMessageCallback {
             override fun onCanOpenMessageReceived(message: CanOpenMessage) {
                 android.util.Log.d("CAN", "收到CAN Open消息: $message")
                 android.util.Log.d("CAN", "CAN ID: 0x${message.canId.toString(16).uppercase()}")
@@ -119,39 +109,18 @@ object CanOpenProtocolExample {
     /**
      * 示例：完整的使用流程
      */
-    fun completeExample(context: android.content.Context) {
-        // 1. 获取USB通信管理器
-        val usbManager = UsbCommunicationManager.getInstance(context)
-        
-        // 2. 设置CAN Open消息回调
-        usbManager.setCanOpenMessageCallback(object : UsbCommunicationManager.CanOpenMessageCallback {
+    fun completeExample(manager: CommunicationManager) {
+        manager.setCanOpenMessageCallback(object : CommunicationManager.CanOpenMessageCallback {
             override fun onCanOpenMessageReceived(message: CanOpenMessage) {
-                // 处理接收到的CAN Open消息
                 android.util.Log.d("CAN", "收到消息: CAN ID=0x${message.canId.toString(16)}, DLC=${message.dlc}")
-                
-                // 根据CAN ID处理不同的消息
                 when (message.canId) {
-                    0x601 -> {
-                        // 处理ID为0x601的消息
-                        android.util.Log.d("CAN", "处理0x601消息")
-                    }
-                    else -> {
-                        android.util.Log.d("CAN", "未知CAN ID: 0x${message.canId.toString(16)}")
-                    }
+                    0x601 -> android.util.Log.d("CAN", "处理0x601消息")
+                    else -> android.util.Log.d("CAN", "未知CAN ID: 0x${message.canId.toString(16)}")
                 }
             }
         })
-        
-        // 3. 连接设备（假设已选择设备）
-        // usbManager.connect(device)
-        
-        // 4. 发送CAN Open消息
-        if (usbManager.isConnected()) {
-            // 发送示例消息：t60182B40600001000000\r
-            usbManager.sendCanOpenMessageFromHex(
-                canId = 0x601,
-                dataHex = "2B40600001000000"
-            )
+        if (manager.isConnected()) {
+            manager.sendCanOpenMessageFromHex(canId = 0x601, dataHex = "2B40600001000000")
         }
     }
 }
