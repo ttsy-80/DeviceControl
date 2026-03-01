@@ -46,7 +46,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
         set(value) {
             if (isConnected()) return
             field = value
-            refreshAvailableTargets()
+            refreshAvailableTargets("currentProtocol")
         }
 
     /** VSP 策略使用的波特率（仅 currentProtocol == VSP 时生效），默认 115200 */
@@ -106,14 +106,14 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
             when (intent.action) {
                 UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
                     EngineLog.d(TAG, "USB设备已连接")
-                    refreshAvailableTargets()
+                    refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
                 }
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     if (intent.getUsbDeviceExtra() == currentDevice) {
                         EngineLog.i(TAG, "当前USB设备已拔出，断开连接")
                         disconnect()
                     }
-                    refreshAvailableTargets()
+                    refreshAvailableTargets("ACTION_USB_DEVICE_DETACHED")
                 }
             }
         }
@@ -145,12 +145,15 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
             @Suppress("DEPRECATION")
             context.registerReceiver(usbDeviceReceiver, deviceFilter)
         }
-        refreshAvailableTargets()
     }
 
     override fun getAvailableTargets(): List<ConnectTarget> = _availableTargets.value
 
     override fun refreshAvailableTargets() {
+        refreshAvailableTargets("outer")
+    }
+
+    private fun refreshAvailableTargets(method: String) {
         val strategy = when (currentProtocol) {
             UsbProtocol.HID -> HidCommunicationStrategy()
             UsbProtocol.VCP -> VcpCommunicationStrategy()
@@ -171,7 +174,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                 )
             }
         _availableTargets.value = list
-        EngineLog.d(TAG, "refreshAvailableTargets: protocol=${currentProtocol.name}, 数量=${list.size}")
+        EngineLog.d(TAG, "refreshAvailableTargets method:$method protocol=${currentProtocol.name}, 数量=${list.size}")
     }
 
     override fun connect(target: ConnectTarget, callback: DataCallback?) {

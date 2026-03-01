@@ -11,14 +11,19 @@ import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
 import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
+import com.devicecontrol.engine.communication.CommunicationManager
+import com.devicecontrol.engine.communication.command.EngineControlCommand
+import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.launch
+import android.content.Context
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
-    private val engineRepository: EngineRepository
+    private val engineRepository: EngineRepository,
+    private val applicationContext: Context
 ) : ViewModel() {
 
     companion object {
@@ -46,20 +51,34 @@ class TaskControlViewModel(
     private var currentGearRatioIndex: Int = 0
     
     fun loadTask(taskId: Long) {
+        scanAndConnect()
         viewModelScope.launch {
             val task = taskRepository.getTaskById(taskId)
             EngineLog.d(TAG, "loadTask: id=$taskId, configItemIds=${task?.configItemIds?.size}")
             _task.value = task
-            
+
             if (task != null) {
-                // 第一次进入页面时，重置所有子任务的状态为STOPPED
                 resetAllTaskExecutionsStatus(taskId, task.configItemIds.size)
-                
-                // 从第一个子任务开始
                 currentGearRatioIndex = 0
                 loadTaskExecution(taskId, currentGearRatioIndex)
             }
         }
+    }
+
+    /** 扫描并连接：设置 USB 传输并连接第一个可用设备 */
+    private fun scanAndConnect() {
+        val transport = UsbCommunicationTransport(applicationContext)
+        val manager = CommunicationManager.getInstance()
+        manager.setTransport(transport)
+        manager.setDataCallback(object : com.devicecontrol.engine.communication.DataCallback {
+            override fun onTextDataReceived(data: String) {}
+            override fun onBinaryDataReceived(data: ByteArray) {}
+            override fun onError(error: String) {
+                EngineLog.w(TAG, "通讯回调 onError: $error")
+            }
+        })
+        val started = manager.scanAndConnect()
+        EngineLog.i(TAG, "scanAndConnect: started=$started")
     }
     
     /**
@@ -193,63 +212,76 @@ class TaskControlViewModel(
     }
     
     fun start() {
+        val task = _task.value ?: return
+        val exec = _taskExecution.value ?: return
+        val pos = _currentConfigItem.value?.position ?: return
         updateExecution { it.copy(status = TaskStatus.RUNNING) }
-        // 更新header显示
-        val task = _task.value ?: return
+        val cmd = EngineControlCommand.start(
+            modelName = task.modelName,
+            position = pos,
+            forward = exec.rotationDirection == RotationDirection.FORWARD,
+            jog = exec.operationMode == OperationMode.JOG,
+            speedConfig = exec.speedStep,
+            jogInterval = exec.jogInterval,
+            continuousCycles = exec.continuousCycles
+        )
+        sendCommand(cmd)
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
-    
+
     fun pause() {
+        val name = modelName() ?: return
+        val pos = position() ?: return
         updateExecution { it.copy(status = TaskStatus.PAUSED) }
-        // 更新header显示
+        sendCommand(EngineControlCommand.pause(name, pos))
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
-    
+
     fun setForward() {
         updateExecution { it.copy(rotationDirection = RotationDirection.FORWARD) }
-        // 更新header显示
+        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.forward(n, p)) } }
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
-    
+
     fun setReverse() {
         updateExecution { it.copy(rotationDirection = RotationDirection.REVERSE) }
-        // 更新header显示
+        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.reverse(n, p)) } }
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
-    
+
     fun setJog() {
         updateExecution { it.copy(operationMode = OperationMode.JOG) }
-        // 更新header显示
+        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.jog(n, p)) } }
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
-    
+
     fun setContinuous() {
         updateExecution { it.copy(operationMode = OperationMode.CONTINUOUS) }
-        // 更新header显示
+        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.continuous(n, p)) } }
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
-    
+
     fun increaseSpeed() {
         val execution = _taskExecution.value ?: return
-        // 使用配置的步长调整速度
         val newSpeed = execution.speed + execution.speedStep
         updateExecution { it.copy(speed = newSpeed) }
+        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedPlus(n, p)) } }
     }
-    
+
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
-        // 使用配置的步长调整速度，最小为0
         if (execution.speed >= execution.speedStep) {
             val newSpeed = execution.speed - execution.speedStep
             updateExecution { it.copy(speed = newSpeed) }
         } else {
             updateExecution { it.copy(speed = 0.0) }
         }
+        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedMinus(n, p)) } }
     }
     
     fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int, playbackSpeed: Double) {
@@ -275,29 +307,26 @@ class TaskControlViewModel(
     
     fun addRecord(position: Int, bladeNumber: Int) {
         val task = _task.value ?: return
+        val posStr = _currentConfigItem.value?.position ?: position.toString()
         viewModelScope.launch {
             val record = TaskRecord(
                 taskId = task.id,
                 gearRatioIndex = currentGearRatioIndex,
-                recordNumber = 0, // 会在Repository中自动设置
+                recordNumber = 0,
                 position = position,
                 bladeNumber = bladeNumber
             )
             taskRepository.insertTaskRecord(record)
             loadTaskRecords(task.id, currentGearRatioIndex)
+            sendCommand(EngineControlCommand.record(task.modelName, posStr, bladeNumber))
         }
     }
-    
+
     fun playbackRecord(record: TaskRecord) {
-        // 回放功能：发送指令给电机
-        // TODO: 实现电机通信逻辑
-        viewModelScope.launch {
-            val execution = _taskExecution.value
-            val playbackSpeed = execution?.playbackSpeed ?: 1.0
-            // 这里应该发送指令给电机，包含回溯速度参数
-            // 暂时只记录日志
-            android.util.Log.d("TaskControlViewModel", "Playback record: $record, playbackSpeed: $playbackSpeed 秒/圈")
-        }
+        val name = modelName() ?: return
+        val pos = position() ?: record.position.toString()
+        val speed = execution()?.playbackSpeed ?: 1.0
+        sendCommand(EngineControlCommand.playback(name, pos, speed, record.recordId))
     }
     
     private fun updateExecution(update: (TaskExecution) -> TaskExecution) {
@@ -309,5 +338,19 @@ class TaskControlViewModel(
             taskRepository.insertOrUpdateTaskExecution(updated)
         }
     }
+
+    /** 下发指令到通讯层（已连接时发送，未连接时仅打日志） */
+    private fun sendCommand(cmd: String) {
+        val sent = CommunicationManager.getInstance().sendText(cmd)
+        if (sent) {
+            EngineLog.d(TAG, "sendCommand: ${cmd.trim()}")
+        } else {
+            EngineLog.w(TAG, "sendCommand: 未连接或发送失败, cmd=${cmd.trim()}")
+        }
+    }
+
+    private fun modelName(): String? = _task.value?.modelName
+    private fun position(): String? = _currentConfigItem.value?.position
+    private fun execution(): TaskExecution? = _taskExecution.value
 }
 

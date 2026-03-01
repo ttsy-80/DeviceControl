@@ -1,6 +1,7 @@
 package com.devicecontrol.engine.ui.control
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -26,7 +27,7 @@ class TaskControlActivity : AppCompatActivity() {
     private val taskRepository by lazy { TaskRepository(database.taskDao()) }
     private val engineRepository by lazy { EngineRepository(database.engineDao()) }
     private val viewModel: TaskControlViewModel by viewModels {
-        TaskControlViewModelFactory(taskRepository, engineRepository)
+        TaskControlViewModelFactory(taskRepository, engineRepository, applicationContext)
     }
 
     private val decimalFormat = DecimalFormat("#0.0")
@@ -283,12 +284,13 @@ class TaskControlActivity : AppCompatActivity() {
 // ViewModel Factory
 class TaskControlViewModelFactory(
     private val taskRepository: TaskRepository,
-    private val engineRepository: EngineRepository
+    private val engineRepository: EngineRepository,
+    private val applicationContext: Context
 ) : ViewModelProvider.Factory {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TaskControlViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TaskControlViewModel(taskRepository, engineRepository) as T
+            return TaskControlViewModel(taskRepository, engineRepository, applicationContext) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
