@@ -68,9 +68,11 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
                     
                     // 请求接口权限
                     if (connection.claimInterface(usbInterface, true)) {
-                        // 查找输入和输出端点
+                        EngineLog.d(TAG, "connect: 已 claim 接口 index=$i endpointCount=${usbInterface.endpointCount}")
                         for (j in 0 until usbInterface.endpointCount) {
                             val endpoint = usbInterface.getEndpoint(j)
+                            val dir = if (endpoint.direction == UsbConstants.USB_DIR_IN) "IN" else "OUT"
+                            EngineLog.d(TAG, "connect: endpoint[$j] address=${endpoint.address} dir=$dir maxPacketSize=${endpoint.maxPacketSize} type=${endpoint.type}")
                             when (endpoint.direction) {
                                 UsbConstants.USB_DIR_IN -> {
                                     if (inputEndpoint == null) {
@@ -84,10 +86,10 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
                                 }
                             }
                         }
-                        
-                        // VCP设备通常需要设置控制参数
-                        // 这里可以根据具体设备需求添加控制传输
+                        EngineLog.i(TAG, "connect: 成功 inputEp=${inputEndpoint?.address} outputEp=${outputEndpoint?.address}")
                         return true
+                    } else {
+                        EngineLog.w(TAG, "connect: claimInterface 失败 interfaceIndex=$i")
                     }
                 }
             }
@@ -149,17 +151,19 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
     
     override fun startReceiving() {
         if (!isConnected() || inputEndpoint == null) {
+            EngineLog.w(TAG, "startReceiving: 未连接或输入端点不可用 connected=${isConnected()} inputEp=$inputEndpoint")
             callback?.onError("设备未连接或输入端点不可用")
             return
         }
-        
         if (receivingJob?.isActive == true) {
-            return // 已经在接收中
+            EngineLog.d(TAG, "startReceiving: 已在接收中，忽略")
+            return
         }
-        
+        val ep = inputEndpoint!!
+        EngineLog.i(TAG, "startReceiving: 开始 端点address=${ep.address} maxPacketSize=${ep.maxPacketSize} type=${ep.type}")
         receivingJob = scope.launch {
-            val buffer = ByteArray(inputEndpoint!!.maxPacketSize)
-            
+            val buffer = ByteArray(ep.maxPacketSize)
+            var timeoutCount = 0
             while (isActive && isConnected()) {
                 try {
                     val result = connection?.bulkTransfer(
@@ -168,32 +172,41 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
                         buffer.size,
                         1000
                     ) ?: -1
-                    
-                    if (result > 0) {
-                        val receivedData = buffer.copyOf(result)
-                        // 尝试作为文本解析，如果失败则作为二进制数据
-                        try {
-                            val text = String(receivedData, Charsets.UTF_8)
-                            // 检查是否包含可打印字符
-                            if (text.any { it.isLetterOrDigit() || it.isWhitespace() || it.isISOControl() }) {
-                                callback?.onTextDataReceived(text)
-                            } else {
+                    when {
+                        result > 0 -> {
+                            EngineLog.d(TAG, "startReceiving: 收到字节数=$result data=${buffer.copyOf(result).take(32)}")
+                            val receivedData = buffer.copyOf(result)
+                            try {
+                                val text = String(receivedData, Charsets.UTF_8)
+                                if (text.any { it.isLetterOrDigit() || it.isWhitespace() || it.isISOControl() }) {
+                                    callback?.onTextDataReceived(text)
+                                } else {
+                                    callback?.onBinaryDataReceived(receivedData)
+                                }
+                            } catch (e: Exception) {
                                 callback?.onBinaryDataReceived(receivedData)
                             }
-                        } catch (e: Exception) {
-                            callback?.onBinaryDataReceived(receivedData)
+                            timeoutCount = 0
                         }
-                    } else if (result < 0 && result != -1) {
-                        // 超时或其他错误，继续循环
-                        continue
+                        result == -1 -> {
+                            timeoutCount++
+                            if (timeoutCount % 30 == 1 && timeoutCount > 1) {
+                                EngineLog.d(TAG, "startReceiving: bulkTransfer 超时(继续轮询) 累计约 ${timeoutCount} 次")
+                            }
+                        }
+                        else -> {
+                            EngineLog.w(TAG, "startReceiving: bulkTransfer 返回 error=$result (非超时)")
+                        }
                     }
                 } catch (e: Exception) {
+                    EngineLog.e(TAG, "startReceiving: 异常 ${e.message}", e)
                     if (isActive) {
                         callback?.onError("VCP接收数据异常: ${e.message}")
                     }
                     break
                 }
             }
+            EngineLog.d(TAG, "startReceiving: 接收循环已退出 isActive=$isActive connected=${isConnected()}")
         }
     }
     

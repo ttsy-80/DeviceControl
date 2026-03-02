@@ -58,32 +58,38 @@ class VspCommunicationStrategy : UsbCommunicationStrategy {
         connection: UsbDeviceConnection,
         callback: UsbDataCallback?
     ): Boolean {
-        return try {
-            this.connection = connection
-            this.callback = callback
-            val drivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
-            val driver = drivers.find { it.device == device }
-                ?: run {
-                    EngineLog.w(TAG, "connect: 未找到设备对应串口驱动 vid=${device.vendorId} pid=${device.productId}")
-                    callback?.onError("VSP: 未找到该设备对应的串口驱动")
-                    return false
-                }
-            val p = driver.ports.firstOrNull()
-                ?: run {
-                    EngineLog.w(TAG, "connect: 该设备无可用串口")
-                    callback?.onError("VSP: 该设备无可用串口")
-                    return false
-                }
-            p.open(connection)
-            p.setParameters(baudRate, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-            port = p
-            EngineLog.i(TAG, "connect: 成功 baudRate=$baudRate")
-            true
-        } catch (e: IOException) {
-            EngineLog.e(TAG, "connect: 失败 ${e.message}", e)
-            callback?.onError("VSP 连接失败: ${e.message}")
-            false
+        this.connection = connection
+        this.callback = callback
+        val drivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
+        val driver = drivers.find { it.device == device }
+            ?: run {
+                EngineLog.w(TAG, "connect: 未找到设备对应串口驱动 vid=${device.vendorId} pid=${device.productId}")
+                callback?.onError("VSP: 未找到该设备对应的串口驱动")
+                return false
+            }
+        if (driver.ports.isEmpty()) {
+            EngineLog.w(TAG, "connect: 该设备无可用串口")
+            callback?.onError("VSP: 该设备无可用串口")
+            return false
         }
+        // CDC/ACM 等设备可能有多接口（控制接口 0 个 endpoint，数据接口才有 bulk in/out），
+        // 取第一个 port 可能是控制接口，open 时会 getEndpoint(0) 越界。逐个尝试打开，用第一个成功的。
+        for (idx in driver.ports.indices) {
+            val p = driver.ports[idx]
+            try {
+                p.open(connection)
+                p.setParameters(baudRate, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+                port = p
+                EngineLog.i(TAG, "connect: 成功 portIndex=$idx baudRate=$baudRate")
+                return true
+            } catch (e: Exception) {
+                EngineLog.d(TAG, "connect: port[$idx] 打开失败 ${e.message}，尝试下一个")
+                try { p.close() } catch (_: Exception) { }
+            }
+        }
+        EngineLog.e(TAG, "connect: 所有 port 均打开失败")
+        callback?.onError("VSP: 无法打开串口（可能为多接口设备选错接口）")
+        return false
     }
 
     override fun disconnect() {
