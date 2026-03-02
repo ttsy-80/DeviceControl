@@ -61,16 +61,24 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
     /** 连接成功后的回调（由 CommunicationManager 设置，用于 CAN-USB 自动初始化等） */
     var onConnectedListener: (() -> Unit)? = null
 
-    private val permissionIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        PendingIntent.getBroadcast(
+    // API 31+ 需 FLAG_MUTABLE 才能收到权限结果；API 34+ 要求 PendingIntent 使用显式 Intent，故 setPackage
+    private val permissionIntent: PendingIntent = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val intent = Intent(ACTION_USB_PERMISSION).apply { setPackage(context.packageName) }
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> PendingIntent.getBroadcast(
             context,
             0,
             Intent(ACTION_USB_PERMISSION),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-    } else {
-        @Suppress("DEPRECATION")
-        PendingIntent.getBroadcast(
+        else -> @Suppress("DEPRECATION") PendingIntent.getBroadcast(
             context,
             0,
             Intent(ACTION_USB_PERMISSION),
