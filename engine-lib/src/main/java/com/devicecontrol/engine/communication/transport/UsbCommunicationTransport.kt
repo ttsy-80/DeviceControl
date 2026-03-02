@@ -86,16 +86,28 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
 
     private val usbPermissionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (ACTION_USB_PERMISSION == intent.action) {
-                synchronized(this) {
-                    val device = intent.getUsbDeviceExtra()
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        device?.let { connectToDevice(it) }
-                    } else {
-                        EngineLog.w(TAG, "USB权限被拒绝")
-                        dataCallback?.onError("USB权限被拒绝")
+            EngineLog.i(TAG, "usbPermissionReceiver.onReceive: action=${intent.action}, thread=${Thread.currentThread().name}")
+            if (ACTION_USB_PERMISSION != intent.action) {
+                EngineLog.d(TAG, "usbPermissionReceiver: 忽略非权限广播 action=${intent.action}")
+                return
+            }
+            val device = intent.getUsbDeviceExtra()
+            val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+            EngineLog.i(TAG, "usbPermissionReceiver: device=${device?.deviceName ?: "null"}, vid=${device?.vendorId}, pid=${device?.productId}, granted=$granted")
+            synchronized(this) {
+                if (granted) {
+                    if (device == null) {
+                        EngineLog.e(TAG, "usbPermissionReceiver: 权限已授予但 Intent 中无 UsbDevice，无法连接")
+                        dataCallback?.onError("USB 权限回调无设备信息")
                         _connectionState.value = ConnectionState.Disconnected
+                    } else {
+                        EngineLog.i(TAG, "usbPermissionReceiver: 权限已授予，开始 connectToDevice")
+                        connectToDevice(device)
                     }
+                } else {
+                    EngineLog.w(TAG, "usbPermissionReceiver: USB权限被用户拒绝 device=${device?.deviceName}")
+                    dataCallback?.onError("USB权限被拒绝")
+                    _connectionState.value = ConnectionState.Disconnected
                 }
             }
         }

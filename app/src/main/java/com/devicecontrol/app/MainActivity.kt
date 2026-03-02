@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.devicecontrol.app.databinding.ActivityMainBinding
+import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.ui.control.TaskControlActivity
 import com.devicecontrol.engine.ui.model.ModelManagementActivity
 import com.devicecontrol.engine.ui.task.TaskCreateActivity
@@ -49,5 +50,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnTaskControl.setOnClickListener {
             startActivity(Intent(this, TaskControlActivity::class.java))
         }
+
+        EngineLog.setFileLogger(this.application)
     }
 }

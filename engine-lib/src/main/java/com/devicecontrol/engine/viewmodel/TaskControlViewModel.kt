@@ -19,6 +19,7 @@ import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.launch
 import android.content.Context
+import com.devicecontrol.engine.communication.protocol.CanOpenMessage
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
@@ -71,9 +72,16 @@ class TaskControlViewModel(
         val manager = CommunicationManager.getInstance()
         manager.setTransport(transport)
         manager.setDataCallback(object : com.devicecontrol.engine.communication.DataCallback {
-            override fun onTextDataReceived(data: String) {}
-            override fun onBinaryDataReceived(data: ByteArray) {}
+            override fun onTextDataReceived(data: String) {
+                _displayInfo.value = _displayInfo.value +" data1:$data"
+                EngineLog.d(TAG, "通讯回调 onTextDataReceived: $data")
+            }
+            override fun onBinaryDataReceived(data: ByteArray) {
+                _displayInfo.value = _displayInfo.value +" data2:$data"
+                EngineLog.d(TAG, "通讯回调 onBinaryDataReceived: $data")
+            }
             override fun onError(error: String) {
+                _displayInfo.value = _displayInfo.value +" error:$error"
                 EngineLog.w(TAG, "通讯回调 onError: $error")
             }
         })
@@ -341,7 +349,13 @@ class TaskControlViewModel(
 
     /** 下发指令到通讯层（已连接时发送，未连接时仅打日志） */
     private fun sendCommand(cmd: String) {
-        val sent = CommunicationManager.getInstance().sendText(cmd)
+//        val sent = CommunicationManager.getInstance().sendText(cmd)
+        val message = CanOpenMessage(
+            canId = 0x601,
+            dlc = 8,
+            data = byteArrayOf(0x2B, 0x40, 0x60, 0x00, 0x01, 0x00, 0x00, 0x00)
+        )
+        val sent = CommunicationManager.getInstance().sendCanOpenMessage(message)
         if (sent) {
             EngineLog.d(TAG, "sendCommand: ${cmd.trim()}")
         } else {

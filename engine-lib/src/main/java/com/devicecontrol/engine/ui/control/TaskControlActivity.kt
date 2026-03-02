@@ -72,11 +72,11 @@ class TaskControlActivity : AppCompatActivity() {
             binding.tvTaskIndex.text = "$index"
         }
 
-        viewModel.taskExecution.observe(this) { execution ->
-            execution?.let {
-                updateStatusBar(viewModel.displayInfo.value ?: "")
-            }
-        }
+//        viewModel.taskExecution.observe(this) { execution ->
+//            execution?.let {
+//                updateStatusBar(viewModel.displayInfo.value ?: "")
+//            }
+//        }
 
         viewModel.taskExecution.observe(this) { execution ->
             execution?.let {
