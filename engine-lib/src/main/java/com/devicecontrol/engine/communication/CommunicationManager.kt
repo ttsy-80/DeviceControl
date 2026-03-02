@@ -1,9 +1,10 @@
 package com.devicecontrol.engine.communication
 
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
-import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.communication.protocol.CanOpenProtocol
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
+import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
+import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,9 @@ class CommunicationManager private constructor() {
 
     private var currentTransport: CommunicationTransport? = null
     private var dataCallback: DataCallback? = null
+
+    /** CAN-USB 连接成功后的初始化配置；非 null 时 USB 连接成功会自动执行 [runCanUsbInit] */
+    private var canUsbInitConfig: CanUsbInitConfig? = null
 
     /** CAN Open 解析后的消息回调（可选） */
     interface CanOpenMessageCallback {
@@ -66,10 +70,61 @@ class CommunicationManager private constructor() {
             dataCallback?.onError("请先断开当前连接再切换传输方式")
             return
         }
+        (currentTransport as? UsbCommunicationTransport)?.onConnectedListener = null
         currentTransport?.release()
         currentTransport = transport
-        if (transport == null) _defaultState.value = ConnectionState.Disconnected
+        if (transport == null) {
+            _defaultState.value = ConnectionState.Disconnected
+        } else {
+            if (transport is UsbCommunicationTransport && canUsbInitConfig != null) {
+                transport.onConnectedListener = { runCanUsbInit() }
+            }
+        }
         EngineLog.i(TAG, "setTransport: ${if (transport != null) "已设置" else "已清除"}")
+    }
+
+    /**
+     * 设置 CAN-USB 连接成功后的自动初始化配置（按 LAWICEL CANUSB 手册）。
+     * 需在 [setTransport] 之前或之后设置；下次 USB 连接成功时会自动执行初始化。
+     * 传 null 则关闭自动初始化。
+     */
+    fun setCanUsbInitConfig(config: CanUsbInitConfig?) {
+        canUsbInitConfig = config
+        val t = currentTransport as? UsbCommunicationTransport
+        t?.onConnectedListener = if (config != null) { { runCanUsbInit() } } else null
+        EngineLog.d(TAG, "setCanUsbInitConfig: ${if (config != null) "baud=${config.canBaudRate} open=$config.openChannel" else "已关闭"}")
+    }
+
+    /**
+     * 执行 CAN-USB 初始化命令序列：设置波特率 → 打开通道 → 可选时间戳/查版本/序列号。
+     * 连接成功且已设置 [CanUsbInitConfig] 时会自动调用；也可手动调用。
+     */
+    fun runCanUsbInit() {
+        val config = canUsbInitConfig ?: run {
+            EngineLog.d(TAG, "runCanUsbInit: 未设置 CanUsbInitConfig，使用默认 500K+打开通道")
+            runCanUsbInitWith(CanUsbInitConfig())
+            return
+        }
+        runCanUsbInitWith(config)
+    }
+
+    /**
+     * 使用指定配置执行 CAN-USB 初始化（供内部及需要自定义一次性的场景使用）
+     */
+    private fun runCanUsbInitWith(config: CanUsbInitConfig) {
+        if (!isConnected()) {
+            EngineLog.w(TAG, "runCanUsbInit: 未连接，跳过")
+            return
+        }
+        EngineLog.i(TAG, "runCanUsbInit: 开始 baud=${config.canBaudRate} open=${config.openChannel}")
+        sendText(CanUsbProtocol.setBaudRate(config.canBaudRate))
+        if (config.openChannel) {
+            sendText(CanUsbProtocol.openCan())
+        }
+        sendText(CanUsbProtocol.setTimeStamp(config.timeStamp))
+        if (config.queryVersion) sendText(CanUsbProtocol.getVersion())
+        if (config.querySerialNumber) sendText(CanUsbProtocol.getSerialNumber())
+        EngineLog.i(TAG, "runCanUsbInit: 命令已发送")
     }
 
     /** 当前使用的传输（如 USB 运输实例，便于扩展协议如 setProtocol） */
@@ -140,7 +195,7 @@ class CommunicationManager private constructor() {
     fun sendText(text: String): Boolean {
         return if (currentTransport?.isConnected() == true) {
             val ok = currentTransport!!.sendText(text)
-            EngineLog.d(TAG, "sendText: ${if (ok) "ok" else "fail"}, len=${text.length}")
+            EngineLog.d(TAG, "sendText: ${if (ok) "ok" else "fail"}, text:${text} len=${text.length}")
             ok
         } else {
             EngineLog.w(TAG, "sendText: 未连接")

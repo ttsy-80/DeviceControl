@@ -11,6 +11,7 @@ import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
 import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
+import com.devicecontrol.engine.communication.CanUsbInitConfig
 import com.devicecontrol.engine.communication.CommunicationManager
 import com.devicecontrol.engine.communication.command.EngineControlCommand
 import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
@@ -20,6 +21,7 @@ import com.devicecontrol.engine.log.EngineLog
 import kotlinx.coroutines.launch
 import android.content.Context
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
+import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
@@ -66,11 +68,12 @@ class TaskControlViewModel(
         }
     }
 
-    /** 扫描并连接：设置 USB 传输并连接第一个可用设备 */
+    /** 扫描并连接：设置 USB 传输并连接第一个可用设备；若为 CAN-USB 设备则连接成功后自动按手册初始化 */
     private fun scanAndConnect() {
         val transport = UsbCommunicationTransport(applicationContext)
         val manager = CommunicationManager.getInstance()
         manager.setTransport(transport)
+        manager.setCanUsbInitConfig(CanUsbInitConfig(canBaudRate = CanUsbProtocol.CanBaudRate.BPS_500K, openChannel = true))
         manager.setDataCallback(object : com.devicecontrol.engine.communication.DataCallback {
             override fun onTextDataReceived(data: String) {
                 _displayInfo.value = _displayInfo.value +" data1:$data"

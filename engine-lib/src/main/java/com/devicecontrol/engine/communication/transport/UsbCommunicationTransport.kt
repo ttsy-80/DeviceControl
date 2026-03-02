@@ -58,6 +58,9 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     private val _availableTargets = MutableStateFlow<List<ConnectTarget>>(emptyList())
 
+    /** 连接成功后的回调（由 CommunicationManager 设置，用于 CAN-USB 自动初始化等） */
+    var onConnectedListener: (() -> Unit)? = null
+
     private val permissionIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         PendingIntent.getBroadcast(
             context,
@@ -236,6 +239,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                 currentStrategy = strategy
                 currentDevice = device
                 currentConnection = connection
+                onConnectedListener?.invoke()
                 strategy.startReceiving()
                 _connectionState.value = ConnectionState.Connected("USB-${currentProtocol.name}")
                 EngineLog.i(TAG, "connectToDevice: 已连接 USB-${currentProtocol.name}")
