@@ -67,6 +67,7 @@ class TaskControlActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(com.devicecontrol.engine.R.menu.menu_task_control, menu)
+        menu.findItem(com.devicecontrol.engine.R.id.action_debug_log)?.isVisible = true
         return true
     }
 
