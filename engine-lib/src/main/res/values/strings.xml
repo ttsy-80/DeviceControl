@@ -70,6 +70,11 @@
     <string name="playback_speed">回查速度</string>
     <string name="playback_speed_hint">单位：秒/圈（例如：1秒/圈，2秒/圈）</string>
     
+    <!-- 调试 -->
+    <string name="debug_log">调试</string>
+    <string name="debug_log_title">通讯调试日志</string>
+    <string name="debug_log_clear">清空</string>
+    
     <!-- 错误提示 -->
     <string name="error_model_name_empty">型号名称不能为空</string>
     <string name="error_model_name_duplicate">型号名称已存在</string>

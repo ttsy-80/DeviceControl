@@ -28,6 +28,11 @@
             android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustNothing"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.control.DebugLogActivity"
+            android:screenOrientation="landscape"
+            android:exported="false" />
     </application>
     
 </manifest>

@@ -17,7 +17,10 @@ import com.devicecontrol.engine.communication.command.EngineControlCommand
 import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
+import com.devicecontrol.engine.log.DefaultEngineLogger
+import com.devicecontrol.engine.log.DebugLogHolder
 import com.devicecontrol.engine.log.EngineLog
+import com.devicecontrol.engine.log.EngineLogger
 import kotlinx.coroutines.launch
 import android.content.Context
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
@@ -68,23 +71,46 @@ class TaskControlViewModel(
         }
     }
 
-    /** 扫描并连接：设置 USB 传输并连接第一个可用设备；若为 CAN-USB 设备则连接成功后自动按手册初始化 */
+    /** 扫描并连接：设置 USB 传输并连接第一个可用设备；若为 CAN-USB 设备则连接成功后自动按手册初始化；主 logger 同时写入 [DebugLogHolder] 供调试页回看 */
     private fun scanAndConnect() {
+        val defaultLogger = DefaultEngineLogger("Engine")
+        EngineLog.setLogger(object : EngineLogger {
+            override fun d(tag: String, message: String) {
+                defaultLogger.d(tag, message)
+                DebugLogHolder.add("D", tag, message)
+            }
+            override fun i(tag: String, message: String) {
+                defaultLogger.i(tag, message)
+                DebugLogHolder.add("I", tag, message)
+            }
+            override fun w(tag: String, message: String) {
+                defaultLogger.w(tag, message)
+                DebugLogHolder.add("W", tag, message)
+            }
+            override fun e(tag: String, message: String) {
+                defaultLogger.e(tag, message)
+                DebugLogHolder.add("E", tag, message)
+            }
+            override fun e(tag: String, message: String, throwable: Throwable?) {
+                defaultLogger.e(tag, message, throwable)
+                DebugLogHolder.add("E", tag, message, throwable)
+            }
+        })
         val transport = UsbCommunicationTransport(applicationContext)
         val manager = CommunicationManager.getInstance()
         manager.setTransport(transport)
         manager.setCanUsbInitConfig(CanUsbInitConfig(canBaudRate = CanUsbProtocol.CanBaudRate.BPS_500K, openChannel = true))
         manager.setDataCallback(object : com.devicecontrol.engine.communication.DataCallback {
             override fun onTextDataReceived(data: String) {
-                _displayInfo.value = _displayInfo.value +" data1:$data"
+//                _displayInfo.value = _displayInfo.value +" data1:$data"
                 EngineLog.d(TAG, "通讯回调 onTextDataReceived: $data")
             }
             override fun onBinaryDataReceived(data: ByteArray) {
-                _displayInfo.value = _displayInfo.value +" data2:$data"
+//                _displayInfo.value = _displayInfo.value +" data2:$data"
                 EngineLog.d(TAG, "通讯回调 onBinaryDataReceived: $data")
             }
             override fun onError(error: String) {
-                _displayInfo.value = _displayInfo.value +" error:$error"
+//                _displayInfo.value = _displayInfo.value +" error:$error"
                 EngineLog.w(TAG, "通讯回调 onError: $error")
             }
         })
@@ -360,9 +386,9 @@ class TaskControlViewModel(
         )
         val sent = CommunicationManager.getInstance().sendCanOpenMessage(message)
         if (sent) {
-            EngineLog.d(TAG, "sendCommand: ${cmd.trim()}")
+            EngineLog.d(TAG, "sendCommand: cmd${message.toProtocolString()} old:$cmd")
         } else {
-            EngineLog.w(TAG, "sendCommand: 未连接或发送失败, cmd=${cmd.trim()}")
+            EngineLog.w(TAG, "sendCommand: 未连接或发送失败, cmd:${message.toProtocolString()} old:$cmd")
         }
     }
 

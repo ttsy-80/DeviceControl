@@ -2,7 +2,10 @@ package com.devicecontrol.engine.ui.control
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -60,6 +63,21 @@ class TaskControlActivity : AppCompatActivity() {
         viewModel.loadTask(taskId)
         setupObservers()
         setupListeners()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(com.devicecontrol.engine.R.menu.menu_task_control, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            com.devicecontrol.engine.R.id.action_debug_log -> {
+                startActivity(Intent(this, DebugLogActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun setupObservers() {
