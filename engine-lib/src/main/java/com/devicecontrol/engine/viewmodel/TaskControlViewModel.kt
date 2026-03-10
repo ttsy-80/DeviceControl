@@ -13,6 +13,7 @@ import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.communication.CanUsbInitConfig
 import com.devicecontrol.engine.communication.CommunicationManager
+import com.devicecontrol.engine.communication.command.CanOpenDriveCommand
 import com.devicecontrol.engine.communication.command.EngineControlCommand
 import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
 import com.devicecontrol.engine.data.repository.EngineRepository
@@ -376,19 +377,22 @@ class TaskControlViewModel(
         }
     }
 
-    /** 下发指令到通讯层（已连接时发送，未连接时仅打日志） */
+    /** 下发指令到通讯层：按业务指令映射为 CAN Open 驱动帧并依次发送 */
     private fun sendCommand(cmd: String) {
-//        val sent = CommunicationManager.getInstance().sendText(cmd)
-        val message = CanOpenMessage(
-            canId = 0x601,
-            dlc = 8,
-            data = byteArrayOf(0x2B, 0x40, 0x60, 0x00, 0x01, 0x00, 0x00, 0x00)
-        )
-        val sent = CommunicationManager.getInstance().sendCanOpenMessage(message)
-        if (sent) {
-            EngineLog.d(TAG, "sendCommand: cmd${message.toProtocolString()} old:$cmd")
-        } else {
-            EngineLog.w(TAG, "sendCommand: 未连接或发送失败, cmd:${message.toProtocolString()} old:$cmd")
+        val canMessages = when {
+            cmd.startsWith("START") -> CanOpenDriveCommand.speedModeRunSequence150Rpm()
+            cmd.startsWith("PAUSE") -> listOf(CanOpenDriveCommand.stop())
+            else -> emptyList()
+        }
+        if (canMessages.isEmpty()) {
+            EngineLog.d(TAG, "sendCommand: 业务指令暂未映射CAN, $cmd")
+            return
+        }
+        val manager = CommunicationManager.getInstance()
+        for (msg in canMessages) {
+            val sent = manager.sendCanOpenMessage(msg)
+            if (sent) EngineLog.d(TAG, "sendCommand: ${msg.toProtocolString().trim()}")
+            else EngineLog.w(TAG, "sendCommand: 发送失败 ${msg.toProtocolString().trim()}")
         }
     }
 
