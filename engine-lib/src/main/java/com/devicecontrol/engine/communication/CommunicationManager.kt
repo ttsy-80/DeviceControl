@@ -1,5 +1,6 @@
 package com.devicecontrol.engine.communication
 
+import com.devicecontrol.engine.communication.command.CommandSendMode
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
 import com.devicecontrol.engine.communication.protocol.CanOpenProtocol
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
@@ -28,6 +29,14 @@ class CommunicationManager private constructor() {
 
     /** CAN-USB 连接成功后的初始化配置；非 null 时 USB 连接成功会自动执行 [runCanUsbInit] */
     private var canUsbInitConfig: CanUsbInitConfig? = null
+
+    /** 指令下发方式：切换后所有 start/pause/jog 等均按该方式下发（CAN Open 或 JSON sendText） */
+    @Volatile
+    var commandSendMode: CommandSendMode = CommandSendMode.TEXT_JSON
+        set(value) {
+            field = value
+            EngineLog.d(TAG, "commandSendMode: ${value.name}")
+        }
 
     /** CAN Open 解析后的消息回调（可选） */
     interface CanOpenMessageCallback {

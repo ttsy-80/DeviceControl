@@ -14,7 +14,9 @@ import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.communication.CanUsbInitConfig
 import com.devicecontrol.engine.communication.CommunicationManager
 import com.devicecontrol.engine.communication.command.CanOpenDriveCommand
+import com.devicecontrol.engine.communication.command.CommandSendMode
 import com.devicecontrol.engine.communication.command.EngineControlCommand
+import com.devicecontrol.engine.communication.command.JsonCommandBuilder
 import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
@@ -313,11 +315,11 @@ class TaskControlViewModel(
 
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
-        if (execution.speed >= execution.speedStep) {
+        if (execution.speed > execution.speedStep) {
             val newSpeed = execution.speed - execution.speedStep
             updateExecution { it.copy(speed = newSpeed) }
         } else {
-            updateExecution { it.copy(speed = 0.0) }
+            updateExecution { it.copy(speed = 1.0) }
         }
         modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedMinus(n, p)) } }
     }
@@ -364,7 +366,7 @@ class TaskControlViewModel(
         val name = modelName() ?: return
         val pos = position() ?: record.position.toString()
         val speed = execution()?.playbackSpeed ?: 1.0
-        sendCommand(EngineControlCommand.playback(name, pos, speed, record.recordId))
+        sendCommand(EngineControlCommand.playback(name, pos, speed, record.recordId), playbackPosition = record.position, playbackSpeed = speed)
     }
     
     private fun updateExecution(update: (TaskExecution) -> TaskExecution) {
@@ -377,22 +379,53 @@ class TaskControlViewModel(
         }
     }
 
-    /** 下发指令到通讯层：按业务指令映射为 CAN Open 驱动帧并依次发送 */
-    private fun sendCommand(cmd: String) {
-        val canMessages = when {
-            cmd.startsWith("START") -> CanOpenDriveCommand.speedModeRunSequence150Rpm()
-            cmd.startsWith("PAUSE") -> listOf(CanOpenDriveCommand.stop())
-            else -> emptyList()
-        }
-        if (canMessages.isEmpty()) {
-            EngineLog.d(TAG, "sendCommand: 业务指令暂未映射CAN, $cmd")
-            return
-        }
+    /**
+     * 下发指令到通讯层：由 [CommunicationManager.commandSendMode] 决定用 CAN Open 还是 JSON sendText。
+     * @param playbackPosition 仅 playback 时有效（TEXT_JSON 用）
+     * @param playbackSpeed 仅 playback 时有效（TEXT_JSON 用）
+     */
+    private fun sendCommand(cmd: String, playbackPosition: Int? = null, playbackSpeed: Double? = null) {
         val manager = CommunicationManager.getInstance()
-        for (msg in canMessages) {
-            val sent = manager.sendCanOpenMessage(msg)
-            if (sent) EngineLog.d(TAG, "sendCommand: ${msg.toProtocolString().trim()}")
-            else EngineLog.w(TAG, "sendCommand: 发送失败 ${msg.toProtocolString().trim()}")
+        val exec = execution()
+
+        when (manager.commandSendMode) {
+            CommandSendMode.TEXT_JSON -> {
+                val json = when {
+                    cmd.startsWith("START") -> if (exec != null) JsonCommandBuilder.start(exec) else null
+                    cmd.startsWith("PAUSE") -> JsonCommandBuilder.pause()
+                    cmd.startsWith("JOG") -> if (exec != null) JsonCommandBuilder.jog(exec) else null
+                    cmd.startsWith("CONTINUOUS") -> if (exec != null) JsonCommandBuilder.continuous(exec) else null
+                    cmd.startsWith("SPEED_") -> if (exec != null) JsonCommandBuilder.speed(exec) else null
+                    cmd.startsWith("FORWARD") -> if (exec != null) JsonCommandBuilder.forward(exec) else null
+                    cmd.startsWith("REVERSE") -> if (exec != null) JsonCommandBuilder.reverse(exec) else null
+                    cmd.startsWith("RECORD") -> JsonCommandBuilder.record()
+                    cmd.startsWith("PLAYBACK") -> if (exec != null && playbackPosition != null && playbackSpeed != null) JsonCommandBuilder.playback(exec, playbackPosition, playbackSpeed) else null
+                    else -> null
+                }
+                if (json != null) {
+                    val sent = manager.sendText(json)
+                    if (sent) EngineLog.d(TAG, "sendCommand(JSON): cmd$json")
+                    else EngineLog.w(TAG, "sendCommand(JSON): 发送失败 cmd$json")
+                } else {
+                    EngineLog.d(TAG, "sendCommand: 业务指令无JSON映射或缺少exec, $cmd")
+                }
+            }
+            CommandSendMode.CAN_OPEN -> {
+                val canMessages = when {
+                    cmd.startsWith("START") -> CanOpenDriveCommand.speedModeRunSequence150Rpm()
+                    cmd.startsWith("PAUSE") -> listOf(CanOpenDriveCommand.stop())
+                    else -> emptyList()
+                }
+                if (canMessages.isEmpty()) {
+                    EngineLog.d(TAG, "sendCommand(CAN): 业务指令暂未映射, $cmd")
+                    return
+                }
+                for (msg in canMessages) {
+                    val sent = manager.sendCanOpenMessage(msg)
+                    if (sent) EngineLog.d(TAG, "sendCommand(CAN): ${msg.toProtocolString().trim()}")
+                    else EngineLog.w(TAG, "sendCommand(CAN): 发送失败 ${msg.toProtocolString().trim()}")
+                }
+            }
         }
     }
 
