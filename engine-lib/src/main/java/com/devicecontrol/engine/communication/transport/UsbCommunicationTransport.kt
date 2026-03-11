@@ -128,8 +128,24 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
-                    EngineLog.d(TAG, "USB设备已连接")
-                    refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
+                    if (!isConnected()) {
+                        refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
+                        val device = intent.getUsbDeviceExtra()
+                        if (device != null) {
+                            val target = _availableTargets.value.find { it is ConnectTarget.Usb && (it as ConnectTarget.Usb).deviceInfo.deviceName == device.deviceName }
+                            if (target != null) {
+                                EngineLog.i(TAG, "ACTION_USB_DEVICE_ATTACHED: 未连接，尝试连接新插入设备")
+                                connect(target, dataCallback)
+                            } else {
+                                EngineLog.w(TAG, "ACTION_USB_DEVICE_ATTACHED target = null")
+                            }
+                        } else {
+                            EngineLog.w(TAG, "ACTION_USB_DEVICE_ATTACHED device = null")
+                        }
+                    } else {
+                        EngineLog.d(TAG, "USB设备已连接(ACTION_USB_DEVICE_ATTACHED)")
+                        refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
+                    }
                 }
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     if (intent.getUsbDeviceExtra() == currentDevice) {
