@@ -59,8 +59,10 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
             this.callback = callback
             
             // 查找CDC/ACM数据接口
+            EngineLog.d(TAG, "connect: interfaceCount=${device.interfaceCount}")
             for (i in 0 until device.interfaceCount) {
                 val usbInterface = device.getInterface(i)
+                EngineLog.d(TAG, "connect: usbInterface=$usbInterface i:$i")
                 if (usbInterface.interfaceClass == UsbConstants.USB_CLASS_CDC_DATA
 //                    || usbInterface.interfaceClass == UsbConstants.USB_CLASS_CDC
                     ) {
@@ -136,7 +138,7 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
                 data.size,
                 1000
             ) ?: -1
-            
+            EngineLog.d(TAG,"VCP发送数据 返回码result:$result")
             if (result >= 0) {
                 true
             } else {
@@ -190,7 +192,7 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
                         }
                         result == -1 -> {
                             timeoutCount++
-                            if (timeoutCount % 30 == 1 && timeoutCount > 1) {
+                            if (timeoutCount % 10 == 1 && timeoutCount > 1) {
                                 EngineLog.d(TAG, "startReceiving: bulkTransfer 超时(继续轮询) 累计约 ${timeoutCount} 次")
                             }
                         }
