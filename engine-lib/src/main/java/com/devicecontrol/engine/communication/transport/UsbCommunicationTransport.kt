@@ -51,9 +51,11 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
 
     /** VSP 策略使用的波特率（仅 currentProtocol == VSP 时生效），默认 115200 */
     var vspBaudRate: Int = 115200
-        set(value) {
-            if (!isConnected()) field = value
-        }
+        set(value) { if (!isConnected()) field = value }
+
+    /** VCP 策略使用的波特率（仅 currentProtocol == VCP 时生效），默认 115200 */
+    var vcpBaudRate: Int = 115200
+        set(value) { if (!isConnected()) field = value }
 
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     private val _availableTargets = MutableStateFlow<List<ConnectTarget>>(emptyList())
@@ -127,26 +129,7 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
     private val usbDeviceReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
-                    if (!isConnected()) {
-                        refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
-                        val device = intent.getUsbDeviceExtra()
-                        if (device != null) {
-                            val target = _availableTargets.value.find { it is ConnectTarget.Usb && (it as ConnectTarget.Usb).deviceInfo.deviceName == device.deviceName }
-                            if (target != null) {
-                                EngineLog.i(TAG, "ACTION_USB_DEVICE_ATTACHED: 未连接，尝试连接新插入设备")
-                                connect(target, dataCallback)
-                            } else {
-                                EngineLog.w(TAG, "ACTION_USB_DEVICE_ATTACHED target = null")
-                            }
-                        } else {
-                            EngineLog.w(TAG, "ACTION_USB_DEVICE_ATTACHED device = null")
-                        }
-                    } else {
-                        EngineLog.d(TAG, "USB设备已连接(ACTION_USB_DEVICE_ATTACHED)")
-                        refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
-                    }
-                }
+                UsbManager.ACTION_USB_DEVICE_ATTACHED -> onDeviceAttached(intent.getUsbDeviceExtra())
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     if (intent.getUsbDeviceExtra() == currentDevice) {
                         EngineLog.i(TAG, "当前USB设备已拔出，断开连接")
@@ -155,6 +138,20 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
                     refreshAvailableTargets("ACTION_USB_DEVICE_DETACHED")
                 }
             }
+        }
+    }
+
+    private fun onDeviceAttached(device: UsbDevice?) {
+        if (device == null) return
+        if (isConnected()) {
+            refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
+            return
+        }
+        refreshAvailableTargets("ACTION_USB_DEVICE_ATTACHED")
+        val target = _availableTargets.value.find { it is ConnectTarget.Usb && (it as ConnectTarget.Usb).deviceInfo.deviceName == device.deviceName }
+        if (target != null) {
+            EngineLog.i(TAG, "ACTION_USB_DEVICE_ATTACHED: 未连接，连接新插入设备 ${device.deviceName}")
+            connect(target, dataCallback)
         }
     }
 
@@ -242,7 +239,10 @@ class UsbCommunicationTransport(private val context: Context) : CommunicationTra
             _connectionState.value = ConnectionState.Connecting
             val strategy = when (currentProtocol) {
                 UsbProtocol.HID -> HidCommunicationStrategy()
-                UsbProtocol.VCP -> VcpCommunicationStrategy()
+                UsbProtocol.VCP -> VcpCommunicationStrategy().apply {
+                    baudRate = vcpBaudRate
+                    setPortParams(vcpBaudRate)
+                }
                 UsbProtocol.VSP -> VspCommunicationStrategy().apply { baudRate = vspBaudRate }
             }
             if (!strategy.isDeviceSupported(device)) {
