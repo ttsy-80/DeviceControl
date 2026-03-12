@@ -429,6 +429,17 @@ class TaskControlViewModel(
         }
     }
 
+    /**
+     * 测试发送指令：将用户输入的原始文本通过 [CommunicationManager.sendText] 下发，供调试使用。
+     */
+    fun sendTestInstruction(text: String) {
+//        if (text.isBlank()) return
+        val manager = CommunicationManager.getInstance()
+        val sent = manager.sendText(text)
+        if (sent) EngineLog.d(TAG, "sendTestInstruction: sent, cmd:$text len=${text.length}")
+        else EngineLog.w(TAG, "sendTestInstruction: 发送失败 cmd:$text")
+    }
+
     private fun modelName(): String? = _task.value?.modelName
     private fun position(): String? = _currentConfigItem.value?.position
     private fun execution(): TaskExecution? = _taskExecution.value

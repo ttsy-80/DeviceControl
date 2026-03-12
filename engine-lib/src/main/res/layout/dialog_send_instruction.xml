@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/spacing_large">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/instruction_dialog_title"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_background"
+        android:layout_marginBottom="@dimen/spacing_medium" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_large"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:hint="@string/instruction_hint"
+        app:boxCornerRadiusTopStart="@dimen/button_corner_radius"
+        app:boxCornerRadiusTopEnd="@dimen/button_corner_radius"
+        app:boxCornerRadiusBottomStart="@dimen/button_corner_radius"
+        app:boxCornerRadiusBottomEnd="@dimen/button_corner_radius">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etInstruction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:minLines="3"
+            android:gravity="top|start"
+            android:imeOptions="actionDone"
+            android:minHeight="@dimen/button_height_compact" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_compact"
+            android:text="@string/cancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_marginEnd="@dimen/spacing_medium" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_compact"
+            android:text="@string/confirm"
+            style="@style/AccentButton" />
+    </LinearLayout>
+</LinearLayout>

@@ -70,6 +70,11 @@
     <string name="playback_speed">回查速度</string>
     <string name="playback_speed_hint">单位：秒/圈（例如：1秒/圈，2秒/圈）</string>
     
+    <!-- 指令测试 -->
+    <string name="send_instruction">指令</string>
+    <string name="instruction_dialog_title">发送指令</string>
+    <string name="instruction_hint">请输入要发送的指令内容</string>
+
     <!-- 调试 -->
     <string name="debug_log">调试</string>
     <string name="debug_log_title">通讯调试日志</string>

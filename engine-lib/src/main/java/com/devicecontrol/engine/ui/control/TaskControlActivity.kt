@@ -18,6 +18,7 @@ import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.databinding.ActivityTaskControlBinding
 import com.devicecontrol.engine.databinding.DialogRecordDetailBinding
+import com.devicecontrol.engine.databinding.DialogSendInstructionBinding
 import com.devicecontrol.engine.viewmodel.TaskControlViewModel
 import java.text.DecimalFormat
 
@@ -73,12 +74,33 @@ class TaskControlActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            com.devicecontrol.engine.R.id.action_send_instruction -> {
+                showSendInstructionDialog()
+                true
+            }
             com.devicecontrol.engine.R.id.action_debug_log -> {
                 startActivity(Intent(this, DebugLogActivity::class.java))
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showSendInstructionDialog() {
+        val dialogBinding = DialogSendInstructionBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
+        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnConfirm.setOnClickListener {
+            val text = dialogBinding.etInstruction.text?.toString().orEmpty()
+            viewModel.sendTestInstruction(text)
+            if (text.isNotEmpty()) {
+//                Toast.makeText(this, "指令已发送", Toast.LENGTH_SHORT).show()
+            }
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun setupObservers() {
