@@ -28,6 +28,8 @@ import kotlinx.coroutines.launch
 import android.content.Context
 import com.devicecontrol.engine.communication.protocol.CanOpenMessage
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
+import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
+import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
@@ -58,9 +60,11 @@ class TaskControlViewModel(
     val taskRecords: LiveData<List<TaskRecord>> = _taskRecords
     
     private var currentGearRatioIndex: Int = 0
+    private var vcpManager: UsbSerialVcpManager? = null
     
     fun loadTask(taskId: Long) {
-        scanAndConnect()
+//        scanAndConnect()
+        scanAndConnect2()
         viewModelScope.launch {
             val task = taskRepository.getTaskById(taskId)
             EngineLog.d(TAG, "loadTask: id=$taskId, configItemIds=${task?.configItemIds?.size}")
@@ -72,6 +76,43 @@ class TaskControlViewModel(
                 loadTaskExecution(taskId, currentGearRatioIndex)
             }
         }
+    }
+
+    private fun scanAndConnect2() {
+       vcpManager =  UsbSerialVcpManager(applicationContext)
+        val defaultLogger = DefaultEngineLogger("Engine")
+        EngineLog.setLogger(object : EngineLogger {
+            override fun d(tag: String, message: String) {
+                defaultLogger.d(tag, message)
+                DebugLogHolder.add("D", tag, message)
+            }
+            override fun i(tag: String, message: String) {
+                defaultLogger.i(tag, message)
+                DebugLogHolder.add("I", tag, message)
+            }
+            override fun w(tag: String, message: String) {
+                defaultLogger.w(tag, message)
+                DebugLogHolder.add("W", tag, message)
+            }
+            override fun e(tag: String, message: String) {
+                defaultLogger.e(tag, message)
+                DebugLogHolder.add("E", tag, message)
+            }
+            override fun e(tag: String, message: String, throwable: Throwable?) {
+                defaultLogger.e(tag, message, throwable)
+                DebugLogHolder.add("E", tag, message, throwable)
+            }
+        })
+        vcpManager?.scanAndConnect(object : UsbSerialVcpCallback{
+            override fun onDataReceived(data: ByteArray) {
+                EngineLog.d(TAG, "通讯回调 onBinaryDataReceived: $data")
+            }
+
+            override fun onError(error: String) {
+                EngineLog.e(TAG, "通讯回调 onError: $error")
+            }
+        })
+
     }
 
     /** 扫描并连接：设置 USB 传输并连接第一个可用设备；若为 CAN-USB 设备则连接成功后自动按手册初始化；主 logger 同时写入 [DebugLogHolder] 供调试页回看 */
@@ -385,10 +426,10 @@ class TaskControlViewModel(
      * @param playbackSpeed 仅 playback 时有效（TEXT_JSON 用）
      */
     private fun sendCommand(cmd: String, playbackPosition: Int? = null, playbackSpeed: Double? = null) {
-        val manager = CommunicationManager.getInstance()
+//        val manager = CommunicationManager.getInstance()
         val exec = execution()
 
-        when (manager.commandSendMode) {
+        when (CommandSendMode.TEXT_JSON) {
             CommandSendMode.TEXT_JSON -> {
                 val json = when {
                     cmd.startsWith("START") -> if (exec != null) JsonCommandBuilder.start(exec) else null
@@ -403,7 +444,8 @@ class TaskControlViewModel(
                     else -> null
                 }
                 if (json != null) {
-                    val sent = manager.sendText(json)
+//                    val sent = manager.sendText(json)
+                    val sent = vcpManager?.sendTextLine(json)?:false
                     if (sent) EngineLog.d(TAG, "sendCommand(JSON): cmd$json")
                     else EngineLog.w(TAG, "sendCommand(JSON): 发送失败 cmd$json")
                 } else {
@@ -420,11 +462,11 @@ class TaskControlViewModel(
                     EngineLog.d(TAG, "sendCommand(CAN): 业务指令暂未映射, $cmd")
                     return
                 }
-                for (msg in canMessages) {
-                    val sent = manager.sendCanOpenMessage(msg)
-                    if (sent) EngineLog.d(TAG, "sendCommand(CAN): ${msg.toProtocolString().trim()}")
-                    else EngineLog.w(TAG, "sendCommand(CAN): 发送失败 ${msg.toProtocolString().trim()}")
-                }
+//                for (msg in canMessages) {
+//                    val sent = manager.sendCanOpenMessage(msg)
+//                    if (sent) EngineLog.d(TAG, "sendCommand(CAN): ${msg.toProtocolString().trim()}")
+//                    else EngineLog.w(TAG, "sendCommand(CAN): 发送失败 ${msg.toProtocolString().trim()}")
+//                }
             }
         }
     }
@@ -434,8 +476,9 @@ class TaskControlViewModel(
      */
     fun sendTestInstruction(text: String) {
 //        if (text.isBlank()) return
-        val manager = CommunicationManager.getInstance()
-        val sent = manager.sendText(text)
+//        val manager = CommunicationManager.getInstance()
+//        val sent = manager.sendText(text)
+        val sent = vcpManager?.sendTextLine(text)?:false
         if (sent) EngineLog.d(TAG, "sendTestInstruction: sent, cmd:$text len=${text.length}")
         else EngineLog.w(TAG, "sendTestInstruction: 发送失败 cmd:$text")
     }
@@ -443,5 +486,10 @@ class TaskControlViewModel(
     private fun modelName(): String? = _task.value?.modelName
     private fun position(): String? = _currentConfigItem.value?.position
     private fun execution(): TaskExecution? = _taskExecution.value
+
+    override fun onCleared() {
+        super.onCleared()
+        vcpManager?.release()
+    }
 }
 
