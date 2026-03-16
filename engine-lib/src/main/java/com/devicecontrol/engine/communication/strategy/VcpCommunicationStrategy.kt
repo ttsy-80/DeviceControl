@@ -110,6 +110,7 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
     private fun findAndClaimDataInterface(device: UsbDevice, connection: UsbDeviceConnection): Boolean {
         for (i in 0 until device.interfaceCount) {
             val iface = device.getInterface(i)
+            EngineLog.i(TAG,"findAndClaimDataInterface interface:$iface")
             if (iface.interfaceClass != UsbConstants.USB_CLASS_CDC_DATA) continue
             dataInterface = iface
             if (!connection.claimInterface(iface, true)) {
@@ -118,9 +119,9 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
             }
             try {
                 connection.setInterface(iface)
-                EngineLog.d(TAG, "setInterface(数据接口) 已调用")
+                EngineLog.d(TAG, "setInterface(数据接口) index:$i 已调用")
             } catch (e: Exception) {
-                EngineLog.d(TAG, "setInterface 跳过 ${e.message}")
+                EngineLog.d(TAG, "setInterface 跳过 error:${e}")
             }
             for (j in 0 until iface.endpointCount) {
                 val ep = iface.getEndpoint(j)
