@@ -74,6 +74,7 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
         try {
             this.connection = connection
             this.callback = callback
+            dumpAllInterfaces(device)
             EngineLog.d(TAG, "connect: interfaceCount=${device.interfaceCount} vid=${device.vendorId} pid=${device.productId}")
             findAndClaimControlInterface(device, connection)
             if (!findAndClaimDataInterface(device, connection)) {
@@ -89,6 +90,42 @@ class VcpCommunicationStrategy : UsbCommunicationStrategy {
             EngineLog.e(TAG, "connect: ${e.message}", e)
             callback?.onError("VCP连接失败: ${e.message}")
             return false
+        }
+    }
+
+    private fun dumpAllInterfaces(device: UsbDevice) {
+        EngineLog.d(TAG, "========== 设备接口信息 ==========")
+        EngineLog.d(TAG, "设备: VID=0x${device.vendorId.toString(16)} PID=0x${device.productId.toString(16)}")
+
+        for (i in 0 until device.interfaceCount) {
+            val iface = device.getInterface(i)
+            EngineLog.d(TAG, "接口[$i]:")
+            EngineLog.d(TAG, "  Class: 0x${iface.interfaceClass.toString(16)} (${getInterfaceClassName(iface.interfaceClass)})")
+            EngineLog.d(TAG, "  Subclass: 0x${iface.interfaceSubclass.toString(16)}")
+            EngineLog.d(TAG, "  Protocol: 0x${iface.interfaceProtocol.toString(16)}")
+
+            for (j in 0 until iface.endpointCount) {
+                val ep = iface.getEndpoint(j)
+                val dir = if (ep.direction == UsbConstants.USB_DIR_IN) "IN" else "OUT"
+                val type = when (ep.type) {
+                    UsbConstants.USB_ENDPOINT_XFER_CONTROL -> "CONTROL"
+                    UsbConstants.USB_ENDPOINT_XFER_ISOC -> "ISOCHRONOUS"
+                    UsbConstants.USB_ENDPOINT_XFER_BULK -> "BULK"
+                    UsbConstants.USB_ENDPOINT_XFER_INT -> "INTERRUPT"
+                    else -> "UNKNOWN"
+                }
+                EngineLog.d(TAG, "  端点[$j]: $dir $type, addr=0x${ep.address.toString(16)}, maxSize=${ep.maxPacketSize}")
+            }
+        }
+        EngineLog.d(TAG, "=================================")
+    }
+
+    private fun getInterfaceClassName(cls: Int): String {
+        return when (cls) {
+            UsbConstants.USB_CLASS_COMM -> "USB_CLASS_COMM (CDC控制)"
+            UsbConstants.USB_CLASS_CDC_DATA -> "USB_CLASS_CDC_DATA (CDC数据)"
+            0xFF -> "厂商特定"
+            else -> "其他(0x${cls.toString(16)})"
         }
     }
 
