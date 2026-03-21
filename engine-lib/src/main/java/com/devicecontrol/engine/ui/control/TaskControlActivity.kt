@@ -113,15 +113,14 @@ class TaskControlActivity : AppCompatActivity() {
             binding.tvTaskIndex.text = "$index"
         }
 
-//        viewModel.taskExecution.observe(this) { execution ->
-//            execution?.let {
-//                updateStatusBar(viewModel.displayInfo.value ?: "")
-//            }
-//        }
+        viewModel.toastMessage.observe(this) { msg ->
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
 
         viewModel.taskExecution.observe(this) { execution ->
             execution?.let {
                 updateButtonStates(it)
+                updateStatusBar(viewModel.displayInfo.value ?: "")
             }
         }
 

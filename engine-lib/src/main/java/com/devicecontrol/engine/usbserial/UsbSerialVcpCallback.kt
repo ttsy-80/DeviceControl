@@ -6,6 +6,11 @@ package com.devicecontrol.engine.usbserial
  */
 interface UsbSerialVcpCallback {
     /**
+     * VCP 连接状态发生变化（成功连接或断开）
+     */
+    fun onConnect(isConnect: Boolean)
+
+    /**
      * 收到来自设备的数据（文本或二进制均可通过此回调；业务层可按需解码）
      */
     fun onDataReceived(data: ByteArray)

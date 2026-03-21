@@ -40,29 +40,17 @@ class UsbSerialVcpManager(private val context: Context) {
     private var currentDevice: UsbDevice? = null
 
     private val permissionIntent: PendingIntent by lazy {
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                val intent = Intent(ACTION_USB_PERMISSION).apply { setPackage(context.packageName) }
-                PendingIntent.getBroadcast(
-                    context,
-                    0,
-                    intent,
-                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-                )
-            }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> PendingIntent.getBroadcast(
-                context,
-                0,
-                Intent(ACTION_USB_PERMISSION),
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            )
-            else -> @Suppress("DEPRECATION") PendingIntent.getBroadcast(
-                context,
-                0,
-                Intent(ACTION_USB_PERMISSION),
-                PendingIntent.FLAG_UPDATE_CURRENT
-            )
+        val intent = Intent(ACTION_USB_PERMISSION).apply {
+            setPackage(context.packageName)
         }
+
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        PendingIntent.getBroadcast(context, 0, intent, flags)
     }
 
     @Suppress("DEPRECATION")
@@ -110,9 +98,10 @@ class UsbSerialVcpManager(private val context: Context) {
                 UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
                     val device = intent.getUsbDeviceExtra()
                     EngineLog.i(TAG, "USB 设备接入: ${device?.deviceName ?: "null"}")
-                    if (device != null) {
-                        doConnect(device,pendingCallback)
-                    }
+                    // don't auto connect
+//                    if (device != null) {
+//                        connect(device, pendingCallback)
+//                    }
                 }
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     val device = intent.getUsbDeviceExtra()
@@ -228,36 +217,30 @@ class UsbSerialVcpManager(private val context: Context) {
             callback?.onError("该设备不被 usb-serial-for-android 支持")
             return
         }
+        
+        // 提前缓存供回调使用
+        pendingConnectDevice = device
+        pendingCallback = callback
+        
         if (usbManager.hasPermission(device)) {
             EngineLog.d(TAG, "connect: 已有权限，直接连接")
             doConnect(device, callback)
+            clearPending() // 直接连接后清理缓存
         } else {
             EngineLog.i(TAG, "connect: 无权限，请求 USB 权限")
-            pendingConnectDevice = device
-            pendingCallback = callback
             usbManager.requestPermission(device, permissionIntent)
+            // 等待权限广播回来再做连接和清理
         }
     }
 
     private fun doConnect(device: UsbDevice, callback: UsbSerialVcpCallback?) {
         EngineLog.d(TAG, "doConnect: device=${device.deviceName}, baudRate=$baudRate")
-        val wrapped = callback?.let { cb ->
-            object : UsbSerialVcpCallback {
-                override fun onDataReceived(data: ByteArray) {
-                    EngineLog.d(TAG, "onDataReceived: len=${data.size}")
-                    cb.onDataReceived(data)
-                }
-                override fun onError(error: String) {
-                    EngineLog.w(TAG, "onError: $error")
-                    cb.onError(error)
-                }
-            }
-        }
-        val ok = vcp.connect(device, wrapped)
+        val ok = vcp.connect(device, callback)
         if (ok) {
             currentDevice = device
             EngineLog.i(TAG, "doConnect: 连接成功，启动接收")
             vcp.startReceiving()
+            callback?.onConnect(true)
         } else {
             currentDevice = null
             EngineLog.e(TAG, "doConnect: 连接失败")
@@ -269,8 +252,10 @@ class UsbSerialVcpManager(private val context: Context) {
      */
     fun disconnect() {
         EngineLog.i(TAG, "disconnect")
-        vcp.stopReceiving()
         vcp.disconnect()
+        if (currentDevice != null) {
+            pendingCallback?.onConnect(false)
+        }
         currentDevice = null
         clearPending()
     }
@@ -313,14 +298,6 @@ class UsbSerialVcpManager(private val context: Context) {
     fun startReceiving() {
         EngineLog.d(TAG, "startReceiving")
         vcp.startReceiving()
-    }
-
-    /**
-     * 停止接收。
-     */
-    fun stopReceiving() {
-        EngineLog.d(TAG, "stopReceiving")
-        vcp.stopReceiving()
     }
 
     /**

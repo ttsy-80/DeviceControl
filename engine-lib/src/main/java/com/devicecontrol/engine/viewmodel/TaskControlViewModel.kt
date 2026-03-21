@@ -13,10 +13,7 @@ import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.communication.CanUsbInitConfig
 import com.devicecontrol.engine.communication.CommunicationManager
-import com.devicecontrol.engine.communication.command.CanOpenDriveCommand
-import com.devicecontrol.engine.communication.command.CommandSendMode
 import com.devicecontrol.engine.communication.command.EngineControlCommand
-import com.devicecontrol.engine.communication.command.JsonCommandBuilder
 import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
@@ -25,11 +22,19 @@ import com.devicecontrol.engine.log.DebugLogHolder
 import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.log.EngineLogger
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import android.content.Context
-import com.devicecontrol.engine.communication.protocol.CanOpenMessage
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
+import com.devicecontrol.engine.communication.protocol.CANOpenHelper
+import com.devicecontrol.engine.communication.protocol.CiA402
+import com.devicecontrol.engine.communication.protocol.SlcanManager
+import com.devicecontrol.engine.communication.protocol.SlcanTransport
 import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
 import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
+import kotlin.math.abs
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
@@ -56,11 +61,18 @@ class TaskControlViewModel(
     private val _taskIndex = MutableLiveData<String>()
     val taskIndex: LiveData<String> = _taskIndex
     
+    private val _toastMessage = MutableLiveData<String>()
+    val toastMessage: LiveData<String> = _toastMessage
+    
     private val _taskRecords = MutableLiveData<List<TaskRecord>>(emptyList())
     val taskRecords: LiveData<List<TaskRecord>> = _taskRecords
     
     private var currentGearRatioIndex: Int = 0
     private var vcpManager: UsbSerialVcpManager? = null
+    private var slcanManager: SlcanManager? = null
+    
+    private var encoderResolution: Int = 65536
+    private var jogJob: Job? = null
     
     fun loadTask(taskId: Long) {
 //        scanAndConnect()
@@ -79,7 +91,14 @@ class TaskControlViewModel(
     }
 
     private fun scanAndConnect2() {
-       vcpManager =  UsbSerialVcpManager(applicationContext)
+        vcpManager = UsbSerialVcpManager(applicationContext)
+        val transport = object : SlcanTransport {
+            override fun send(data: String): Boolean {
+                return vcpManager?.sendTextLine(data) ?: false
+            }
+        }
+        slcanManager = SlcanManager(transport)
+
         val defaultLogger = DefaultEngineLogger("Engine")
         EngineLog.setLogger(object : EngineLogger {
             override fun d(tag: String, message: String) {
@@ -104,8 +123,36 @@ class TaskControlViewModel(
             }
         })
         vcpManager?.scanAndConnect(object : UsbSerialVcpCallback{
+            override fun onConnect(isConnect: Boolean) {
+                EngineLog.i(TAG, "通讯回调 onConnect: $isConnect")
+                viewModelScope.launch {
+                    if (isConnect) {
+                        val res = slcanManager?.init()
+                        if (res?.success == true) {
+                            EngineLog.i(TAG, "SLCAN 握手初始化成功")
+                            
+                            val encReq = CANOpenHelper.readEncoderResolution()
+                            val encRes = slcanManager?.execute(encReq)
+                            if (encRes?.success == true) {
+                                val resolution = encRes.values[CiA402.EncoderResolution.name] as? Int
+                                if (resolution != null && resolution > 0) {
+                                    encoderResolution = resolution
+                                    EngineLog.i(TAG, "成功读取伺服编码器分辨率: $encoderResolution 脉冲/360°")
+                                }
+                            } else {
+                                EngineLog.w(TAG, "读取编码器分辨率失败，使用默认值 $encoderResolution 脉冲/360°")
+                            }
+                        } else {
+                            EngineLog.e(TAG, "SLCAN 握手初始化失败: ${res?.error}")
+                        }
+                    } else {
+                        slcanManager?.close()
+                    }
+                }
+            }
+
             override fun onDataReceived(data: ByteArray) {
-                EngineLog.d(TAG, "通讯回调 onBinaryDataReceived: $data")
+                slcanManager?.feedData(data)
             }
 
             override fun onError(error: String) {
@@ -297,20 +344,78 @@ class TaskControlViewModel(
         val exec = _taskExecution.value ?: return
         val pos = _currentConfigItem.value?.position ?: return
         updateExecution { it.copy(status = TaskStatus.RUNNING) }
-        val cmd = EngineControlCommand.start(
-            modelName = task.modelName,
-            position = pos,
-            forward = exec.rotationDirection == RotationDirection.FORWARD,
-            jog = exec.operationMode == OperationMode.JOG,
-            speedConfig = exec.speedStep,
-            jogInterval = exec.jogInterval,
-            continuousCycles = exec.continuousCycles
-        )
-        sendCommand(cmd)
+        
+        if (exec.operationMode == OperationMode.JOG) {
+            startJogLoop()
+        } else {
+            val cmd = EngineControlCommand.start(
+                modelName = task.modelName,
+                position = pos,
+                forward = exec.rotationDirection == RotationDirection.FORWARD,
+                jog = false,
+                speedConfig = exec.speedStep,
+                jogInterval = exec.jogInterval,
+                continuousCycles = exec.continuousCycles
+            )
+            sendCommand(cmd)
+        }
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
 
+    private fun startJogLoop() {
+        jogJob?.cancel()
+        jogJob = viewModelScope.launch(Dispatchers.IO) {
+            val initialExec = _taskExecution.value ?: return@launch
+            val bladeCount = _currentConfigItem.value?.bladeCount ?: 10
+            val validBladeCount = if (bladeCount > 0) bladeCount else 10
+            val targetSteps = initialExec.continuousCycles * validBladeCount
+            var stepCount = 0
+
+            while (isActive) {
+                val currentExec = _taskExecution.value ?: return@launch
+                if (currentExec.status != TaskStatus.RUNNING || currentExec.operationMode != OperationMode.JOG) break
+
+                if (stepCount >= targetSteps) {
+                    kotlinx.coroutines.withContext(Dispatchers.Main) {
+                        updateExecution { it.copy(status = TaskStatus.STOPPED) }
+                        val name = modelName()
+                        val pos = position()
+                        if (name != null && pos != null) {
+                            sendCommand(EngineControlCommand.pause(name, pos))
+                        }
+                    }
+                    break
+                }
+
+                val onceRotate = 360.0 / validBladeCount
+                val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+
+                val isForward = currentExec.rotationDirection == RotationDirection.FORWARD
+                val signedDegrees = if (isForward) onceRotate else -onceRotate
+                // val relativePulses = angleToPulses(signedDegrees)
+                val relativePulses = ((signedDegrees / 360.0) * encoderResolution * gearRatio).toInt()
+                val pbSpeed = currentExec.speed 
+
+                // 计算发送给驱动器的转速: (上位机rpm * 减速比 * 512 * 65536) / 1875
+                val pbVelocity = ((pbSpeed * gearRatio * 512.0 * 65536.0)/ 1875.0).toInt()
+
+                val requests = CANOpenHelper.startRelativePositionMode(kotlin.math.abs(pbVelocity), relativePulses)
+                val res = slcanManager?.execute(requests)
+                if (res?.success == true) {
+                    _toastMessage.postValue("点动执行中: ${stepCount + 1}/$targetSteps (${java.text.DecimalFormat("#0.0").format(onceRotate)}度)")
+                } else {
+                    _toastMessage.postValue("点动下发失败: ${res?.error ?: "未知错误"}")
+                }
+                
+                stepCount++
+                delay(currentExec.jogInterval * 1000L)
+            }
+        }
+    }
+
     fun pause() {
+        jogJob?.cancel()
+        jogJob = null
         val name = modelName() ?: return
         val pos = position() ?: return
         updateExecution { it.copy(status = TaskStatus.PAUSED) }
@@ -335,7 +440,8 @@ class TaskControlViewModel(
 
     fun setJog() {
         updateExecution { it.copy(operationMode = OperationMode.JOG) }
-        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.jog(n, p)) } }
+        start()
+//        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.jog(n, p)) } }
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
@@ -385,29 +491,54 @@ class TaskControlViewModel(
     fun takePhoto() {
         // 拍照功能：无对应功能，暂时不实现
     }
-    
+
     fun addRecord(position: Int, bladeNumber: Int) {
         val task = _task.value ?: return
-        val posStr = _currentConfigItem.value?.position ?: position.toString()
         viewModelScope.launch {
-            val record = TaskRecord(
-                taskId = task.id,
-                gearRatioIndex = currentGearRatioIndex,
-                recordNumber = 0,
-                position = position,
-                bladeNumber = bladeNumber
-            )
-            taskRepository.insertTaskRecord(record)
-            loadTaskRecords(task.id, currentGearRatioIndex)
-            sendCommand(EngineControlCommand.record(task.modelName, posStr, bladeNumber))
+            val req = CANOpenHelper.readPosition()
+            val res = slcanManager?.execute(req)
+            if (res?.success == true) {
+                val actualPos = res.values[CiA402.ActualPosition.name] as? Int
+                if (actualPos != null) {
+                    val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+                    val recordAngle = actualPos * 3600.0 / (gearRatio * encoderResolution)
+                    val record = TaskRecord(
+                        taskId = task.id,
+                        gearRatioIndex = currentGearRatioIndex,
+                        recordNumber = 0,
+                        position = recordAngle.toInt(), // 存入计算后的角度整数
+                        bladeNumber = bladeNumber
+                    )
+                    taskRepository.insertTaskRecord(record)
+                    loadTaskRecords(task.id, currentGearRatioIndex)
+
+                    _toastMessage.postValue("记录位置获取成功: ${record.position} / 10 度")
+                }
+            } else {
+                EngineLog.e(TAG, "记录失败: ${res?.error}")
+                _toastMessage.postValue("获取失败: ${res?.error ?: "未知"}")
+            }
         }
     }
 
     fun playbackRecord(record: TaskRecord) {
-        val name = modelName() ?: return
-        val pos = position() ?: record.position.toString()
-        val speed = execution()?.playbackSpeed ?: 1.0
-        sendCommand(EngineControlCommand.playback(name, pos, speed, record.recordId), playbackPosition = record.position, playbackSpeed = speed)
+        val pbSpeed = execution()?.playbackSpeed ?: 1.0
+        val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+        // 计算发送给驱动器的转速: (上位机rpm * 减速比 * 512 * 65536) / 1857
+        val pbVelocity = (pbSpeed * gearRatio * 512.0 * 65536.0 / 1857.0).toInt()
+        val positionAngle = record.position.toDouble()
+        // 计算角度对应的脉冲
+        val pulses = ((positionAngle / 3600.0) * encoderResolution * gearRatio).toInt()
+
+        viewModelScope.launch {
+            val reqs = CANOpenHelper.startPositionMode(Math.abs(pbVelocity), pulses)
+            val res = slcanManager?.execute(reqs)
+            if (res?.success == true) {
+                _toastMessage.postValue("已触发回溯指令: ${record.position} / 10 度")
+            } else {
+                _toastMessage.postValue("回溯指令失败: ${res?.error ?: "未知"}")
+            }
+        }
     }
     
     private fun updateExecution(update: (TaskExecution) -> TaskExecution) {
@@ -426,47 +557,39 @@ class TaskControlViewModel(
      * @param playbackSpeed 仅 playback 时有效（TEXT_JSON 用）
      */
     private fun sendCommand(cmd: String, playbackPosition: Int? = null, playbackSpeed: Double? = null) {
-//        val manager = CommunicationManager.getInstance()
         val exec = execution()
 
-        when (CommandSendMode.TEXT_JSON) {
-            CommandSendMode.TEXT_JSON -> {
-                val json = when {
-                    cmd.startsWith("START") -> if (exec != null) JsonCommandBuilder.start(exec) else null
-                    cmd.startsWith("PAUSE") -> JsonCommandBuilder.pause()
-                    cmd.startsWith("JOG") -> if (exec != null) JsonCommandBuilder.jog(exec) else null
-                    cmd.startsWith("CONTINUOUS") -> if (exec != null) JsonCommandBuilder.continuous(exec) else null
-                    cmd.startsWith("SPEED_") -> if (exec != null) JsonCommandBuilder.speed(exec) else null
-                    cmd.startsWith("FORWARD") -> if (exec != null) JsonCommandBuilder.forward(exec) else null
-                    cmd.startsWith("REVERSE") -> if (exec != null) JsonCommandBuilder.reverse(exec) else null
-                    cmd.startsWith("RECORD") -> JsonCommandBuilder.record()
-                    cmd.startsWith("PLAYBACK") -> if (exec != null && playbackPosition != null && playbackSpeed != null) JsonCommandBuilder.playback(exec, playbackPosition, playbackSpeed) else null
-                    else -> null
-                }
-                if (json != null) {
-//                    val sent = manager.sendText(json)
-                    val sent = vcpManager?.sendTextLine(json)?:false
-                    if (sent) EngineLog.d(TAG, "sendCommand(JSON): cmd$json")
-                    else EngineLog.w(TAG, "sendCommand(JSON): 发送失败 cmd$json")
-                } else {
-                    EngineLog.d(TAG, "sendCommand: 业务指令无JSON映射或缺少exec, $cmd")
-                }
-            }
-            CommandSendMode.CAN_OPEN -> {
-                val canMessages = when {
-                    cmd.startsWith("START") -> CanOpenDriveCommand.speedModeRunSequence150Rpm()
-                    cmd.startsWith("PAUSE") -> listOf(CanOpenDriveCommand.stop())
-                    else -> emptyList()
-                }
-                if (canMessages.isEmpty()) {
-                    EngineLog.d(TAG, "sendCommand(CAN): 业务指令暂未映射, $cmd")
-                    return
-                }
-//                for (msg in canMessages) {
-//                    val sent = manager.sendCanOpenMessage(msg)
-//                    if (sent) EngineLog.d(TAG, "sendCommand(CAN): ${msg.toProtocolString().trim()}")
-//                    else EngineLog.w(TAG, "sendCommand(CAN): 发送失败 ${msg.toProtocolString().trim()}")
-//                }
+        val outputRpm = exec?.speed ?: 1.0
+        val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+        // 计算发送给驱动器的转速: (上位机rpm * 减速比 * 512 * 65536) / 1857
+        val canVelocity = (outputRpm * gearRatio * 512.0 * 65536.0 / 1857.0).toInt()
+        
+        val isForward = exec?.rotationDirection == RotationDirection.FORWARD
+        val signedVelocity = if (isForward) canVelocity else -canVelocity
+
+        val requests = when {
+            cmd.startsWith("START") -> CANOpenHelper.startSpeedMode(signedVelocity)
+            cmd.startsWith("PAUSE") -> CANOpenHelper.stop()
+            cmd.startsWith("CONTINUOUS") -> CANOpenHelper.startSpeedMode(signedVelocity)
+            cmd.startsWith("SPEED_") -> CANOpenHelper.changeVelocity(signedVelocity)
+            cmd.startsWith("FORWARD") -> CANOpenHelper.reverseDirection(signedVelocity)
+            cmd.startsWith("REVERSE") -> CANOpenHelper.reverseDirection(signedVelocity)
+            else -> emptyList()
+        }
+
+        if (requests.isEmpty()) {
+            EngineLog.d(TAG, "sendCommand(CAN): 业务指令暂未映射, $cmd")
+            return
+        }
+
+        viewModelScope.launch {
+            val res = slcanManager?.execute(requests)
+            if (res?.success == true) {
+                EngineLog.i(TAG, "sendCommand(CAN): 发送成功 $cmd")
+                _toastMessage.postValue("命令发送成功")
+             } else {
+                EngineLog.e(TAG, "sendCommand(CAN): 发送失败 $cmd, error=${res?.error}")
+                _toastMessage.postValue("发送失败: ${res?.error ?: "未知错误"}")
             }
         }
     }
