@@ -47,7 +47,7 @@ class TaskRecordAdapter(
             // 显示格式：记录X-第Y/总数叶片
             binding.tvRecordNumber.text = "记录${record.recordNumber}-"
             val total = this@TaskRecordAdapter.currentBladeCount
-            binding.tvBladeInfo.text = "第${(total * record.angleDegrees).toInt()}/${total}叶片"
+            binding.tvBladeInfo.text = "第${(total * record.angleDegrees / 360).toInt()}/${total}叶片"
             
             // 整个item可点击查看详情
             binding.root.setOnClickListener {

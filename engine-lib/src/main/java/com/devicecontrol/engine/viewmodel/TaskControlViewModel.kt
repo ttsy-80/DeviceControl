@@ -26,11 +26,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import android.content.Context
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
 import com.devicecontrol.engine.communication.protocol.CANOpenHelper
 import com.devicecontrol.engine.communication.protocol.CiA402
 import com.devicecontrol.engine.communication.protocol.SlcanManager
+import com.devicecontrol.engine.communication.protocol.SlcanRequest
 import com.devicecontrol.engine.communication.protocol.SlcanTransport
 import com.devicecontrol.engine.lifecycle.SlcanEmergencyClose
 import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
@@ -373,23 +375,25 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         val exec = _taskExecution.value ?: return
         val pos = _currentConfigItem.value?.position ?: return
-        updateExecution { it.copy(status = TaskStatus.RUNNING) }
-        
+
         if (exec.operationMode == OperationMode.JOG) {
             startJogLoop()
+            loadCurrentConfigItem(task, currentGearRatioIndex)
         } else {
+            val pending = exec.copy(status = TaskStatus.RUNNING)
             val cmd = EngineControlCommand.start(
                 modelName = task.modelName,
                 position = pos,
-                forward = exec.rotationDirection == RotationDirection.FORWARD,
+                forward = pending.rotationDirection == RotationDirection.FORWARD,
                 jog = false,
-                speedConfig = exec.speed / 60.0,
-                jogInterval = exec.jogInterval,
-                continuousCycles = exec.continuousCycles
+                speedConfig = pending.speed / 60.0,
+                jogInterval = pending.jogInterval,
+                continuousCycles = pending.continuousCycles
             )
-            sendCommand(cmd)
+            sendCommandThenPersist(cmd, pending) {
+                loadCurrentConfigItem(task, currentGearRatioIndex)
+            }
         }
-        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
 
     private fun startJogLoop() {
@@ -400,18 +404,29 @@ class TaskControlViewModel(
             val validBladeCount = if (bladeCount > 0) bladeCount else 10
             val targetSteps = initialExec.continuousCycles * validBladeCount
             var stepCount = 0
+            var runningPersisted = false
 
             while (isActive) {
                 val currentExec = _taskExecution.value ?: return@launch
-                if (currentExec.status != TaskStatus.RUNNING || currentExec.operationMode != OperationMode.JOG) break
+                if (currentExec.operationMode != OperationMode.JOG) break
+                if (runningPersisted && currentExec.status != TaskStatus.RUNNING) break
 
                 if (stepCount >= targetSteps) {
-                    kotlinx.coroutines.withContext(Dispatchers.Main) {
-                        updateExecution { it.copy(status = TaskStatus.STOPPED) }
-                        val name = modelName()
-                        val pos = position()
-                        if (name != null && pos != null) {
-                            sendCommand(EngineControlCommand.pause(name, pos))
+                    val bundle = withContext(Dispatchers.Main) {
+                        val cur = _taskExecution.value ?: return@withContext null
+                        val n = modelName() ?: return@withContext null
+                        val p = position() ?: return@withContext null
+                        val pauseCmd = EngineControlCommand.pause(n, p)
+                        val reqs = requestsForCommand(pauseCmd, cur)
+                        if (reqs.isEmpty()) null else reqs to cur.copy(status = TaskStatus.STOPPED)
+                    }
+                    if (bundle != null) {
+                        val (pauseRequests, stoppedExec) = bundle
+                        val res = slcanManager?.execute(pauseRequests)
+                        if (res?.success == true) {
+                            persistExecutionSync(stoppedExec)
+                        } else {
+                            _toastMessage.postValue("点动结束停止失败: ${res?.error ?: "未知错误"}")
                         }
                     }
                     break
@@ -422,20 +437,24 @@ class TaskControlViewModel(
 
                 val isForward = currentExec.rotationDirection == RotationDirection.FORWARD
                 val signedDegrees = if (isForward) onceRotate else -onceRotate
-                // val relativePulses = angleToPulses(signedDegrees)
                 val relativePulses = ((signedDegrees / 360.0) * encoderResolution * gearRatio).toInt()
-                // speed 为秒/圈；沿用原公式时换算为「分钟/圈」代入
                 val speedSec = currentExec.speed
-                val pbVelocity = canVelocityFromSecPerRev(speedSec,gearRatio)
+                val pbVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
 
                 val requests = CANOpenHelper.startRelativePositionMode(kotlin.math.abs(pbVelocity), relativePulses)
                 val res = slcanManager?.execute(requests)
                 if (res?.success == true) {
+                    if (!runningPersisted) {
+                        runningPersisted = true
+                        val cur = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
+                        persistExecutionSync(cur.copy(status = TaskStatus.RUNNING))
+                    }
                     _toastMessage.postValue("点动执行中: ${stepCount + 1}/$targetSteps (${java.text.DecimalFormat("#0.0").format(onceRotate)}度)")
                 } else {
                     _toastMessage.postValue("点动下发失败: ${res?.error ?: "未知错误"}")
+                    break
                 }
-                
+
                 stepCount++
                 delay(currentExec.jogInterval * 1000L)
             }
@@ -447,54 +466,71 @@ class TaskControlViewModel(
         jogJob = null
         val name = modelName() ?: return
         val pos = position() ?: return
-        updateExecution { it.copy(status = TaskStatus.PAUSED) }
-        sendCommand(EngineControlCommand.pause(name, pos))
-        val task = _task.value ?: return
-        loadCurrentConfigItem(task, currentGearRatioIndex)
+        val exec = _taskExecution.value ?: return
+        val pending = exec.copy(status = TaskStatus.PAUSED)
+        sendCommandThenPersist(EngineControlCommand.pause(name, pos), pending) {
+            val task = _task.value ?: return@sendCommandThenPersist
+            loadCurrentConfigItem(task, currentGearRatioIndex)
+        }
     }
 
     fun setForward() {
-        updateExecution { it.copy(rotationDirection = RotationDirection.FORWARD) }
-        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.forward(n, p)) } }
-        val task = _task.value ?: return
-        loadCurrentConfigItem(task, currentGearRatioIndex)
+        val exec = _taskExecution.value ?: return
+        val pending = exec.copy(rotationDirection = RotationDirection.FORWARD)
+        val n = modelName() ?: return
+        val p = position() ?: return
+        sendCommandThenPersist(EngineControlCommand.forward(n, p), pending) {
+            val task = _task.value ?: return@sendCommandThenPersist
+            loadCurrentConfigItem(task, currentGearRatioIndex)
+        }
     }
 
     fun setReverse() {
-        updateExecution { it.copy(rotationDirection = RotationDirection.REVERSE) }
-        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.reverse(n, p)) } }
-        val task = _task.value ?: return
-        loadCurrentConfigItem(task, currentGearRatioIndex)
+        val exec = _taskExecution.value ?: return
+        val pending = exec.copy(rotationDirection = RotationDirection.REVERSE)
+        val n = modelName() ?: return
+        val p = position() ?: return
+        sendCommandThenPersist(EngineControlCommand.reverse(n, p), pending) {
+            val task = _task.value ?: return@sendCommandThenPersist
+            loadCurrentConfigItem(task, currentGearRatioIndex)
+        }
     }
 
     fun setJog() {
         updateExecution { it.copy(operationMode = OperationMode.JOG) }
         start()
-//        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.jog(n, p)) } }
         val task = _task.value ?: return
         loadCurrentConfigItem(task, currentGearRatioIndex)
     }
 
     fun setContinuous() {
-        updateExecution { it.copy(operationMode = OperationMode.CONTINUOUS) }
-        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.continuous(n, p)) } }
-        val task = _task.value ?: return
-        loadCurrentConfigItem(task, currentGearRatioIndex)
+        val exec = _taskExecution.value ?: return
+        val pending = exec.copy(operationMode = OperationMode.CONTINUOUS)
+        val n = modelName() ?: return
+        val p = position() ?: return
+        sendCommandThenPersist(EngineControlCommand.continuous(n, p), pending) {
+            val task = _task.value ?: return@sendCommandThenPersist
+            loadCurrentConfigItem(task, currentGearRatioIndex)
+        }
     }
 
     fun increaseSpeed() {
         val execution = _taskExecution.value ?: return
         val step = execution.speedStep
         val newSpeed = (execution.speed - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
-        updateExecution { it.copy(speed = newSpeed) }
-        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedPlus(n, p)) } }
+        val pending = execution.copy(speed = newSpeed)
+        val n = modelName() ?: return
+        val p = position() ?: return
+        sendCommandThenPersist(EngineControlCommand.speedPlus(n, p), pending)
     }
 
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
         val newSpeed = execution.speed + execution.speedStep
-        updateExecution { it.copy(speed = newSpeed) }
-        modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedMinus(n, p)) } }
+        val pending = execution.copy(speed = newSpeed)
+        val n = modelName() ?: return
+        val p = position() ?: return
+        sendCommandThenPersist(EngineControlCommand.speedMinus(n, p), pending)
     }
     
     fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int, playbackSpeed: Double) {
@@ -577,21 +613,24 @@ class TaskControlViewModel(
         }
     }
 
+    /** 在协程内同步落库：主线程更新 LiveData，再 suspend 写 Room（供点动循环等 IO 协程使用） */
+    private suspend fun persistExecutionSync(execution: TaskExecution) {
+        withContext(Dispatchers.Main) {
+            _taskExecution.value = execution
+        }
+        taskRepository.insertOrUpdateTaskExecution(execution)
+    }
+
     /**
-     * 下发指令到通讯层：由 [CommunicationManager.commandSendMode] 决定用 CAN Open 还是 JSON sendText。
-     * @param playbackPosition 仅 playback 时有效（TEXT_JSON 用）
-     * @param playbackSpeed 仅 playback 时有效（TEXT_JSON 用）
+     * 按逻辑指令字符串与期望的执行快照，构建 CAN 写序列（速度/方向取自 [exec]）。
      */
-    private fun sendCommand(cmd: String, playbackPosition: Int? = null, playbackSpeed: Double? = null) {
-        val exec = execution()
-        val speedSec = exec?.speed ?: DEFAULT_SPEED_SEC_PER_REV
+    private fun requestsForCommand(cmd: String, exec: TaskExecution): List<SlcanRequest> {
+        val speedSec = exec.speed.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
         val gearRatio = getRealGearRatio()
         val canVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
-        
-        val isForward = exec?.rotationDirection == RotationDirection.FORWARD
+        val isForward = exec.rotationDirection == RotationDirection.FORWARD
         val signedVelocity = if (isForward) canVelocity else -canVelocity
-
-        val requests = when {
+        return when {
             cmd.startsWith("START") -> CANOpenHelper.startSpeedMode(signedVelocity)
             cmd.startsWith("PAUSE") -> CANOpenHelper.stop()
             cmd.startsWith("CONTINUOUS") -> CANOpenHelper.startSpeedMode(signedVelocity)
@@ -600,20 +639,32 @@ class TaskControlViewModel(
             cmd.startsWith("REVERSE") -> CANOpenHelper.reverseDirection(signedVelocity)
             else -> emptyList()
         }
+    }
 
+    /**
+     * 先下发 CAN，**仅成功时** 将 [executionAfterSuccess] 落库并刷新 LiveData；失败则提示且不修改数据库。
+     */
+    private fun sendCommandThenPersist(
+        cmd: String,
+        executionAfterSuccess: TaskExecution,
+        onSuccess: () -> Unit = {}
+    ) {
+        val requests = requestsForCommand(cmd, executionAfterSuccess)
         if (requests.isEmpty()) {
-            EngineLog.d(TAG, "sendCommand(CAN): 业务指令暂未映射, $cmd")
+            EngineLog.d(TAG, "sendCommandThenPersist: 未映射 CAN 指令, $cmd")
             return
         }
-
         viewModelScope.launch {
             val res = slcanManager?.execute(requests)
             if (res?.success == true) {
-                EngineLog.i(TAG, "sendCommand(CAN): 发送成功 $cmd")
-                _toastMessage.postValue("命令发送成功")
-             } else {
-                EngineLog.e(TAG, "sendCommand(CAN): 发送失败 $cmd, error=${res?.error}")
-                _toastMessage.postValue("发送失败: ${res?.error ?: "未知错误"}")
+                _taskExecution.value = executionAfterSuccess
+                taskRepository.insertOrUpdateTaskExecution(executionAfterSuccess)
+                EngineLog.i(TAG, "sendCommandThenPersist: 成功 $cmd")
+                _toastMessage.value = "命令发送成功"
+                onSuccess()
+            } else {
+                EngineLog.e(TAG, "sendCommandThenPersist: 失败 $cmd, error=${res?.error}")
+                _toastMessage.value = "发送失败: ${res?.error ?: "未知错误"}"
             }
         }
     }
