@@ -59,6 +59,7 @@
     <string name="current_blade_count">当前叶片数</string>
     <string name="playback">回查</string>
     <string name="record_detail">记录详情</string>
+    <string name="record_angle_degrees">角度（°）</string>
     <string name="blade_number_label">第%1$d个</string>
     <string name="speed_display_seconds_only">%1$d秒一圈</string>
     <string name="speed_display_minutes_only">%1$d分一圈</string>

@@ -222,6 +222,7 @@ class TaskControlActivity : AppCompatActivity() {
     private fun showRecordDetailDialog(record: com.devicecontrol.engine.data.model.TaskRecord) {
         val dialogBinding = DialogRecordDetailBinding.inflate(layoutInflater)
         dialogBinding.tvPosition.text = record.position.toString()
+        dialogBinding.tvAngle.text = String.format("%.2f", record.angleDegrees)
         dialogBinding.tvBladeNumber.text = getString(R.string.blade_number_label, record.bladeNumber)
         
         val dialog = AlertDialog.Builder(this)

@@ -527,18 +527,19 @@ class TaskControlViewModel(
                 val actualPos = res.values[CiA402.ActualPosition.name] as? Int
                 if (actualPos != null) {
                     val gearRatio = getRealGearRatio()
-                    val recordAngle = actualPos * 3600.0 / (gearRatio * encoderResolution)
+                    val recordAngle = actualPos * 360.0 / (gearRatio * encoderResolution)
                     val record = TaskRecord(
                         taskId = task.id,
                         gearRatioIndex = currentGearRatioIndex,
                         recordNumber = 0,
-                        position = recordAngle.toInt(), // 存入计算后的角度整数
+                        position = position, // 0.1° 整数刻度，与历史一致
+                        angleDegrees = recordAngle.toFloat(),
                         bladeNumber = bladeNumber
                     )
                     taskRepository.insertTaskRecord(record)
                     loadTaskRecords(task.id, currentGearRatioIndex)
 
-                    _toastMessage.postValue("记录位置获取成功: ${record.position} / 10 度")
+                    _toastMessage.postValue("记录位置获取成功: ${record.angleDegrees}")
                 }
             } else {
                 EngineLog.e(TAG, "记录失败: ${res?.error}")
@@ -552,15 +553,14 @@ class TaskControlViewModel(
         val gearRatio = getRealGearRatio()
         // 回查速度同为秒/圈，与主运行速度使用同一换算（耗时越短 → 下发速度越大）
         val pbVelocity = canVelocityFromSecPerRev(pbSpeed, gearRatio)
-        val positionAngle = record.position.toDouble()
-        // 计算角度对应的脉冲
-        val pulses = ((positionAngle / 3600.0) * encoderResolution * gearRatio).toInt()
+        val positionAngle = record.angleDegrees
+        val pulses = ((positionAngle / 360.0) * encoderResolution * gearRatio).toInt()
 
         viewModelScope.launch {
             val reqs = CANOpenHelper.startPositionMode(Math.abs(pbVelocity), pulses)
             val res = slcanManager?.execute(reqs)
             if (res?.success == true) {
-                _toastMessage.postValue("已触发回溯指令: ${record.position} / 10 度")
+                _toastMessage.postValue("已触发回溯指令: $positionAngle 度")
             } else {
                 _toastMessage.postValue("回溯指令失败: ${res?.error ?: "未知"}")
             }

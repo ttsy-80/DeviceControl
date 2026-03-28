@@ -17,7 +17,7 @@ import com.devicecontrol.engine.data.model.TaskRecord
 
 @Database(
     entities = [EngineModel::class, ConfigItem::class, Task::class, TaskExecution::class, TaskRecord::class],
-    version = 6,  // 版本升级：添加TaskExecution回溯速度字段
+    version = 7,  // 版本升级：task_records 增加 angleDegrees
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -69,6 +69,19 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE task_executions ADD COLUMN playbackSpeed REAL NOT NULL DEFAULT 1.0")
             }
         }
+
+        // 数据库迁移：从版本6升级到版本7，task_records 增加角度（度）
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE task_records ADD COLUMN angleDegrees REAL NOT NULL DEFAULT 0"
+                )
+                // 与既有 position（0.1° 整数）对齐：度 = position / 10
+                database.execSQL(
+                    "UPDATE task_records SET angleDegrees = CAST(position AS REAL) / 10.0"
+                )
+            }
+        }
         
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -77,7 +90,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "engine_control_database"
                 )
-                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .fallbackToDestructiveMigration() // 仅在开发阶段使用，生产环境应移除
                     .build()
                 INSTANCE = instance

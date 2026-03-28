@@ -29,9 +29,13 @@ data class TaskRecord(
     /** 该子任务内的记录序号，从 1 起自增 */
     val recordNumber: Int,
     /**
-     * 位置数据（当前检测任务的位置；TODO 单位约定为 0.1 度，具体需与需求方确认）。
+     * 位置数据（当前检测任务的位置；）。
      */
     val position: Int,
+    /**
+     * 角度（度），浮点；
+     */
+    val angleDegrees: Float = 0f,
     /** 当前叶片数（来自电机/设备回传） */
     val bladeNumber: Int,
     /** 记录创建时间戳（毫秒） */
