@@ -335,6 +335,11 @@ class TaskControlActivity : AppCompatActivity() {
         // 创建记录
         viewModel.addRecord(position, bladeNumber)
     }
+
+    override fun onDestroy() {
+        viewModel.destroy()
+        super.onDestroy()
+    }
 }
 
 // ViewModel Factory

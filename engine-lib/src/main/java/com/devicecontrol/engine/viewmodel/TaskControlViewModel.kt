@@ -34,6 +34,7 @@ import com.devicecontrol.engine.communication.protocol.SlcanManager
 import com.devicecontrol.engine.communication.protocol.SlcanTransport
 import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
 import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
+import kotlinx.coroutines.MainScope
 import kotlin.math.abs
 
 class TaskControlViewModel(
@@ -62,8 +63,8 @@ class TaskControlViewModel(
      */
     private fun canVelocityFromSecPerRev(secPerRev: Double, gearRatio: Double): Int {
         val s = secPerRev.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
-        val factor = DEFAULT_SPEED_SEC_PER_REV * DEFAULT_SPEED_SEC_PER_REV / (60.0 * s)
-        return (factor * 10 * gearRatio * 512.0 * 65536.0 / CAN_VELOCITY_SCALE_DIVISOR).toInt()
+        val factor = 60.0 / s
+        return (factor * 100 * gearRatio * 512.0 * 65536.0 / CAN_VELOCITY_SCALE_DIVISOR).toInt()
     }
 
     private val _task = MutableLiveData<Task?>()
@@ -627,11 +628,20 @@ class TaskControlViewModel(
     private fun execution(): TaskExecution? = _taskExecution.value
 
     override fun onCleared() {
-        viewModelScope.launch {
-            slcanManager?.close()
+
+        super.onCleared()
+    }
+
+    fun destroy() {
+        if (slcanManager?.state == SlcanManager.State.READY) {
+            MainScope().launch {
+                slcanManager?.close()
+                vcpManager?.release()
+            }
+        } else {
             vcpManager?.release()
         }
-        super.onCleared()
+
     }
 }
 
