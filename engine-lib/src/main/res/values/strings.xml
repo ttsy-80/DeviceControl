@@ -60,9 +60,11 @@
     <string name="playback">回查</string>
     <string name="record_detail">记录详情</string>
     <string name="blade_number_label">第%1$d个</string>
-    <string name="speed_unit">分钟/圈</string>
-    <string name="speed_step">速度</string>
-    <string name="speed_step_hint">单位：分钟/圈（例如：1分钟/圈，2分钟/圈）</string>
+    <string name="speed_display_seconds_only">%1$d秒一圈</string>
+    <string name="speed_display_minutes_only">%1$d分一圈</string>
+    <string name="speed_display_min_sec">%1$d分%2$d秒一圈</string>
+    <string name="speed_step">速度步进</string>
+    <string name="speed_step_hint">单位：秒（每次速度+/- 调整的每圈时间，默认 5）</string>
     <string name="continuous_cycles">连续</string>
     <string name="continuous_cycles_hint">连续循环圈数（例如：1，2，3）</string>
     <string name="jog_interval">点动间隔</string>

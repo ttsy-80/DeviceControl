@@ -111,17 +111,15 @@ class TaskCreateViewModel(
     private fun applyPreviousTaskConfigurations(modelId: Long, newTaskId: Long, configItemCount: Int) {
         viewModelScope.launch {
             try {
-                // 查找该型号下最新的任务执行记录，获取配置
                 val previousExecution = taskRepository.getLatestTaskExecutionByModelId(modelId, newTaskId)
                 
                 if (previousExecution != null) {
-                    // 使用之前任务的配置创建新任务的所有子任务执行记录
                     for (index in 0 until configItemCount) {
                         val execution = TaskExecution(
                             taskId = newTaskId,
                             gearRatioIndex = index,
-                            speed = 1.0, // 使用配置的默认速度
-                            speedStep = previousExecution.speedStep,
+                            speed = previousExecution.speed,
+                            speedStep = 5.0,
                             continuousCycles = previousExecution.continuousCycles,
                             jogInterval = previousExecution.jogInterval,
                             playbackSpeed = previousExecution.playbackSpeed
@@ -130,13 +128,12 @@ class TaskCreateViewModel(
                     }
                     android.util.Log.d("TaskCreateViewModel", "Applied previous task configurations: speedStep=${previousExecution.speedStep}, continuousCycles=${previousExecution.continuousCycles}, jogInterval=${previousExecution.jogInterval}, playbackSpeed=${previousExecution.playbackSpeed}")
                 } else {
-                    // 如果没有之前的配置，使用默认值创建执行记录
                     for (index in 0 until configItemCount) {
                         val execution = TaskExecution(
                             taskId = newTaskId,
                             gearRatioIndex = index,
-                            speed = 1.0,
-                            speedStep = 1.0,
+                            speed = 300.0,
+                            speedStep = 5.0,
                             continuousCycles = 1,
                             jogInterval = 1,
                             playbackSpeed = 1.0
@@ -147,13 +144,12 @@ class TaskCreateViewModel(
                 }
             } catch (e: Exception) {
                 android.util.Log.e("TaskCreateViewModel", "Error applying previous task configurations: ${e.message}", e)
-                // 即使应用配置失败，也不影响任务创建，使用默认值
                 for (index in 0 until configItemCount) {
                     val execution = TaskExecution(
                         taskId = newTaskId,
                         gearRatioIndex = index,
-                        speed = 1.0,
-                        speedStep = 1.0,
+                        speed = 300.0,
+                        speedStep = 5.0,
                         continuousCycles = 1,
                         jogInterval = 1,
                         playbackSpeed = 1.0

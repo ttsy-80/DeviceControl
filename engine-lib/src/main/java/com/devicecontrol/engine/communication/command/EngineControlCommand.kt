@@ -17,7 +17,7 @@ object EngineControlCommand {
     private fun dir(v: String) = "DIR${KV}$v"
     /** 模式：JOG / CONTINUOUS */
     private fun mode(v: String) = "MODE${KV}$v"
-    /** 速度（分钟/圈 或 当前速度） */
+    /** 速度（分钟/圈，由上层将「秒/圈」换算后传入） */
     private fun speed(v: Double) = "SPEED${KV}$v"
     /** 点动间隔（秒） */
     private fun jogInt(v: Int) = "JOG_INT${KV}$v"
@@ -36,7 +36,7 @@ object EngineControlCommand {
      * @param position 位置（配置项）
      * @param forward 是否正转，false 为反转
      * @param jog 是否点动，false 为连续
-     * @param speedConfig 配置速度（如 speedStep）
+     * @param speedConfig 当前速度（分钟/圈）
      * @param jogInterval 点动间隔（秒）
      * @param continuousCycles 连续圈数
      */

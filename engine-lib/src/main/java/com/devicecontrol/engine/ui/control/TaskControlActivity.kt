@@ -20,7 +20,7 @@ import com.devicecontrol.engine.databinding.ActivityTaskControlBinding
 import com.devicecontrol.engine.databinding.DialogRecordDetailBinding
 import com.devicecontrol.engine.databinding.DialogSendInstructionBinding
 import com.devicecontrol.engine.viewmodel.TaskControlViewModel
-import java.text.DecimalFormat
+import kotlin.math.roundToInt
 
 class TaskControlActivity : AppCompatActivity() {
 
@@ -33,8 +33,6 @@ class TaskControlActivity : AppCompatActivity() {
     private val viewModel: TaskControlViewModel by viewModels {
         TaskControlViewModelFactory(taskRepository, engineRepository, applicationContext)
     }
-
-    private val decimalFormat = DecimalFormat("#0.0")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,9 +149,27 @@ class TaskControlActivity : AppCompatActivity() {
     
     private fun updateStatusBar(displayInfo: String) {
         val execution = viewModel.taskExecution.value
-        val speed = execution?.speed ?: 0.0
-        val speedText = "速度: ${decimalFormat.format(speed)}${getString(R.string.speed_unit)}"
+        val speedSec = execution?.speed ?: 0.0
+        val speedText = "速度: ${formatSpeedPerRevolution(speedSec)}"
         binding.tvStatusBar.text = "状态栏: $displayInfo $speedText"
+    }
+
+    /**
+     * [speedSecPerRev] 为每圈耗时（秒）。
+     * 不足 1 分钟只显示「X秒一圈」；满整分钟显示「X分一圈」；否则「X分Y秒一圈」。
+     */
+    private fun formatSpeedPerRevolution(speedSecPerRev: Double): String {
+        val totalSec = speedSecPerRev.roundToInt().coerceAtLeast(0)
+        if (totalSec < 60) {
+            return getString(R.string.speed_display_seconds_only, totalSec)
+        }
+        val minutes = totalSec / 60
+        val seconds = totalSec % 60
+        return if (seconds == 0) {
+            getString(R.string.speed_display_minutes_only, minutes)
+        } else {
+            getString(R.string.speed_display_min_sec, minutes, seconds)
+        }
     }
 
     private fun updateButtonStates(execution: com.devicecontrol.engine.data.model.TaskExecution) {

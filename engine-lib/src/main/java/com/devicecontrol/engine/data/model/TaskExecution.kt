@@ -46,16 +46,19 @@ data class TaskExecution(
     val status: TaskStatus = TaskStatus.STOPPED,
     /** 扭矩 */
     val torque: Double = 0.0,
-    /** 当前实际速度（可被速度 +/- 调整） */
-    val speed: Double = 0.0,
+    /**
+     * 每圈耗时（秒），可被速度 +/- 调整。
+     * 默认 300 即 5 分/圈；速度+ 减少该值，速度- 增加该值。
+     */
+    val speed: Double = 300.0,
     /** 旋转方向 */
     val rotationDirection: RotationDirection = RotationDirection.FORWARD,
     /** 点动或连续模式 */
     val operationMode: OperationMode = OperationMode.JOG,
     /** 进度（业务含义由上层约定） */
     val progress: Int = 0,
-    /** 速度调整步长，默认 1.0（单位：分钟/圈，与业务一致） */
-    val speedStep: Double = 1.0,
+    /** 速度 +/- 步进（秒），可在设置弹框中修改，默认 5 */
+    val speedStep: Double = 5.0,
     /** 连续模式下的循环圈数，默认 1 */
     val continuousCycles: Int = 1,
     /** 点动间隔（秒），默认 1 */

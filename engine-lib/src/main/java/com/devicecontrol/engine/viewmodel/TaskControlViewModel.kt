@@ -44,6 +44,26 @@ class TaskControlViewModel(
 
     companion object {
         private const val TAG = "TaskControlVM"
+        /** 默认每圈耗时：300 秒 = 5 分/圈 */
+        private const val DEFAULT_SPEED_SEC_PER_REV = 300.0
+        /** 新建执行记录时默认速度步进（秒），与设置弹框默认值一致 */
+        private const val DEFAULT_SPEED_STEP_SEC = 5.0
+        /** 每圈时间下限（秒） */
+        private const val MIN_SPEED_SEC_PER_REV = 1.0
+        /** CiA402 速度换算分母（与减速比、编码器分辨率配套） */
+        private const val CAN_VELOCITY_SCALE_DIVISOR = 1857.0
+    }
+
+    /**
+     * 将「每圈耗时」[secPerRev]（秒/圈）换算为发送给驱动器的速度量值。
+     * 耗时越小 → 转速越快 → 量值越大（与 RPM ∝ 1/s 一致）。
+     * 历史实现误用 (s/60) 作正比，导致速度+ 后界面时间变短而下发值反而变小；此处改为反比关系。
+     * 在 [DEFAULT_SPEED_SEC_PER_REV] 处与旧公式的数值对齐，避免默认工况下整体增益突变。
+     */
+    private fun canVelocityFromSecPerRev(secPerRev: Double, gearRatio: Double): Int {
+        val s = secPerRev.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
+        val factor = DEFAULT_SPEED_SEC_PER_REV * DEFAULT_SPEED_SEC_PER_REV / (60.0 * s)
+        return (factor * 10 * gearRatio * 512.0 * 65536.0 / CAN_VELOCITY_SCALE_DIVISOR).toInt()
     }
 
     private val _task = MutableLiveData<Task?>()
@@ -83,6 +103,7 @@ class TaskControlViewModel(
             _task.value = task
 
             if (task != null) {
+                // 必须 suspend 顺序执行：若在内层再 launch，会与 loadTaskExecution 竞态，读库可能早于写库
                 resetAllTaskExecutionsStatus(taskId, task.configItemIds.size)
                 currentGearRatioIndex = 0
                 loadTaskExecution(taskId, currentGearRatioIndex)
@@ -210,16 +231,18 @@ class TaskControlViewModel(
     }
     
     /**
-     * 重置所有子任务的状态为STOPPED（仅在第一次进入页面时调用）
+     * 进入任务控制页时：所有已有子任务执行记录置为 STOPPED，并把每圈耗时 [TaskExecution.speed] 恢复为默认 300s。
+     * 注意：不能仅在「非 STOPPED」时改 speed，否则已是停止态的旧速度永远不会被清回 300。
      */
-    private fun resetAllTaskExecutionsStatus(taskId: Long, configItemCount: Int) {
-        viewModelScope.launch {
-            for (index in 0 until configItemCount) {
-                val execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, index)
-                if (execution != null && execution.status != TaskStatus.STOPPED) {
-                    val resetExecution = execution.copy(status = TaskStatus.STOPPED)
-                    taskRepository.insertOrUpdateTaskExecution(resetExecution)
-                }
+    private suspend fun resetAllTaskExecutionsStatus(taskId: Long, configItemCount: Int) {
+        for (index in 0 until configItemCount) {
+            val execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, index) ?: continue
+            val resetExecution = execution.copy(
+                status = TaskStatus.STOPPED,
+                speed = DEFAULT_SPEED_SEC_PER_REV
+            )
+            if (resetExecution != execution) {
+                taskRepository.insertOrUpdateTaskExecution(resetExecution)
             }
         }
     }
@@ -231,7 +254,6 @@ class TaskControlViewModel(
             // 加载或创建该子任务的执行记录
             var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex)
             if (execution == null) {
-                // 检查是否有上一个任务的执行记录，用于复制配置
                 val previousExecution = if (configItemIndex > 0) {
                     taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex - 1)
                 } else {
@@ -241,11 +263,11 @@ class TaskControlViewModel(
                 execution = TaskExecution(
                     taskId = taskId,
                     gearRatioIndex = configItemIndex,
-                    speed = previousExecution?.speedStep ?: 1.0, // 默认速度使用speedStep的值
-                    speedStep = previousExecution?.speedStep ?: 1.0, // 复制配置或使用默认值
+                    speed = previousExecution?.speed ?: DEFAULT_SPEED_SEC_PER_REV,
+                    speedStep = previousExecution?.speedStep ?: DEFAULT_SPEED_STEP_SEC,
                     continuousCycles = previousExecution?.continuousCycles ?: 1,
                     jogInterval = previousExecution?.jogInterval ?: 1,
-                    playbackSpeed = previousExecution?.playbackSpeed ?: 1.0 // 复制回溯速度或使用默认值
+                    playbackSpeed = previousExecution?.playbackSpeed ?: 1.0
                 )
                 taskRepository.insertOrUpdateTaskExecution(execution)
             }
@@ -353,7 +375,7 @@ class TaskControlViewModel(
                 position = pos,
                 forward = exec.rotationDirection == RotationDirection.FORWARD,
                 jog = false,
-                speedConfig = exec.speedStep,
+                speedConfig = exec.speed / 60.0,
                 jogInterval = exec.jogInterval,
                 continuousCycles = exec.continuousCycles
             )
@@ -394,10 +416,9 @@ class TaskControlViewModel(
                 val signedDegrees = if (isForward) onceRotate else -onceRotate
                 // val relativePulses = angleToPulses(signedDegrees)
                 val relativePulses = ((signedDegrees / 360.0) * encoderResolution * gearRatio).toInt()
-                val pbSpeed = currentExec.speed 
-
-                // 计算发送给驱动器的转速: (上位机rpm * 减速比 * 512 * 65536) / 1875
-                val pbVelocity = ((pbSpeed * gearRatio * 512.0 * 65536.0)/ 1875.0).toInt()
+                // speed 为秒/圈；沿用原公式时换算为「分钟/圈」代入
+                val speedSec = currentExec.speed
+                val pbVelocity = canVelocityFromSecPerRev(speedSec,gearRatio)
 
                 val requests = CANOpenHelper.startRelativePositionMode(kotlin.math.abs(pbVelocity), relativePulses)
                 val res = slcanManager?.execute(requests)
@@ -455,24 +476,21 @@ class TaskControlViewModel(
 
     fun increaseSpeed() {
         val execution = _taskExecution.value ?: return
-        val newSpeed = execution.speed + execution.speedStep
+        val step = execution.speedStep
+        val newSpeed = (execution.speed - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
         updateExecution { it.copy(speed = newSpeed) }
         modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedPlus(n, p)) } }
     }
 
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
-        if (execution.speed > execution.speedStep) {
-            val newSpeed = execution.speed - execution.speedStep
-            updateExecution { it.copy(speed = newSpeed) }
-        } else {
-            updateExecution { it.copy(speed = 1.0) }
-        }
+        val newSpeed = execution.speed + execution.speedStep
+        updateExecution { it.copy(speed = newSpeed) }
         modelName()?.let { n -> position()?.let { p -> sendCommand(EngineControlCommand.speedMinus(n, p)) } }
     }
     
     fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int, playbackSpeed: Double) {
-        updateExecution { 
+        updateExecution {
             it.copy(
                 speedStep = speedStep,
                 continuousCycles = continuousCycles,
@@ -524,8 +542,8 @@ class TaskControlViewModel(
     fun playbackRecord(record: TaskRecord) {
         val pbSpeed = execution()?.playbackSpeed ?: 1.0
         val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
-        // 计算发送给驱动器的转速: (上位机rpm * 减速比 * 512 * 65536) / 1857
-        val pbVelocity = (pbSpeed * gearRatio * 512.0 * 65536.0 / 1857.0).toInt()
+        // 回查速度同为秒/圈，与主运行速度使用同一换算（耗时越短 → 下发速度越大）
+        val pbVelocity = canVelocityFromSecPerRev(pbSpeed, gearRatio)
         val positionAngle = record.position.toDouble()
         // 计算角度对应的脉冲
         val pulses = ((positionAngle / 3600.0) * encoderResolution * gearRatio).toInt()
@@ -558,11 +576,9 @@ class TaskControlViewModel(
      */
     private fun sendCommand(cmd: String, playbackPosition: Int? = null, playbackSpeed: Double? = null) {
         val exec = execution()
-
-        val outputRpm = exec?.speed ?: 1.0
+        val speedSec = exec?.speed ?: DEFAULT_SPEED_SEC_PER_REV
         val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
-        // 计算发送给驱动器的转速: (上位机rpm * 减速比 * 512 * 65536) / 1857
-        val canVelocity = (outputRpm * gearRatio * 512.0 * 65536.0 / 1857.0).toInt()
+        val canVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
         
         val isForward = exec?.rotationDirection == RotationDirection.FORWARD
         val signedVelocity = if (isForward) canVelocity else -canVelocity
