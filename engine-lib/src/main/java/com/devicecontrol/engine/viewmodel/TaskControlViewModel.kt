@@ -32,6 +32,7 @@ import com.devicecontrol.engine.communication.protocol.CANOpenHelper
 import com.devicecontrol.engine.communication.protocol.CiA402
 import com.devicecontrol.engine.communication.protocol.SlcanManager
 import com.devicecontrol.engine.communication.protocol.SlcanTransport
+import com.devicecontrol.engine.lifecycle.SlcanEmergencyClose
 import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
 import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
 import kotlinx.coroutines.MainScope
@@ -114,6 +115,7 @@ class TaskControlViewModel(
 
     private fun scanAndConnect2() {
         vcpManager = UsbSerialVcpManager(applicationContext)
+        vcpManager?.let { SlcanEmergencyClose.bind(it) }
         val transport = object : SlcanTransport {
             override fun send(data: String): Boolean {
                 return vcpManager?.sendTextLine(data) ?: false
@@ -628,11 +630,11 @@ class TaskControlViewModel(
     private fun execution(): TaskExecution? = _taskExecution.value
 
     override fun onCleared() {
-
         super.onCleared()
     }
 
     fun destroy() {
+        SlcanEmergencyClose.unbind()
         if (slcanManager?.state == SlcanManager.State.READY) {
             MainScope().launch {
                 slcanManager?.close()
