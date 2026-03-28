@@ -10,6 +10,16 @@ import androidx.fragment.app.DialogFragment
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.databinding.DialogConfigItemBinding
 
+/**
+ * 位置字段在库中为 [String]；展示与提交时规范为正整数字符串，非法或空历史数据用 `"1"`，不抛异常。
+ */
+private fun normalizePositionValue(raw: String?): String {
+    val t = raw?.trim().orEmpty()
+    if (t.isEmpty()) return "1"
+    val n = t.toIntOrNull() ?: return "1"
+    return if (n > 0) n.toString() else "1"
+}
+
 class ConfigItemDialog(
     private val modelId: Long? = null,
     private val existingConfigItem: com.devicecontrol.engine.data.model.ConfigItem? = null,
@@ -37,7 +47,7 @@ class ConfigItemDialog(
         // 如果是编辑模式，预填充数据
         if (isEditMode && existingConfigItem != null) {
             binding.etGearRatio.setText(existingConfigItem.gearRatio.toString())
-            binding.etPosition.setText(existingConfigItem.position)
+            binding.etPosition.setText(normalizePositionValue(existingConfigItem.position))
             binding.etBladeCount.setText(existingConfigItem.bladeCount.toString())
             // 点动次数字段已隐藏，但数据会保留
         } else if (!isEditMode && firstGearRatio != null) {
@@ -72,13 +82,12 @@ class ConfigItemDialog(
 
         binding.btnConfirm.setOnClickListener {
             val gearRatioText = binding.etGearRatio.text.toString()
-            val position = binding.etPosition.text.toString()
+            val position = normalizePositionValue(binding.etPosition.text?.toString())
             val bladeCountText = binding.etBladeCount.text.toString()
             // 点动次数使用默认值1（数据库字段保留）
             val jogCount = 1
 
-            if (gearRatioText.isBlank() || position.isBlank() || 
-                bladeCountText.isBlank()) {
+            if (gearRatioText.isBlank() || bladeCountText.isBlank()) {
                 Toast.makeText(context, "请填写所有字段", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }

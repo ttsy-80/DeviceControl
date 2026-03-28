@@ -627,8 +627,11 @@ class TaskControlViewModel(
     private fun execution(): TaskExecution? = _taskExecution.value
 
     override fun onCleared() {
+        viewModelScope.launch {
+            slcanManager?.close()
+            vcpManager?.release()
+        }
         super.onCleared()
-        vcpManager?.release()
     }
 }
 
