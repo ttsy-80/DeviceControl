@@ -84,9 +84,6 @@ class TaskControlViewModel(
     private val _currentConfigItem = MutableLiveData<ConfigItem?>()
     val currentConfigItem: LiveData<ConfigItem?> = _currentConfigItem
     
-    private val _displayInfo = MutableLiveData<String>()
-    val displayInfo: LiveData<String> = _displayInfo
-    
     private val _taskIndex = MutableLiveData<String>()
     val taskIndex: LiveData<String> = _taskIndex
     
@@ -309,22 +306,6 @@ class TaskControlViewModel(
                 val configItem = model.configItems.find { it.id == configItemId }
                 _currentConfigItem.value = configItem
                 
-                // 获取当前执行状态以显示操作模式和旋转方向
-                val execution = _taskExecution.value
-                val operationModeText = when (execution?.operationMode) {
-                    OperationMode.JOG -> "点动"
-                    OperationMode.CONTINUOUS -> "连续"
-                    null -> "点动"
-                }
-                val rotationDirectionText = when (execution?.rotationDirection) {
-                    RotationDirection.FORWARD -> "正转"
-                    RotationDirection.REVERSE -> "反转"
-                    null -> "正转"
-                }
-                
-                // 更新显示信息，格式：型号 位置 操作模式
-                val displayText = "${task.modelName} ${configItem?.position ?: ""} $operationModeText"
-                _displayInfo.value = displayText
             }
         }
     }

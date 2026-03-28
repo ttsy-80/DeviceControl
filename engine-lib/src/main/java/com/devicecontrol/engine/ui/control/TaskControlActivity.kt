@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.data.database.AppDatabase
+import com.devicecontrol.engine.data.model.OperationMode
 import com.devicecontrol.engine.data.model.TaskStatus
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
@@ -102,11 +103,6 @@ class TaskControlActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        viewModel.displayInfo.observe(this) { info ->
-            // 更新状态栏显示
-            updateStatusBar(info)
-        }
-
         viewModel.taskIndex.observe(this) { index ->
             binding.tvTaskIndex.text = "$index"
         }
@@ -116,10 +112,8 @@ class TaskControlActivity : AppCompatActivity() {
         }
 
         viewModel.taskExecution.observe(this) { execution ->
-            execution?.let {
-                updateButtonStates(it)
-                updateStatusBar(viewModel.displayInfo.value ?: "")
-            }
+            execution?.let { updateButtonStates(it) }
+            updateStatusBar()
         }
 
         viewModel.task.observe(this) { task ->
@@ -134,6 +128,7 @@ class TaskControlActivity : AppCompatActivity() {
                     binding.tvTaskIndex.visibility = android.view.View.GONE
                 }
             }
+            updateStatusBar()
         }
         
         viewModel.taskRecords.observe(this) { records ->
@@ -144,14 +139,24 @@ class TaskControlActivity : AppCompatActivity() {
             configItem?.let {
                 recordAdapter.setBladeCount(it.bladeCount)
             }
+            updateStatusBar()
         }
+
+        updateStatusBar()
     }
     
-    private fun updateStatusBar(displayInfo: String) {
+    /** 型号 + 点动/连续 + 每圈耗时文案（与 [formatSpeedPerRevolution] 一致） */
+    private fun updateStatusBar() {
+        val modelName = viewModel.task.value?.modelName.orEmpty()
         val execution = viewModel.taskExecution.value
+        val operationModeText = when (execution?.operationMode) {
+            OperationMode.JOG -> getString(R.string.jog)
+            OperationMode.CONTINUOUS -> getString(R.string.continuous)
+            null -> getString(R.string.jog)
+        }
         val speedSec = execution?.speed ?: 0.0
-        val speedText = "速度: ${formatSpeedPerRevolution(speedSec)}"
-        binding.tvStatusBar.text = "状态栏: $displayInfo $speedText"
+        val speedText = formatSpeedPerRevolution(speedSec)
+        binding.tvStatusBar.text = getString(R.string.task_control_status_bar, modelName, operationModeText, speedText)
     }
 
     /**

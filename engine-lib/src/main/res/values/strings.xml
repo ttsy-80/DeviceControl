@@ -35,6 +35,7 @@
     
     <!-- 任务控制 -->
     <string name="task_control">任务控制</string>
+    <string name="task_control_status_bar">型号:%1$s  模式: %2$s 速度: %3$s</string>
     <string name="engine_torque_speed">机力矩/速度</string>
     <string name="start_pause">启动/暂停</string>
     <string name="forward_reverse">正转/反转</string>
