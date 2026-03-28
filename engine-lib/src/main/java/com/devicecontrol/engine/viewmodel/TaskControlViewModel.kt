@@ -62,10 +62,15 @@ class TaskControlViewModel(
      * 历史实现误用 (s/60) 作正比，导致速度+ 后界面时间变短而下发值反而变小；此处改为反比关系。
      * 在 [DEFAULT_SPEED_SEC_PER_REV] 处与旧公式的数值对齐，避免默认工况下整体增益突变。
      */
-    private fun canVelocityFromSecPerRev(secPerRev: Double, gearRatio: Double): Int {
+    private fun canVelocityFromSecPerRev(secPerRev: Double, realGearRatio: Double): Int {
         val s = secPerRev.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
         val factor = 60.0 / s
-        return (factor * 100 * gearRatio * 512.0 * 65536.0 / CAN_VELOCITY_SCALE_DIVISOR).toInt()
+        return (factor * realGearRatio * 512.0 * 65536.0 / CAN_VELOCITY_SCALE_DIVISOR).toInt()
+    }
+
+    private fun getRealGearRatio(): Double {
+        val gearRatio = _currentConfigItem.value?.gearRatio ?: 1.0
+        return gearRatio * 100
     }
 
     private val _task = MutableLiveData<Task?>()
@@ -270,7 +275,7 @@ class TaskControlViewModel(
                     speedStep = previousExecution?.speedStep ?: DEFAULT_SPEED_STEP_SEC,
                     continuousCycles = previousExecution?.continuousCycles ?: 1,
                     jogInterval = previousExecution?.jogInterval ?: 1,
-                    playbackSpeed = previousExecution?.playbackSpeed ?: 1.0
+                    playbackSpeed = previousExecution?.playbackSpeed ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
                 )
                 taskRepository.insertOrUpdateTaskExecution(execution)
             }
@@ -413,7 +418,7 @@ class TaskControlViewModel(
                 }
 
                 val onceRotate = 360.0 / validBladeCount
-                val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+                val gearRatio = getRealGearRatio()
 
                 val isForward = currentExec.rotationDirection == RotationDirection.FORWARD
                 val signedDegrees = if (isForward) onceRotate else -onceRotate
@@ -521,7 +526,7 @@ class TaskControlViewModel(
             if (res?.success == true) {
                 val actualPos = res.values[CiA402.ActualPosition.name] as? Int
                 if (actualPos != null) {
-                    val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+                    val gearRatio = getRealGearRatio()
                     val recordAngle = actualPos * 3600.0 / (gearRatio * encoderResolution)
                     val record = TaskRecord(
                         taskId = task.id,
@@ -543,8 +548,8 @@ class TaskControlViewModel(
     }
 
     fun playbackRecord(record: TaskRecord) {
-        val pbSpeed = execution()?.playbackSpeed ?: 1.0
-        val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+        val pbSpeed = execution()?.playbackSpeed ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
+        val gearRatio = getRealGearRatio()
         // 回查速度同为秒/圈，与主运行速度使用同一换算（耗时越短 → 下发速度越大）
         val pbVelocity = canVelocityFromSecPerRev(pbSpeed, gearRatio)
         val positionAngle = record.position.toDouble()
@@ -580,7 +585,7 @@ class TaskControlViewModel(
     private fun sendCommand(cmd: String, playbackPosition: Int? = null, playbackSpeed: Double? = null) {
         val exec = execution()
         val speedSec = exec?.speed ?: DEFAULT_SPEED_SEC_PER_REV
-        val gearRatio = _currentConfigItem.value?.gearRatio ?: 100.0
+        val gearRatio = getRealGearRatio()
         val canVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
         
         val isForward = exec?.rotationDirection == RotationDirection.FORWARD
@@ -637,6 +642,7 @@ class TaskControlViewModel(
         SlcanEmergencyClose.unbind()
         if (slcanManager?.state == SlcanManager.State.READY) {
             MainScope().launch {
+                pause()
                 slcanManager?.close()
                 vcpManager?.release()
             }

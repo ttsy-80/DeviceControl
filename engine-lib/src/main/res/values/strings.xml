@@ -70,7 +70,7 @@
     <string name="jog_interval">点动间隔</string>
     <string name="jog_interval_hint">单位：秒（例如：1s，2s，3s）</string>
     <string name="playback_speed">回查速度</string>
-    <string name="playback_speed_hint">单位：秒/圈（例如：1秒/圈，2秒/圈）</string>
+    <string name="playback_speed_hint">单位：秒/圈（默认 120 秒/圈，可按需修改）</string>
     
     <!-- 指令测试 -->
     <string name="send_instruction">指令</string>

@@ -136,7 +136,7 @@ class TaskCreateViewModel(
                             speedStep = 5.0,
                             continuousCycles = 1,
                             jogInterval = 1,
-                            playbackSpeed = 1.0
+                            playbackSpeed = TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
                         )
                         taskRepository.insertOrUpdateTaskExecution(execution)
                     }
@@ -152,7 +152,7 @@ class TaskCreateViewModel(
                         speedStep = 5.0,
                         continuousCycles = 1,
                         jogInterval = 1,
-                        playbackSpeed = 1.0
+                        playbackSpeed = TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
                     )
                     taskRepository.insertOrUpdateTaskExecution(execution)
                 }

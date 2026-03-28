@@ -63,6 +63,11 @@ data class TaskExecution(
     val continuousCycles: Int = 1,
     /** 点动间隔（秒），默认 1 */
     val jogInterval: Int = 1,
-    /** 回溯速度，默认 1.0（单位：秒/圈，与业务一致） */
-    val playbackSpeed: Double = 1.0
-)
+    /** 回溯（回查）速度，单位：秒/圈；默认见 [DEFAULT_PLAYBACK_SEC_PER_REV] */
+    val playbackSpeed: Double = DEFAULT_PLAYBACK_SEC_PER_REV
+) {
+    companion object {
+        /** 新建执行记录时回查速度的默认值：秒/圈 */
+        const val DEFAULT_PLAYBACK_SEC_PER_REV = 120.0
+    }
+}
