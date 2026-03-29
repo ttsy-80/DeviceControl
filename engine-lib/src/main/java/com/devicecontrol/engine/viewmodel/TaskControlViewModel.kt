@@ -530,7 +530,7 @@ class TaskControlViewModel(
                         }
                     }
                     val msg = if (first) "启动成功" else "点动执行中"
-//                    _toastMessage.postValue("$msg: ${stepCount + 1}/$targetSteps (${java.text.DecimalFormat("#0.0").format(onceRotate)}度)")
+                    _toastMessage.postValue("$msg: ${stepCount + 1}/$targetSteps (${java.text.DecimalFormat("#0.0").format(onceRotate)}度)")
                 } else {
                     val msg = if (first) "启动失败" else "点动下发失败"
                     _toastMessage.postValue("$msg: ${res?.error ?: "未知错误"}")
@@ -645,7 +645,7 @@ class TaskControlViewModel(
                         recordNumber = 0,
                         position = position, // 0.1° 整数刻度，与历史一致
                         angleDegrees = recordAngle.toFloat(),
-                        bladeNumber = (bladeCount * recordAngle / 3600).toInt()
+                        bladeNumber = (bladeCount * recordAngle / 360).toInt()
                     )
                     taskRepository.insertTaskRecord(record)
                     loadTaskRecords(task.id, currentGearRatioIndex)
