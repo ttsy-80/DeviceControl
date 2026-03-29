@@ -27,6 +27,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.withContext
 import android.content.Context
 import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
@@ -351,23 +352,67 @@ class TaskControlViewModel(
     
     fun getCurrentTaskIndex(): Int = currentGearRatioIndex
     
+    /**
+     * 切换子任务前：结束点动/连续协程并 [Job.cancelAndJoin]；若仍为 [TaskStatus.RUNNING] 则对当前型号/位置下发 PAUSE/stop 并落库。
+     * @return 可安全切换（无需停或停成功）为 true；停失败为 false（不切换子任务）。
+     */
+    private suspend fun stopCurrentTaskMotionBeforeSwitch(): Boolean {
+        val job = jogJob
+        jogJob = null
+        job?.cancelAndJoin()
+
+        val triple = withContext(Dispatchers.Main) {
+            Triple(_taskExecution.value, _task.value?.modelName, _currentConfigItem.value?.position)
+        }
+        val exec = triple.first
+        if (exec?.status != TaskStatus.RUNNING) {
+            return true
+        }
+
+        val n = triple.second
+        val p = triple.third
+        if (n == null || p == null) {
+            EngineLog.w(TAG, "stopCurrentTaskMotionBeforeSwitch: 缺少型号或位置，无法下发 PAUSE")
+            _toastMessage.postValue("切换任务前停止失败: 未选择位置")
+            return false
+        }
+
+        val pending = exec.copy(status = TaskStatus.PAUSED)
+        val reqs = withContext(Dispatchers.Main) {
+            requestsForCommand(EngineControlCommand.pause(n, p), pending)
+        }
+        if (reqs.isEmpty()) {
+            EngineLog.w(TAG, "stopCurrentTaskMotionBeforeSwitch: 无 PAUSE CAN 请求")
+            _toastMessage.postValue("切换任务前停止失败: 通讯未就绪")
+            return false
+        }
+        val res = withContext(Dispatchers.IO) { slcanManager?.execute(reqs) }
+        return if (res?.success == true) {
+            persistExecutionSync(pending)
+            true
+        } else {
+            EngineLog.e(TAG, "stopCurrentTaskMotionBeforeSwitch: PAUSE 失败 ${res?.error}")
+            _toastMessage.postValue("切换任务前停止失败: ${res?.error ?: "未知错误"}")
+            false
+        }
+    }
+
     fun switchToTask(index: Int) {
         val task = _task.value ?: return
-        
-        if (index >= 0 && index < task.configItemIds.size) {
-            // 保存当前任务的状态
-            val currentExecution = _taskExecution.value
-            
-            viewModelScope.launch {
-                // 保存当前任务的状态
-                if (currentExecution != null) {
-                    taskRepository.insertOrUpdateTaskExecution(currentExecution)
-                }
-                
-                // 切换到目标任务，不改变目标任务的状态或配置
-                currentGearRatioIndex = index
-                loadTaskExecution(task.id, currentGearRatioIndex)
+        if (index < 0 || index >= task.configItemIds.size) return
+
+        viewModelScope.launch {
+            if (!stopCurrentTaskMotionBeforeSwitch()) {
+                return@launch
             }
+
+            val latest = withContext(Dispatchers.Main) { _taskExecution.value }
+            if (latest != null) {
+                taskRepository.insertOrUpdateTaskExecution(latest)
+            }
+
+            currentGearRatioIndex = index
+            loadTaskExecution(task.id, currentGearRatioIndex)
         }
     }
     
