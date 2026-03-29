@@ -295,13 +295,15 @@ class TaskControlActivity : AppCompatActivity() {
     private fun showSettingsDialog() {
         val execution = viewModel.taskExecution.value ?: return
         
+        val minutesPerRev = execution.speed / 60.0
         val dialog = SettingsDialog(
+            currentInitialSpeedMinutesPerRev = minutesPerRev,
             currentSpeedStep = execution.speedStep,
             currentContinuousCycles = execution.continuousCycles,
             currentJogInterval = execution.jogInterval,
             currentPlaybackSpeed = execution.playbackSpeed
-        ) { speedStep, continuousCycles, jogInterval, playbackSpeed ->
-            viewModel.updateSettings(speedStep, continuousCycles, jogInterval, playbackSpeed)
+        ) { initialMinutesPerRev, speedStep, continuousCycles, jogInterval, playbackSpeed ->
+            viewModel.updateSettings(initialMinutesPerRev, speedStep, continuousCycles, jogInterval, playbackSpeed)
         }
         dialog.show(supportFragmentManager, "SettingsDialog")
     }

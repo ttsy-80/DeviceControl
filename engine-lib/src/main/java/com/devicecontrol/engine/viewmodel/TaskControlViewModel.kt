@@ -636,9 +636,20 @@ class TaskControlViewModel(
         sendCommandThenPersist(EngineControlCommand.speedMinus(n, p), pending)
     }
     
-    fun updateSettings(speedStep: Double, continuousCycles: Int, jogInterval: Int, playbackSpeed: Double) {
+    /**
+     * @param initialSpeedMinutesPerRev 配置初始速度，单位：分钟/圈；会写入 [TaskExecution.speed]（内部为秒/圈）。
+     */
+    fun updateSettings(
+        initialSpeedMinutesPerRev: Double,
+        speedStep: Double,
+        continuousCycles: Int,
+        jogInterval: Int,
+        playbackSpeed: Double
+    ) {
+        val speedSec = initialSpeedMinutesPerRev * 60.0
         updateExecution {
             it.copy(
+                speed = speedSec,
                 speedStep = speedStep,
                 continuousCycles = continuousCycles,
                 jogInterval = jogInterval,

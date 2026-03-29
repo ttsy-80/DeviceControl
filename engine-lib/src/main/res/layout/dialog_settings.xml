@@ -25,6 +25,32 @@
         android:gravity="center"
         android:layout_marginBottom="@dimen/spacing_large" />
 
+    <!-- Initial speed (minutes per revolution) -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilInitialSpeed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_medium"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:hint="@string/settings_initial_speed"
+        app:boxCornerRadiusTopStart="@dimen/button_corner_radius"
+        app:boxCornerRadiusTopEnd="@dimen/button_corner_radius"
+        app:boxCornerRadiusBottomStart="@dimen/button_corner_radius"
+        app:boxCornerRadiusBottomEnd="@dimen/button_corner_radius"
+        app:startIconDrawable="@android:drawable/ic_menu_compass"
+        app:startIconTint="@color/primary"
+        app:helperText="@string/settings_initial_speed_hint"
+        app:helperTextEnabled="true">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etInitialSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned"
+            android:imeOptions="actionNext"
+            android:minHeight="@dimen/button_height_compact" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <!-- Speed Step -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilSpeedStep"
