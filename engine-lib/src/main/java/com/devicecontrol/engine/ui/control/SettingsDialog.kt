@@ -12,6 +12,8 @@ import com.devicecontrol.engine.databinding.DialogSettingsBinding
 class SettingsDialog(
     /** 当前每圈耗时折算为「分钟/圈」，用于输入框预填；≤0 时用默认 2 */
     private val currentInitialSpeedMinutesPerRev: Double,
+    /** 发动机运行中时为 true：初始速度只读，确认时仍传当前值不写库改速 */
+    private val lockInitialSpeed: Boolean,
     private val currentSpeedStep: Double,
     private val currentContinuousCycles: Int,
     private val currentJogInterval: Int,
@@ -41,6 +43,12 @@ class SettingsDialog(
         binding.etJogInterval.setText(currentJogInterval.toString())
         binding.etPlaybackSpeed.setText(currentPlaybackSpeed.toString())
 
+        if (lockInitialSpeed) {
+            binding.tilInitialSpeed.isEnabled = false
+            binding.etInitialSpeed.isEnabled = false
+            binding.tilInitialSpeed.helperText = getString(R.string.settings_initial_speed_hint_running)
+        }
+
         val dialog = AlertDialog.Builder(requireContext())
             .setView(binding.root)
             .create()
@@ -58,7 +66,13 @@ class SettingsDialog(
         
         // 配置输入法行为
         setupImeActions()
-        
+
+        if (lockInitialSpeed) {
+            dialog.setOnShowListener {
+                binding.etSpeedStep.requestFocus()
+            }
+        }
+
         // 确保确认按钮可见且可点击
         binding.btnConfirm.visibility = android.view.View.VISIBLE
         binding.btnConfirm.isEnabled = true
@@ -70,13 +84,14 @@ class SettingsDialog(
             val jogIntervalText = binding.etJogInterval.text.toString()
             val playbackSpeedText = binding.etPlaybackSpeed.text.toString()
 
-            if (initialSpeedText.isBlank() || speedStepText.isBlank() || continuousCyclesText.isBlank() || jogIntervalText.isBlank() || playbackSpeedText.isBlank()) {
+            val initialOk = lockInitialSpeed || initialSpeedText.isNotBlank()
+            if (!initialOk || speedStepText.isBlank() || continuousCyclesText.isBlank() || jogIntervalText.isBlank() || playbackSpeedText.isBlank()) {
                 Toast.makeText(context, "请填写所有字段", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             try {
-                val initialMinutesPerRev = initialSpeedText.toDouble()
+                val initialMinutesPerRev = if (lockInitialSpeed) initialMin else initialSpeedText.toDouble()
                 val speedStep = speedStepText.toDouble()
                 val continuousCycles = continuousCyclesText.toInt()
                 val jogInterval = jogIntervalText.toInt()

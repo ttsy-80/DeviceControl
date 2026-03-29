@@ -327,6 +327,7 @@ class TaskControlActivity : AppCompatActivity() {
         EngineLog.i(TAG, "showSettingsDialog: 初始速度(分/圈)=$minutesPerRev cycles=${execution.continuousCycles}")
         val dialog = SettingsDialog(
             currentInitialSpeedMinutesPerRev = minutesPerRev,
+            lockInitialSpeed = execution.status == TaskStatus.RUNNING,
             currentSpeedStep = execution.speedStep,
             currentContinuousCycles = execution.continuousCycles,
             currentJogInterval = execution.jogInterval,

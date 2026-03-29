@@ -67,6 +67,7 @@
     <string name="speed_display_min_sec">%1$d分%2$d秒一圈</string>
     <string name="settings_initial_speed">配置初始速度</string>
     <string name="settings_initial_speed_hint">单位：分钟/圈（无记录时默认 2）</string>
+    <string name="settings_initial_speed_hint_running">运行中不可修改。单位：分钟/圈</string>
     <string name="speed_step">速度步进</string>
     <string name="speed_step_hint">单位：秒（每次速度+/- 调整的每圈时间，默认 5）</string>
     <string name="continuous_cycles">连续</string>
