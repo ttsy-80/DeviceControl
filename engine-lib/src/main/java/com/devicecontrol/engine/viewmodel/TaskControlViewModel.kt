@@ -592,6 +592,7 @@ class TaskControlViewModel(
                 if (ex.status != TaskStatus.RUNNING) break
 
                 val target = ex.continuousCycles.coerceAtLeast(1)
+                EngineLog.i(TAG,"连续执行中: 第${circlesDone + 1}/$target 圈")
                 if (circlesDone+ 1 <= target) {
                     _toastMessage.postValue("连续执行中: 第${circlesDone+1}/$target 圈")
                 }
