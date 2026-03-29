@@ -256,6 +256,7 @@ class TaskControlViewModel(
      * 历史库中若为点动模式，一并改为连续模式（与当前默认一致）。
      */
     private suspend fun resetAllTaskExecutionsStatus(taskId: Long, configItemCount: Int) {
+        var updated = 0
         for (index in 0 until configItemCount) {
             val execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, index) ?: continue
             val modeTo = if (execution.operationMode == OperationMode.JOG) {
@@ -270,8 +271,10 @@ class TaskControlViewModel(
             )
             if (resetExecution != execution) {
                 taskRepository.insertOrUpdateTaskExecution(resetExecution)
+                updated++
             }
         }
+        EngineLog.i(TAG, "resetAllTaskExecutionsStatus: taskId=$taskId subtasks=$configItemCount rowsUpdated=$updated")
     }
     
     private fun loadTaskExecution(taskId: Long, configItemIndex: Int) {
@@ -299,13 +302,17 @@ class TaskControlViewModel(
                 taskRepository.insertOrUpdateTaskExecution(execution)
             }
             _taskExecution.value = execution
-            
+            EngineLog.i(
+                TAG,
+                "loadTaskExecution: taskId=$taskId gearIndex=$configItemIndex status=${execution.status} mode=${execution.operationMode} speedSec=${execution.speed}"
+            )
+
             // 加载当前配置项
             loadCurrentConfigItem(task, configItemIndex)
-            
+
             // 更新任务索引显示
             updateTaskIndex(task, configItemIndex)
-            
+
             // 加载记录列表
             loadTaskRecords(taskId, configItemIndex)
         }
@@ -357,15 +364,20 @@ class TaskControlViewModel(
      * @return 可安全切换（无需停或停成功）为 true；停失败为 false（不切换子任务）。
      */
     private suspend fun stopCurrentTaskMotionBeforeSwitch(): Boolean {
+        val hadJob = jogJob != null
         val job = jogJob
         jogJob = null
         job?.cancelAndJoin()
+        if (hadJob) {
+            EngineLog.i(TAG, "stopCurrentTaskMotionBeforeSwitch: jogJob 已取消并 join 完成")
+        }
 
         val triple = withContext(Dispatchers.Main) {
             Triple(_taskExecution.value, _task.value?.modelName, _currentConfigItem.value?.position)
         }
         val exec = triple.first
         if (exec?.status != TaskStatus.RUNNING) {
+            EngineLog.d(TAG, "stopCurrentTaskMotionBeforeSwitch: 无需 PAUSE, status=${exec?.status}")
             return true
         }
 
@@ -386,9 +398,11 @@ class TaskControlViewModel(
             _toastMessage.postValue("切换任务前停止失败: 通讯未就绪")
             return false
         }
+        EngineLog.i(TAG, "stopCurrentTaskMotionBeforeSwitch: 下发 PAUSE model=$n pos=$p")
         val res = withContext(Dispatchers.IO) { slcanManager?.execute(reqs) }
         return if (res?.success == true) {
             persistExecutionSync(pending)
+            EngineLog.i(TAG, "stopCurrentTaskMotionBeforeSwitch: PAUSE 成功，已落库 PAUSED")
             true
         } else {
             EngineLog.e(TAG, "stopCurrentTaskMotionBeforeSwitch: PAUSE 失败 ${res?.error}")
@@ -401,8 +415,10 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         if (index < 0 || index >= task.configItemIds.size) return
 
+        EngineLog.i(TAG, "switchToTask: 请求切换到 gearIndex=$index (from=$currentGearRatioIndex)")
         viewModelScope.launch {
             if (!stopCurrentTaskMotionBeforeSwitch()) {
+                EngineLog.w(TAG, "switchToTask: 停止当前任务失败，取消切换 index=$index")
                 return@launch
             }
 
@@ -413,6 +429,7 @@ class TaskControlViewModel(
 
             currentGearRatioIndex = index
             loadTaskExecution(task.id, currentGearRatioIndex)
+            EngineLog.i(TAG, "switchToTask: 已切换并 loadTaskExecution gearIndex=$index")
         }
     }
     
@@ -420,10 +437,11 @@ class TaskControlViewModel(
         val task = _task.value ?: return
         val exec = _taskExecution.value ?: return
 
+        EngineLog.i(TAG, "start(first=$first): mode=${exec.operationMode} status=${exec.status} speedSec=${exec.speed}")
         if (exec.operationMode == OperationMode.JOG) {
-            startJogLoop(task,first)
+            startJogLoop(task, first)
         } else {
-            startContinuousLoop(task,first)
+            startContinuousLoop(task, first)
         }
     }
 
@@ -437,15 +455,20 @@ class TaskControlViewModel(
             val reqs = requestsForCommand(pauseCmd, cur)
             if (reqs.isEmpty()) null else reqs to cur.copy(status = TaskStatus.STOPPED)
         }
-        if (bundle == null) return
+        if (bundle == null) {
+            EngineLog.w(TAG, "pauseContinuousAndPersistStopped(toastDone=$toastDone): 无 bundle，跳过")
+            return
+        }
         val (pauseRequests, stoppedExec) = bundle
         val res = slcanManager?.execute(pauseRequests)
         if (res?.success == true) {
             persistExecutionSync(stoppedExec)
+            EngineLog.i(TAG, "pauseContinuousAndPersistStopped: 成功，status=STOPPED toastDone=$toastDone")
             if (toastDone) {
                 _toastMessage.postValue("连续运行结束，已停止")
             }
         } else {
+            EngineLog.e(TAG, "pauseContinuousAndPersistStopped: 失败 ${res?.error}")
             _toastMessage.postValue("连续结束停止失败: ${res?.error ?: "未知错误"}")
         }
     }
@@ -475,11 +498,15 @@ class TaskControlViewModel(
      */
     private fun startContinuousLoop(task: Task, first: Boolean) {
         jogJob?.cancel()
+        EngineLog.i(TAG, "startContinuousLoop: 启动协程 taskId=${task.id} first=$first")
         jogJob = viewModelScope.launch(Dispatchers.IO) {
-            val positionStr = position()?: "1"
+            val positionStr = position() ?: "1"
 
             val execForStart = withContext(Dispatchers.Main) { _taskExecution.value } ?: return@launch
-            if (execForStart.operationMode != OperationMode.CONTINUOUS) return@launch
+            if (execForStart.operationMode != OperationMode.CONTINUOUS) {
+                EngineLog.w(TAG, "startContinuousLoop: 非连续模式，退出")
+                return@launch
+            }
 
             val continuousCmd = EngineControlCommand.continuous(task.modelName, positionStr)
             val moveRequests = requestsForCommand(continuousCmd, execForStart)
@@ -490,10 +517,12 @@ class TaskControlViewModel(
             val startRes = slcanManager?.execute(moveRequests)
             if (startRes?.success != true) {
                 val msg = if (first) "启动失败" else "连续启动失败"
+                EngineLog.e(TAG, "startContinuousLoop: CONTINUOUS 下发失败 ${startRes?.error}")
                 _toastMessage.postValue("$msg: ${startRes?.error ?: "未知错误"}")
                 return@launch
             }
 
+            EngineLog.i(TAG, "startContinuousLoop: CONTINUOUS 下发成功 pos=$positionStr cycles=${execForStart.continuousCycles}")
             val cur = withContext(Dispatchers.Main) { _taskExecution.value } ?: return@launch
             persistExecutionSync(
                 cur.copy(status = TaskStatus.RUNNING, operationMode = OperationMode.CONTINUOUS)
@@ -506,6 +535,7 @@ class TaskControlViewModel(
             while (isActive) {
                 val ex = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
                 if (ex.operationMode != OperationMode.CONTINUOUS) {
+                    EngineLog.i(TAG, "startContinuousLoop: 模式已非连续，停止并落库")
                     pauseContinuousAndPersistStopped(toastDone = false)
                     return@launch
                 }
@@ -513,6 +543,7 @@ class TaskControlViewModel(
 
                 val target = ex.continuousCycles.coerceAtLeast(1)
                 if (circlesDone >= target) {
+                    EngineLog.i(TAG, "startContinuousLoop: 已达目标圈数 $target，正常结束")
                     pauseContinuousAndPersistStopped(toastDone = true)
                     return@launch
                 }
@@ -553,6 +584,11 @@ class TaskControlViewModel(
             var stepCount = 0
             var runningPersisted = false
 
+            EngineLog.i(
+                TAG,
+                "startJogLoop: taskId=${task.id} first=$first targetSteps=$targetSteps blades=$validBladeCount cycles=${initialExec.continuousCycles}"
+            )
+
             while (isActive) {
                 val currentExec = _taskExecution.value ?: return@launch
                 if (currentExec.operationMode != OperationMode.JOG) break
@@ -572,7 +608,9 @@ class TaskControlViewModel(
                         val res = slcanManager?.execute(pauseRequests)
                         if (res?.success == true) {
                             persistExecutionSync(stoppedExec)
+                            EngineLog.i(TAG, "startJogLoop: 点动步数完成，已 PAUSE 落库 STOPPED")
                         } else {
+                            EngineLog.e(TAG, "startJogLoop: 点动结束 PAUSE 失败 ${res?.error}")
                             _toastMessage.postValue("点动结束停止失败: ${res?.error ?: "未知错误"}")
                         }
                     }
@@ -606,6 +644,7 @@ class TaskControlViewModel(
                     _toastMessage.postValue("$msg: ${stepCount + 1}/$targetSteps (${java.text.DecimalFormat("#0.0").format(onceRotate)}度)")
                 } else {
                     val msg = if (first) "启动失败" else "点动下发失败"
+                    EngineLog.e(TAG, "startJogLoop: 相对位移失败 ${res?.error}")
                     _toastMessage.postValue("$msg: ${res?.error ?: "未知错误"}")
                     break
                 }
@@ -622,6 +661,7 @@ class TaskControlViewModel(
         val name = modelName() ?: return
         val pos = position() ?: return
         val exec = _taskExecution.value ?: return
+        EngineLog.i(TAG, "pause: 用户暂停 model=$name pos=$pos 原状态=${exec.status}")
         val pending = exec.copy(status = TaskStatus.PAUSED)
         sendCommandThenPersist(EngineControlCommand.pause(name, pos), pending) {
             val task = _task.value ?: return@sendCommandThenPersist
@@ -631,6 +671,7 @@ class TaskControlViewModel(
 
     fun setForward() {
         val exec = _taskExecution.value ?: return
+        EngineLog.i(TAG, "setForward: 运行中切换正转")
         val pending = exec.copy(rotationDirection = RotationDirection.FORWARD)
         val n = modelName() ?: return
         val p = position() ?: return
@@ -642,6 +683,7 @@ class TaskControlViewModel(
 
     fun setReverse() {
         val exec = _taskExecution.value ?: return
+        EngineLog.i(TAG, "setReverse: 运行中切换反转")
         val pending = exec.copy(rotationDirection = RotationDirection.REVERSE)
         val n = modelName() ?: return
         val p = position() ?: return
@@ -652,12 +694,14 @@ class TaskControlViewModel(
     }
 
     fun setJog() {
+        EngineLog.i(TAG, "setJog: 切点动并 start")
         applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.JOG) }
         start()
     }
 
     /** 与 [setJog] 对称：只改内存模式，通过 [start] 走 [startContinuousLoop]（每圈相对位移，与点动同下发路径）。 */
     fun setContinuous() {
+        EngineLog.i(TAG, "setContinuous: 切连续并 start")
         applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.CONTINUOUS) }
         start()
     }
@@ -666,6 +710,7 @@ class TaskControlViewModel(
         val execution = _taskExecution.value ?: return
         val step = execution.speedStep
         val newSpeed = (execution.speed - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
+        EngineLog.d(TAG, "increaseSpeed: ${execution.speed}s -> ${newSpeed}s per rev")
         val pending = execution.copy(speed = newSpeed)
         val n = modelName() ?: return
         val p = position() ?: return
@@ -675,6 +720,7 @@ class TaskControlViewModel(
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
         val newSpeed = execution.speed + execution.speedStep
+        EngineLog.d(TAG, "decreaseSpeed: ${execution.speed}s -> ${newSpeed}s per rev")
         val pending = execution.copy(speed = newSpeed)
         val n = modelName() ?: return
         val p = position() ?: return
@@ -692,6 +738,10 @@ class TaskControlViewModel(
         playbackSpeed: Double
     ) {
         val speedSec = initialSpeedMinutesPerRev * 60.0
+        EngineLog.i(
+            TAG,
+            "updateSettings: speedSec=$speedSec (min/rev=$initialSpeedMinutesPerRev) step=$speedStep cycles=$continuousCycles jogInt=$jogInterval playback=$playbackSpeed"
+        )
         updateExecution {
             it.copy(
                 speed = speedSec,
@@ -715,6 +765,7 @@ class TaskControlViewModel(
 
     fun addRecord(position: Int, bladeCount: Int) {
         val task = _task.value ?: return
+        EngineLog.i(TAG, "addRecord: taskId=${task.id} gearIndex=$currentGearRatioIndex position=$position bladeCount=$bladeCount")
         viewModelScope.launch {
             val req = CANOpenHelper.readPosition()
             val res = slcanManager?.execute(req)
@@ -737,7 +788,13 @@ class TaskControlViewModel(
                     taskRepository.insertTaskRecord(record)
                     loadTaskRecords(task.id, currentGearRatioIndex)
 
+                    EngineLog.i(
+                        TAG,
+                        "addRecord: 成功 actualPos=$actualPos angleDeg=${record.angleDegrees} blade=${record.bladeNumber}"
+                    )
                     _toastMessage.postValue("记录位置获取成功: ${record.angleDegrees}")
+                } else {
+                    EngineLog.w(TAG, "addRecord: 读位置成功但 ActualPosition 为空")
                 }
             } else {
                 EngineLog.e(TAG, "记录失败: ${res?.error}")
@@ -747,6 +804,7 @@ class TaskControlViewModel(
     }
 
     fun playbackRecord(record: TaskRecord) {
+        EngineLog.i(TAG, "playbackRecord: recordId=${record.recordId} angle=${record.angleDegrees}° pulses将按当前减速比换算")
         val pbSpeed = execution()?.playbackSpeed ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
         val gearRatio = getRealGearRatio()
         // 回查速度同为秒/圈，与主运行速度使用同一换算（耗时越短 → 下发速度越大）
@@ -758,8 +816,10 @@ class TaskControlViewModel(
             val reqs = CANOpenHelper.startPositionMode(Math.abs(pbVelocity), pulses)
             val res = slcanManager?.execute(reqs)
             if (res?.success == true) {
+                EngineLog.i(TAG, "playbackRecord: 位置模式下发成功 pulses=$pulses profileVel=$pbVelocity")
                 _toastMessage.postValue("已触发回溯指令: $positionAngle 度")
             } else {
+                EngineLog.e(TAG, "playbackRecord: 失败 ${res?.error}")
                 _toastMessage.postValue("回溯指令失败: ${res?.error ?: "未知"}")
             }
         }
@@ -858,15 +918,18 @@ class TaskControlViewModel(
     }
 
     fun destroy() {
+        EngineLog.i(TAG, "destroy: 释放通讯 slcanState=${slcanManager?.state}")
         SlcanEmergencyClose.unbind()
         if (slcanManager?.state == SlcanManager.State.READY) {
             MainScope().launch {
                 pause()
                 slcanManager?.close()
                 vcpManager?.release()
+                EngineLog.i(TAG, "destroy: SLCAN 已 close，VCP 已 release")
             }
         } else {
             vcpManager?.release()
+            EngineLog.i(TAG, "destroy: 非 READY，仅 release VCP")
         }
 
     }

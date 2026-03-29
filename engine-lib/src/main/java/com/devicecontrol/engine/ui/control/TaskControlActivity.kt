@@ -20,10 +20,15 @@ import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.databinding.ActivityTaskControlBinding
 import com.devicecontrol.engine.databinding.DialogRecordDetailBinding
 import com.devicecontrol.engine.databinding.DialogSendInstructionBinding
+import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.viewmodel.TaskControlViewModel
 import kotlin.math.roundToInt
 
 class TaskControlActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "TaskControlAct"
+    }
 
     private lateinit var binding: ActivityTaskControlBinding
     private lateinit var recordAdapter: TaskRecordAdapter
@@ -37,6 +42,7 @@ class TaskControlActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        EngineLog.i(TAG, "onCreate")
         binding = ActivityTaskControlBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -53,13 +59,15 @@ class TaskControlActivity : AppCompatActivity() {
         binding.rvRecords.layoutManager = LinearLayoutManager(this)
         binding.rvRecords.adapter = recordAdapter
 
-        val taskId = intent.getLongExtra("taskId", -1)
+        val taskId = intent.getLongExtra("taskId", -1L)
         if (taskId == -1L) {
+            EngineLog.w(TAG, "onCreate: 无效 taskId，关闭页面")
             Toast.makeText(this, "无效的任务ID", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
+        EngineLog.i(TAG, "onCreate: loadTask taskId=$taskId")
         viewModel.loadTask(taskId)
         setupObservers()
         setupListeners()
@@ -74,10 +82,12 @@ class TaskControlActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             com.devicecontrol.engine.R.id.action_send_instruction -> {
+                EngineLog.i(TAG, "menu: 发送指令")
                 showSendInstructionDialog()
                 true
             }
             com.devicecontrol.engine.R.id.action_debug_log -> {
+                EngineLog.i(TAG, "menu: 打开调试日志页")
                 startActivity(Intent(this, DebugLogActivity::class.java))
                 true
             }
@@ -93,6 +103,7 @@ class TaskControlActivity : AppCompatActivity() {
         dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
         dialogBinding.btnConfirm.setOnClickListener {
             val text = dialogBinding.etInstruction.text?.toString().orEmpty()
+            EngineLog.i(TAG, "sendInstruction: 确认发送, len=${text.length}")
             viewModel.sendTestInstruction(text)
             if (text.isNotEmpty()) {
 //                Toast.makeText(this, "指令已发送", Toast.LENGTH_SHORT).show()
@@ -118,6 +129,7 @@ class TaskControlActivity : AppCompatActivity() {
 
         viewModel.task.observe(this) { task ->
             task?.let {
+                EngineLog.i(TAG, "observe task: id=${it.id} model=${it.modelName} subtasks=${it.configItemIds.size}")
                 // 如果任务有多个配置项，显示任务切换按钮和任务序号
                 val hasMultipleTasks = it.configItemIds.size > 1
                 if (hasMultipleTasks) {
@@ -235,6 +247,7 @@ class TaskControlActivity : AppCompatActivity() {
             .create()
         
         dialogBinding.btnPlayback.setOnClickListener {
+            EngineLog.i(TAG, "record playback: recordId=${record.recordId} angle=${record.angleDegrees}")
             viewModel.playbackRecord(record)
             dialog.dismiss()
         }
@@ -244,58 +257,74 @@ class TaskControlActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.btnStartPause.setOnClickListener {
+            EngineLog.i(TAG, "user: 启动")
             viewModel.start(true)
         }
 
         binding.btnPause.setOnClickListener {
+            EngineLog.i(TAG, "user: 暂停")
             viewModel.pause()
         }
 
         binding.btnForward.setOnClickListener {
+            EngineLog.i(TAG, "user: 正转")
             viewModel.setForward()
         }
 
         binding.btnReverse.setOnClickListener {
+            EngineLog.i(TAG, "user: 反转")
             viewModel.setReverse()
         }
 
         binding.btnJog.setOnClickListener {
+            EngineLog.i(TAG, "user: 点动模式并启动")
             viewModel.setJog()
         }
 
         binding.btnContinuous.setOnClickListener {
+            EngineLog.i(TAG, "user: 连续模式并启动")
             viewModel.setContinuous()
         }
 
         binding.btnSpeedPlus.setOnClickListener {
+            EngineLog.i(TAG, "user: 速度+")
             viewModel.increaseSpeed()
         }
 
         binding.btnSpeedMinus.setOnClickListener {
+            EngineLog.i(TAG, "user: 速度-")
             viewModel.decreaseSpeed()
         }
 
         binding.btnPhoto.setOnClickListener {
+            EngineLog.i(TAG, "user: 拍照（未实现）")
             viewModel.takePhoto()
         }
 
         binding.btnSwitchTask.setOnClickListener {
+            EngineLog.i(TAG, "user: 打开子任务切换")
             showTaskSwitchDialog()
         }
 
         binding.btnAddRecord.setOnClickListener {
+            EngineLog.i(TAG, "user: 添加记录")
             showAddRecordDialog()
         }
 
         binding.btnSettings.setOnClickListener {
+            EngineLog.i(TAG, "user: 打开设置")
             showSettingsDialog()
         }
     }
     
     private fun showSettingsDialog() {
-        val execution = viewModel.taskExecution.value ?: return
-        
+        val execution = viewModel.taskExecution.value ?: run {
+            EngineLog.w(TAG, "showSettingsDialog: 无 taskExecution")
+            return
+        }
+
         val minutesPerRev = execution.speed / 60.0
+        EngineLog.i(TAG, "showSettingsDialog: 初始速度(分/圈)=$minutesPerRev cycles=${execution.continuousCycles}")
         val dialog = SettingsDialog(
             currentInitialSpeedMinutesPerRev = minutesPerRev,
             currentSpeedStep = execution.speedStep,
@@ -303,6 +332,10 @@ class TaskControlActivity : AppCompatActivity() {
             currentJogInterval = execution.jogInterval,
             currentPlaybackSpeed = execution.playbackSpeed
         ) { initialMinutesPerRev, speedStep, continuousCycles, jogInterval, playbackSpeed ->
+            EngineLog.i(
+                TAG,
+                "settings confirm: initMinPerRev=$initialMinutesPerRev step=$speedStep cycles=$continuousCycles jogInt=$jogInterval playback=$playbackSpeed"
+            )
             viewModel.updateSettings(initialMinutesPerRev, speedStep, continuousCycles, jogInterval, playbackSpeed)
         }
         dialog.show(supportFragmentManager, "SettingsDialog")
@@ -311,34 +344,43 @@ class TaskControlActivity : AppCompatActivity() {
     private fun showTaskSwitchDialog() {
         val taskItems = viewModel.getTaskItems()
         if (taskItems.isEmpty()) {
+            EngineLog.w(TAG, "showTaskSwitchDialog: 无子任务")
             Toast.makeText(this, "没有可切换的任务", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         val currentIndex = viewModel.getCurrentTaskIndex()
         val dialog = TaskSwitchDialog(
             taskItems = taskItems,
             currentTaskIndex = currentIndex
         ) { selectedIndex ->
+            EngineLog.i(TAG, "user: 切换子任务 $currentIndex -> $selectedIndex")
             viewModel.switchToTask(selectedIndex)
         }
         dialog.show(supportFragmentManager, "TaskSwitchDialog")
     }
     
     private fun showAddRecordDialog() {
-        val task = viewModel.task.value ?: return
-        val configItem = viewModel.currentConfigItem.value ?: return
-        
+        val task = viewModel.task.value ?: run {
+            EngineLog.w(TAG, "addRecord: 无 task")
+            return
+        }
+        val configItem = viewModel.currentConfigItem.value ?: run {
+            EngineLog.w(TAG, "addRecord: 无 configItem")
+            return
+        }
+
         // 获取位置数据
         val position = configItem.position.toIntOrNull() ?: 1
-        
+
         // 生成随机叶片数（1到配置项的bladeCount之间）
         val bladeCount = configItem.bladeCount
-        // 创建记录
+        EngineLog.i(TAG, "addRecord: taskId=${task.id} position=$position bladeCount=$bladeCount")
         viewModel.addRecord(position, bladeCount)
     }
 
     override fun onDestroy() {
+        EngineLog.i(TAG, "onDestroy: destroy ViewModel 通讯")
         viewModel.destroy()
         super.onDestroy()
     }
