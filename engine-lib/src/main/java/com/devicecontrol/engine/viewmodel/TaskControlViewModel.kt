@@ -64,6 +64,8 @@ class TaskControlViewModel(
 
         /** 连续模式「等一圈」等待时分段 sleep 的步长（ms），便于调速后尽快按新秒/圈重算剩余等待 */
         private const val CONTINUOUS_SPEED_POLL_MS = 50L
+        /** 在「等一圈」分段等待内，进度 Toast 的最小间隔（ms） */
+        private const val CONTINUOUS_PROGRESS_TOAST_MS = 3500L
     }
 
     /**
@@ -520,10 +522,17 @@ class TaskControlViewModel(
 
     /**
      * 等待约「一整圈」对应的墙钟时间（由当前 [TaskExecution.speed] 秒/圈决定）。
-     * 分段 [delay] 并每步重新读速度：用户调速后 [targetMs] 随之变化，变快可提前结束本段等待，变慢则自动延长。
+     * 分段 [delay] 并每步重新读速度；同时在同一协程内每 [CONTINUOUS_PROGRESS_TOAST_MS] 提示一次进度。
+     *
+     * @param completedCircles 本段等待开始前已完成的圈数；界面展示为「第 completedCircles+1 圈」进行中。
      */
-    private suspend fun delayContinuousRevolutionSlice(): Boolean {
+    private suspend fun delayContinuousRevolutionSlice(completedCircles: Int): Boolean {
         var elapsed = 0L
+        var msSinceProgressToast = 0L
+        var lastTarget =
+            withContext(Dispatchers.Main) {
+                _taskExecution.value?.continuousCycles?.coerceAtLeast(1) ?: 1
+            }
         while (currentCoroutineContext().isActive) {
             val ex = withContext(Dispatchers.Main) { _taskExecution.value } ?: return false
             if (ex.operationMode != OperationMode.CONTINUOUS || ex.status != TaskStatus.RUNNING) return false
@@ -534,6 +543,23 @@ class TaskControlViewModel(
             val step = minOf(CONTINUOUS_SPEED_POLL_MS, remaining).coerceAtLeast(1L)
             delay(step)
             elapsed += step
+            msSinceProgressToast += step
+
+            val exT = withContext(Dispatchers.Main) { _taskExecution.value } ?: return false
+            if (exT.operationMode != OperationMode.CONTINUOUS || exT.status != TaskStatus.RUNNING) return false
+            val target = exT.continuousCycles.coerceAtLeast(1)
+            if (target != lastTarget) {
+                lastTarget = target
+                msSinceProgressToast = 0L
+                if (completedCircles < target) {
+                    _toastMessage.postValue("连续执行中: 第${completedCircles + 1}/$target 圈")
+                }
+            } else if (msSinceProgressToast >= CONTINUOUS_PROGRESS_TOAST_MS) {
+                msSinceProgressToast = 0L
+                if (completedCircles < target) {
+                    _toastMessage.postValue("连续执行中: 第${completedCircles + 1}/$target 圈")
+                }
+            }
         }
         return false
     }
@@ -541,6 +567,7 @@ class TaskControlViewModel(
     /**
      * 连续模式：只下发一次 [EngineControlCommand.continuous]（映射为 [CANOpenHelper.startSpeedMode]）；
      * 多圈仅按「每圈耗时 = speed（秒/圈）」做等待与进度提示，不再每圈重复下发连续指令。
+     * 进度提示：每圈在 [delayContinuousRevolutionSlice] 之前先立刻 Toast 一次；片内约每 1s 重复提示，且设置里目标圈数变化时立刻刷新。
      */
     private fun startContinuousLoop(task: Task, first: Boolean) {
         jogJob?.cancel()
@@ -592,10 +619,6 @@ class TaskControlViewModel(
                 if (ex.status != TaskStatus.RUNNING) break
 
                 val target = ex.continuousCycles.coerceAtLeast(1)
-                EngineLog.i(TAG,"连续执行中: 第${circlesDone + 1}/$target 圈")
-                if (circlesDone+ 1 <= target) {
-                    _toastMessage.postValue("连续执行中: 第${circlesDone+1}/$target 圈")
-                }
 
                 if (circlesDone >= target) {
                     EngineLog.i(TAG, "startContinuousLoop: 已达目标圈数 $target，正常结束")
@@ -603,7 +626,10 @@ class TaskControlViewModel(
                     return@launch
                 }
 
-                if (!delayContinuousRevolutionSlice()) break
+                // 每进入新的一圈（含首次）先立刻提示，再进入等一圈的 delay，避免整段 delay 结束才看到圈数变化
+                _toastMessage.postValue("连续执行中: 第${circlesDone + 1}/$target 圈")
+
+                if (!delayContinuousRevolutionSlice(circlesDone)) break
 
                 val exAfter = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
                 if (exAfter.operationMode != OperationMode.CONTINUOUS) {
@@ -614,10 +640,6 @@ class TaskControlViewModel(
 
                 circlesDone++
                 val tShow = exAfter.continuousCycles.coerceAtLeast(1)
-
-//                if (circlesDone != tShow) {
-//                _toastMessage.postValue("连续: 第 $circlesDone/$tShow 圈")
-//                }
 
                 if (circlesDone >= tShow) {
                     pauseContinuousAndPersistStopped(toastDone = true)
