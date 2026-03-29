@@ -53,8 +53,8 @@ data class TaskExecution(
     val speed: Double = 300.0,
     /** 旋转方向 */
     val rotationDirection: RotationDirection = RotationDirection.FORWARD,
-    /** 点动或连续模式 */
-    val operationMode: OperationMode = OperationMode.JOG,
+    /** 点动或连续模式（默认连续） */
+    val operationMode: OperationMode = OperationMode.CONTINUOUS,
     /** 进度（业务含义由上层约定） */
     val progress: Int = 0,
     /** 速度 +/- 步进（秒），可在设置弹框中修改，默认 5 */

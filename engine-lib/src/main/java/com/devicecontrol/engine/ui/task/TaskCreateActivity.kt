@@ -104,7 +104,7 @@ class TaskCreateActivity : AppCompatActivity() {
             viewModel.createTask(
                 selectedConfigItemIds = selectedConfigItemIds,
                 onSuccess = { taskId ->
-                    Toast.makeText(this, "任务创建成功", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(this, "任务创建成功", Toast.LENGTH_SHORT).show()
                     // 跳转到任务控制页面
                     val intent = Intent(this, TaskControlActivity::class.java)
                     intent.putExtra("taskId", taskId)

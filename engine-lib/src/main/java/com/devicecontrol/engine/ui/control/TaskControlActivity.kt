@@ -244,7 +244,7 @@ class TaskControlActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.btnStartPause.setOnClickListener {
-            viewModel.start()
+            viewModel.start(true)
         }
 
         binding.btnPause.setOnClickListener {
