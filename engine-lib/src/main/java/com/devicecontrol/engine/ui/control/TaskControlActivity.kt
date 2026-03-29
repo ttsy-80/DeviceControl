@@ -332,14 +332,8 @@ class TaskControlActivity : AppCompatActivity() {
         
         // 生成随机叶片数（1到配置项的bladeCount之间）
         val bladeCount = configItem.bladeCount
-        val bladeNumber = if (bladeCount > 0) {
-            (1..bladeCount).random()
-        } else {
-            1
-        }
-        
         // 创建记录
-        viewModel.addRecord(position, bladeNumber)
+        viewModel.addRecord(position, bladeCount)
     }
 
     override fun onDestroy() {

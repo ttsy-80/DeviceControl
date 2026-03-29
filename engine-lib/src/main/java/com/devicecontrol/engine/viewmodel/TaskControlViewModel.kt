@@ -609,7 +609,7 @@ class TaskControlViewModel(
         // 拍照功能：无对应功能，暂时不实现
     }
 
-    fun addRecord(position: Int, bladeNumber: Int) {
+    fun addRecord(position: Int, bladeCount: Int) {
         val task = _task.value ?: return
         viewModelScope.launch {
             val req = CANOpenHelper.readPosition()
@@ -625,7 +625,7 @@ class TaskControlViewModel(
                         recordNumber = 0,
                         position = position, // 0.1° 整数刻度，与历史一致
                         angleDegrees = recordAngle.toFloat(),
-                        bladeNumber = bladeNumber
+                        bladeNumber = (bladeCount * recordAngle / 3600).toInt()
                     )
                     taskRepository.insertTaskRecord(record)
                     loadTaskRecords(task.id, currentGearRatioIndex)
