@@ -35,6 +35,6 @@ data class ConfigItem(
     val position: String,
     /** 叶片数 */
     val bladeCount: Int,
-    /** 点动次数相关配置 */
+    /** 点动次数相关配置 no use */
     val jogCount: Int
 )

@@ -98,6 +98,7 @@ class TaskControlViewModel(
     private var slcanManager: SlcanManager? = null
     
     private var encoderResolution: Int = 65536
+    /** 点动步进循环或连续模式「按圈计时后自动停」的协程，[pause] 时会取消 */
     private var jogJob: Job? = null
     
     fun loadTask(taskId: Long) {
@@ -355,29 +356,103 @@ class TaskControlViewModel(
     fun start() {
         val task = _task.value ?: return
         val exec = _taskExecution.value ?: return
-        val pos = _currentConfigItem.value?.position ?: return
 
         if (exec.operationMode == OperationMode.JOG) {
-            startJogLoop()
-            loadCurrentConfigItem(task, currentGearRatioIndex)
+            startJogLoop(task)
         } else {
-            val pending = exec.copy(status = TaskStatus.RUNNING)
-            val cmd = EngineControlCommand.start(
-                modelName = task.modelName,
-                position = pos,
-                forward = pending.rotationDirection == RotationDirection.FORWARD,
-                jog = false,
-                speedConfig = pending.speed / 60.0,
-                jogInterval = pending.jogInterval,
-                continuousCycles = pending.continuousCycles
-            )
-            sendCommandThenPersist(cmd, pending) {
-                loadCurrentConfigItem(task, currentGearRatioIndex)
-            }
+            startContinuousLoop(task)
         }
     }
 
-    private fun startJogLoop() {
+    /** 连续结束：PAUSE/stop 并落库 STOPPED（与点动结束相同，走 [requestsForCommand] 的 PAUSE）。 */
+    private suspend fun pauseContinuousAndPersistStopped(toastDone: Boolean) {
+        val bundle = withContext(Dispatchers.Main) {
+            val cur = _taskExecution.value ?: return@withContext null
+            val n = modelName() ?: return@withContext null
+            val p = position() ?: return@withContext null
+            val pauseCmd = EngineControlCommand.pause(n, p)
+            val reqs = requestsForCommand(pauseCmd, cur)
+            if (reqs.isEmpty()) null else reqs to cur.copy(status = TaskStatus.STOPPED)
+        }
+        if (bundle == null) return
+        val (pauseRequests, stoppedExec) = bundle
+        val res = slcanManager?.execute(pauseRequests)
+        if (res?.success == true) {
+            persistExecutionSync(stoppedExec)
+            if (toastDone) {
+                _toastMessage.postValue("连续运行结束，已停止")
+            }
+        } else {
+            _toastMessage.postValue("连续结束停止失败: ${res?.error ?: "未知错误"}")
+        }
+    }
+
+    /**
+     * 连续模式：与点动一致，每圈 [CANOpenHelper.startRelativePositionMode] 发 ±360° 相对位移；
+     * 每圈前读当前 speed / rotationDirection / continuousCycles，不再用速度模式 START 与轮询 FORWARD/REVERSE/SPEED_。
+     */
+    private fun startContinuousLoop(task: Task) {
+        jogJob?.cancel()
+        jogJob = viewModelScope.launch(Dispatchers.IO) {
+            var circlesDone = 0
+            var runningPersisted = false
+
+            while (isActive) {
+                val currentExec = _taskExecution.value ?: return@launch
+                if (currentExec.operationMode != OperationMode.CONTINUOUS) break
+                if (runningPersisted && currentExec.status != TaskStatus.RUNNING) break
+
+                val targetCycles = currentExec.continuousCycles.coerceAtLeast(1)
+                if (circlesDone >= targetCycles) {
+                    pauseContinuousAndPersistStopped(toastDone = true)
+                    break
+                }
+
+                val gearRatio = getRealGearRatio()
+                val isForward = currentExec.rotationDirection == RotationDirection.FORWARD
+                val signedDegrees = if (isForward) 360.0 else -360.0
+                val relativePulses = ((signedDegrees / 360.0) * encoderResolution * gearRatio).toInt()
+                val speedSec = currentExec.speed.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
+                val pbVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
+                val moveRequests = CANOpenHelper.startRelativePositionMode(
+                    kotlin.math.abs(pbVelocity),
+                    relativePulses
+                )
+                val res = slcanManager?.execute(moveRequests)
+                if (res?.success != true) {
+                    _toastMessage.postValue("连续下发失败: ${res?.error ?: "未知错误"}")
+                    break
+                }
+
+                if (!runningPersisted) {
+                    runningPersisted = true
+                    val cur = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
+                    persistExecutionSync(
+                        cur.copy(status = TaskStatus.RUNNING, operationMode = OperationMode.CONTINUOUS)
+                    )
+                    withContext(Dispatchers.Main) {
+                        loadCurrentConfigItem(task, currentGearRatioIndex)
+                    }
+                }
+
+                circlesDone++
+                val exRef = _taskExecution.value
+                val tShow = exRef?.continuousCycles?.coerceAtLeast(1) ?: targetCycles
+                _toastMessage.postValue("连续: 第 $circlesDone/$tShow 圈")
+
+                val targetAfter = exRef?.continuousCycles?.coerceAtLeast(1) ?: targetCycles
+                if (circlesDone >= targetAfter) {
+                    pauseContinuousAndPersistStopped(toastDone = true)
+                    break
+                }
+                delay((speedSec * 1000.0).toLong().coerceAtLeast(0L))
+            }
+
+            if (!isActive) return@launch
+        }
+    }
+
+    private fun startJogLoop(task: Task) {
         jogJob?.cancel()
         jogJob = viewModelScope.launch(Dispatchers.IO) {
             val initialExec = _taskExecution.value ?: return@launch
@@ -428,7 +503,13 @@ class TaskControlViewModel(
                     if (!runningPersisted) {
                         runningPersisted = true
                         val cur = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
-                        persistExecutionSync(cur.copy(status = TaskStatus.RUNNING))
+                        persistExecutionSync(
+                            cur.copy(status = TaskStatus.RUNNING, operationMode = OperationMode.JOG)
+                        )
+
+                        withContext(Dispatchers.Main) {
+                            loadCurrentConfigItem(task, currentGearRatioIndex)
+                        }
                     }
                     _toastMessage.postValue("点动执行中: ${stepCount + 1}/$targetSteps (${java.text.DecimalFormat("#0.0").format(onceRotate)}度)")
                 } else {
@@ -478,21 +559,14 @@ class TaskControlViewModel(
     }
 
     fun setJog() {
-        updateExecution { it.copy(operationMode = OperationMode.JOG) }
+        applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.JOG) }
         start()
-        val task = _task.value ?: return
-        loadCurrentConfigItem(task, currentGearRatioIndex)
     }
 
+    /** 与 [setJog] 对称：只改内存模式，通过 [start] 走 [startContinuousLoop]（每圈相对位移，与点动同下发路径）。 */
     fun setContinuous() {
-        val exec = _taskExecution.value ?: return
-        val pending = exec.copy(operationMode = OperationMode.CONTINUOUS)
-        val n = modelName() ?: return
-        val p = position() ?: return
-        sendCommandThenPersist(EngineControlCommand.continuous(n, p), pending) {
-            val task = _task.value ?: return@sendCommandThenPersist
-            loadCurrentConfigItem(task, currentGearRatioIndex)
-        }
+        applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.CONTINUOUS) }
+        start()
     }
 
     fun increaseSpeed() {
@@ -592,6 +666,12 @@ class TaskControlViewModel(
         viewModelScope.launch {
             taskRepository.insertOrUpdateTaskExecution(updated)
         }
+    }
+
+    /** 只改 [taskExecution] 内存，不写库；点动/连续以首包 CAN 成功后的 [persistExecutionSync] 再落库。 */
+    private fun applyExecutionToLiveDataOnly(update: (TaskExecution) -> TaskExecution) {
+        val execution = _taskExecution.value ?: return
+        _taskExecution.value = update(execution)
     }
 
     /** 在协程内同步落库：主线程更新 LiveData，再 suspend 写 Room（供点动循环等 IO 协程使用） */
