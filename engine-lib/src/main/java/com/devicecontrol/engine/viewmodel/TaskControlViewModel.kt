@@ -21,6 +21,7 @@ import com.devicecontrol.engine.log.DefaultEngineLogger
 import com.devicecontrol.engine.log.DebugLogHolder
 import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.log.EngineLogger
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
@@ -55,6 +56,8 @@ class TaskControlViewModel(
         private const val MIN_SPEED_SEC_PER_REV = 1.0
         /** CiA402 速度换算分母（与减速比、编码器分辨率配套） */
         private const val CAN_VELOCITY_SCALE_DIVISOR = 1857.0
+        /** 连续模式「等一圈」等待时分段 sleep 的步长（ms），便于调速后尽快按新秒/圈重算剩余等待 */
+        private const val CONTINUOUS_SPEED_POLL_MS = 50L
     }
 
     /**
@@ -72,6 +75,15 @@ class TaskControlViewModel(
     private fun getRealGearRatio(): Double {
         val gearRatio = _currentConfigItem.value?.gearRatio ?: 1.0
         return gearRatio * 100
+    }
+
+    /**
+     * 编码器 [actualPos] 可能累计多圈，折算角度会超过 ±360°。
+     * 记录展示与叶片序号按「单圈内相位」处理，规范到 [0, 360)（与 [playbackRecord] 使用同一套角度语义）。
+     */
+    private fun normalizeAngleDegrees0To360(angleDegrees: Double): Double {
+        val m = angleDegrees % 360.0
+        return if (m < 0) m + 360.0 else m
     }
 
     private val _task = MutableLiveData<Task?>()
@@ -394,6 +406,25 @@ class TaskControlViewModel(
     }
 
     /**
+     * 等待约「一整圈」对应的墙钟时间（由当前 [TaskExecution.speed] 秒/圈决定）。
+     * 分段 [delay] 并每步重新读速度：用户调速后 [targetMs] 随之变化，变快可提前结束本段等待，变慢则自动延长。
+     */
+    private suspend fun delayContinuousRevolutionSlice(): Boolean {
+        var elapsed = 0L
+        while (currentCoroutineContext().isActive) {
+            val ex = withContext(Dispatchers.Main) { _taskExecution.value } ?: return false
+            if (ex.operationMode != OperationMode.CONTINUOUS || ex.status != TaskStatus.RUNNING) return false
+            val targetMs = (ex.speed.coerceAtLeast(MIN_SPEED_SEC_PER_REV) * 1000.0).toLong().coerceAtLeast(1L)
+            if (elapsed >= targetMs) return true
+            val remaining = targetMs - elapsed
+            val step = minOf(CONTINUOUS_SPEED_POLL_MS, remaining).coerceAtLeast(1L)
+            delay(step)
+            elapsed += step
+        }
+        return false
+    }
+
+    /**
      * 连续模式：只下发一次 [EngineControlCommand.continuous]（映射为 [CANOpenHelper.startSpeedMode]）；
      * 多圈仅按「每圈耗时 = speed（秒/圈）」做等待与进度提示，不再每圈重复下发连续指令。
      */
@@ -441,10 +472,7 @@ class TaskControlViewModel(
                     return@launch
                 }
 
-                val speedSec = ex.speed.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
-                delay((speedSec * 1000.0).toLong().coerceAtLeast(0L))
-
-                if (!isActive) break
+                if (!delayContinuousRevolutionSlice()) break
 
                 val exAfter = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
                 if (exAfter.operationMode != OperationMode.CONTINUOUS) {
@@ -457,7 +485,7 @@ class TaskControlViewModel(
                 val tShow = exAfter.continuousCycles.coerceAtLeast(1)
 
 //                if (circlesDone != tShow) {
-//                    _toastMessage.postValue("连续: 第 $circlesDone/$tShow 圈")
+                    _toastMessage.postValue("连续: 第 $circlesDone/$tShow 圈")
 //                }
 
                 if (circlesDone >= tShow) {
@@ -638,14 +666,17 @@ class TaskControlViewModel(
                 val actualPos = res.values[CiA402.ActualPosition.name] as? Int
                 if (actualPos != null) {
                     val gearRatio = getRealGearRatio()
-                    val recordAngle = actualPos * 360.0 / (gearRatio * encoderResolution)
+                    val rawAngle = actualPos * 360.0 / (gearRatio * encoderResolution)
+                    val recordAngle = normalizeAngleDegrees0To360(rawAngle)
+                    val blades = bladeCount.coerceAtLeast(1)
+                    val bladeNumber = (blades * recordAngle / 360.0).toInt().coerceIn(0, blades)
                     val record = TaskRecord(
                         taskId = task.id,
                         gearRatioIndex = currentGearRatioIndex,
                         recordNumber = 0,
                         position = position, // 0.1° 整数刻度，与历史一致
                         angleDegrees = recordAngle.toFloat(),
-                        bladeNumber = (bladeCount * recordAngle / 360).toInt()
+                        bladeNumber = bladeNumber
                     )
                     taskRepository.insertTaskRecord(record)
                     loadTaskRecords(task.id, currentGearRatioIndex)
