@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="V2SettingsMenuItem">
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/v2_text_primary</item>
+        <item name="android:background">@drawable/bg_v2_menu_normal</item>
+    </style>
+
+    <!-- 蓝牙设备行 / 语言项：未选中为纯文字，选中由代码套胶囊背景 -->
+    <style name="V2SettingsListRow">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/v2_settings_capsule_h</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingHorizontal">@dimen/v2_settings_capsule_pad_h</item>
+        <item name="android:paddingVertical">6dp</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/v2_text_primary</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="V2SettingsActionButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/v2_settings_action_h</item>
+        <item name="android:minWidth">@dimen/v2_settings_action_min_w</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingHorizontal">32dp</item>
+        <item name="android:background">@drawable/bg_v2_settings_action_button</item>
+        <item name="android:textColor">@color/v2_on_primary</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="V2P7ControlButtonBase">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/v2_p7_control_btn_h</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_margin">@dimen/v2_p7_control_btn_margin</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingHorizontal">4dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/v2_on_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="backgroundTint">@null</item>
+    </style>
+
+    <style name="V2P7ControlButtonOrange" parent="V2P7ControlButtonBase">
+        <item name="android:background">@drawable/bg_v2_control_btn_orange</item>
+    </style>
+
+    <style name="V2P7ControlButtonGreen" parent="V2P7ControlButtonBase">
+        <item name="android:background">@drawable/bg_v2_control_btn_green</item>
+    </style>
+
+    <style name="V2P7ControlButtonEnd" parent="V2P7ControlButtonBase">
+        <item name="android:background">@drawable/bg_v2_control_btn_end</item>
+    </style>
+</resources>

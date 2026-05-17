@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P7 自动 / P10 手动：左引擎信息 + 右操作区；底栏公司名与 P6 一致（内容区内，非白底壳层）
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v2_inspection_page_bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp">
+
+        <!-- 左：引擎信息 -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="24"
+            android:background="@drawable/bg_v2_panel_white"
+            android:elevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_v2_engine_info_tab"
+                        android:gravity="center"
+                        android:paddingHorizontal="10dp"
+                        android:text="@string/v2_engine_info"
+                        android:textColor="@color/v2_on_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvEngineModelName"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_v2_engine_model_strip"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="@color/v2_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvEngineParams"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="1"
+                    android:lineSpacingMultiplier="1.45"
+                    android:textColor="@color/v2_text_primary"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/v2_inspection_engine_photo_h"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_v2_engine_photo"
+                    android:contentDescription="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_v2_engine_placeholder" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- 右：状态条 + 记录区 + 操作区 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_weight="76"
+            android:background="@drawable/bg_v2_panel_white"
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_v2_p7_status_bar"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/v2_inspection_status_bar_h"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/v2_status_bar_label"
+                    android:textColor="@color/v2_text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStatusBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/v2_status_bar_sample"
+                    android:textColor="@color/v2_text_primary"
+                    android:textSize="15sp" />
+
+                <Spinner
+                    android:id="@+id/spinnerMode"
+                    android:layout_width="118dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_v2_spinner_dropdown"
+                    android:dropDownWidth="160dp"
+                    android:popupBackground="@color/v2_surface"
+                    android:spinnerMode="dropdown" />
+
+                <Spinner
+                    android:id="@+id/spinnerLpc"
+                    android:layout_width="100dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_v2_spinner_dropdown"
+                    android:dropDownWidth="140dp"
+                    android:popupBackground="@color/v2_surface"
+                    android:spinnerMode="dropdown" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <!-- 记录区 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="58"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/v2_inspection_table_header_h"
+                        android:background="@color/v2_primary"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="10dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/v2_col_position"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/v2_col_blade"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.1"
+                            android:gravity="end"
+                            android:text="@string/v2_col_action"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecords"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:background="@color/v2_surface"
+                        android:fadeScrollbars="false"
+                        android:overScrollMode="ifContentScrolls"
+                        android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
+                        android:scrollbarStyle="insideOverlay"
+                        android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
+                        android:scrollbars="vertical" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/btnBacklashOnReturn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="38dp"
+                            android:background="@drawable/bg_v2_pill_green"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="@string/v2_backlash_on_return"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/btnRecord"
+                            android:layout_width="wrap_content"
+                            android:layout_height="38dp"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_v2_pill_orange"
+                            android:gravity="center"
+                            android:paddingHorizontal="24dp"
+                            android:text="@string/v2_record"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <Button
+                            android:id="@+id/btnStart"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/v2_p7_start_btn_h"
+                            android:background="@drawable/bg_v2_p7_start_btn"
+                            android:drawablePadding="10dp"
+                            android:gravity="center"
+                            android:text="@string/v2_start"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null" />
+
+                        <Button
+                            android:id="@+id/btnPause"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/v2_p7_start_btn_h"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_v2_p7_pause_btn"
+                            android:drawablePadding="10dp"
+                            android:gravity="center"
+                            android:text="@string/v2_pause"
+                            android:textColor="@color/v2_on_primary"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 操作区（可滚动，无状态检测文案） -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollOperation"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="42"
+                    android:clipToPadding="false"
+                    android:fadeScrollbars="false"
+                    android:fillViewport="true"
+                    android:overScrollMode="ifContentScrolls"
+                    android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
+                    android:scrollbarStyle="insideOverlay"
+                    android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
+                    android:scrollbars="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <!-- P7 自动：2×5 控制矩阵 -->
+                            <GridLayout
+                                android:id="@+id/panelAutoOps"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:alignmentMode="alignBounds"
+                                android:columnCount="2"
+                                android:useDefaultMargins="false">
+
+                                <include
+                                    android:id="@+id/btnForward"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnReverse"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnAccel"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnDecel"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnContinuous"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnJog"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnAutoPhoto"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnControlSettings"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnBacklash"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="@dimen/v2_p7_control_btn_h"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+
+                                <include
+                                    android:id="@+id/btnEnd"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="0dp"
+                                    android:layout_height="@dimen/v2_p7_control_btn_h"
+                                    android:layout_columnWeight="1"
+                                    android:layout_margin="5dp" />
+                            </GridLayout>
+
+                            <!-- P10 手动：2×3 + 设置条 + 游隙/结束底行 -->
+                            <LinearLayout
+                                android:id="@+id/panelManualOps"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+                                <GridLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:alignmentMode="alignBounds"
+                                    android:columnCount="2"
+                                    android:useDefaultMargins="false">
+
+                                    <include
+                                        android:id="@+id/btnForwardManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_columnWeight="1"
+                                        android:layout_margin="5dp" />
+
+                                    <include
+                                        android:id="@+id/btnReverseManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_columnWeight="1"
+                                        android:layout_margin="5dp" />
+
+                                    <include
+                                        android:id="@+id/btnAccelManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_columnWeight="1"
+                                        android:layout_margin="5dp" />
+
+                                    <include
+                                        android:id="@+id/btnDecelManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_columnWeight="1"
+                                        android:layout_margin="5dp" />
+
+                                    <include
+                                        android:id="@+id/btnContinuousManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_columnWeight="1"
+                                        android:layout_margin="5dp" />
+
+                                    <include
+                                        android:id="@+id/btnJogManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_columnWeight="1"
+                                        android:layout_margin="5dp" />
+                                </GridLayout>
+
+                                <include
+                                    android:id="@+id/btnManualModeSettings"
+                                    layout="@layout/item_v2_p7_control_btn"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginHorizontal="5dp"
+                                    android:layout_marginTop="4dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:baselineAligned="false"
+                                    android:orientation="horizontal"
+                                    android:paddingHorizontal="5dp">
+
+                                    <include
+                                        android:id="@+id/btnBacklashManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="@dimen/v2_p7_control_btn_h"
+                                        android:layout_gravity="center_vertical"
+                                        android:layout_marginEnd="5dp"
+                                        android:layout_weight="1" />
+
+                                    <include
+                                        android:id="@+id/btnEndManual"
+                                        layout="@layout/item_v2_p7_control_btn"
+                                        android:layout_width="0dp"
+                                        android:layout_height="@dimen/v2_p7_control_btn_h"
+                                        android:layout_gravity="center_vertical"
+                                        android:layout_marginStart="5dp"
+                                        android:layout_weight="1.35" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 底栏：P7 稿面 — 仅中文公司名、浅灰 -->
+    <FrameLayout
+        android:id="@+id/inspectionFooterBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/v2_bottom_bar_height"
+        android:background="@color/v2_inspection_page_bg">
+
+        <include layout="@layout/include_v2_bottom_bar_inspection" />
+    </FrameLayout>
+</LinearLayout>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 顶栏浮于白底之上：左右上留白 + 圆角橙条；标题相对整栏居中 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/v2TopBarHost"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/v2_top_bar_margin_horizontal"
+    android:paddingTop="@dimen/v2_top_bar_margin_top"
+    android:paddingEnd="@dimen/v2_top_bar_margin_horizontal">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/v2TopBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/v2_top_bar_height"
+        android:background="@drawable/bg_v2_top_bar_rounded"
+        android:paddingHorizontal="@dimen/v2_top_bar_inner_padding_horizontal">
+
+        <!-- 居中标题：约束到父布局左右，不受左右控件宽度影响 -->
+        <LinearLayout
+            android:id="@+id/v2TopBarCenter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivV2TitleIcon"
+                android:layout_width="@dimen/v2_top_bar_title_icon_size"
+                android:layout_height="@dimen/v2_top_bar_title_icon_size"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@null"
+                android:visibility="gone"
+                tools:src="@drawable/ic_v2_inspection_title"
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvV2TitleCn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="@color/v2_on_primary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="@string/v2_app_title_cn" />
+
+            <TextView
+                android:id="@+id/tvV2TitleEn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="@color/v2_on_primary"
+                android:textSize="11sp"
+                tools:text="@string/v2_app_title_en" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/v2TopBarLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvV2Time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v2_on_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:text="09:25:30" />
+
+            <TextView
+                android:id="@+id/tvV2Date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v2_on_primary"
+                android:textSize="12sp"
+                tools:text="星期二 2026/04/14" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/v2TopBarRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/btnV2BackHome"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_v2_menu_normal"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:text="@string/v2_back_home"
+                android:textColor="@color/v2_text_primary"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.devicecontrol.engine.v2.ui.widget.V2BatteryView
+                android:id="@+id/v2Battery"
+                android:layout_width="@dimen/v2_battery_view_width"
+                android:layout_height="@dimen/v2_battery_view_height"
+                android:layout_marginEnd="10dp"
+                android:contentDescription="@string/v2_battery_content_desc" />
+
+            <TextView
+                android:id="@+id/tvV2Connection"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_v2_status_disconnected"
+                android:gravity="center"
+                android:minWidth="72dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/v2_disconnected"
+                android:textColor="@color/v2_on_primary"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

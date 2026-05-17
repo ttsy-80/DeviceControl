@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 2.0 PDF 主色 -->
+    <color name="v2_primary">#E86422</color>
+    <color name="v2_primary_dark">#C45212</color>
+    <color name="v2_peach">#F5B792</color>
+    <color name="v2_background">#FFFFFF</color>
+    <color name="v2_surface">#FFFFFF</color>
+    <!-- P7 主内容区浅灰底（稿面） -->
+    <color name="v2_inspection_page_bg">#F0F0F0</color>
+    <color name="v2_p7_status_bar_bg">#ECEFFF</color>
+    <!-- 设置页：侧栏灰底 + 内容浅灰白（对齐 PDF P2～P5） -->
+    <color name="v2_settings_sidebar_bg">#E8E8E8</color>
+    <color name="v2_settings_content_bg">#FFFFFF</color>
+    <color name="v2_settings_menu_normal">#E0E0E0</color>
+    <color name="v2_on_primary">#FFFFFF</color>
+    <color name="v2_text_primary">#1C1B1F</color>
+    <color name="v2_text_secondary">#666666</color>
+    <!-- P7～P10 底栏公司名（稿面浅灰，仅中文） -->
+    <color name="v2_company_footer_muted">#B3B3B3</color>
+    <color name="v2_menu_normal">#E8E8E8</color>
+    <color name="v2_status_connected">#4CAF50</color>
+    <color name="v2_status_disconnected">#E53935</color>
+    <color name="v2_action_green">#4CAF50</color>
+    <color name="v2_action_orange">#E86422</color>
+    <color name="v2_catalog_add_blue">#2196F3</color>
+    <color name="v2_table_header">#E8DEF8</color>
+    <color name="v2_table_row_alt">#FFF3E8</color>
+    <color name="v2_dropdown">#5C6BC0</color>
+    <color name="v2_end_border">#E53935</color>
+    <color name="v2_panel_grey">#EEEEEE</color>
+</resources>

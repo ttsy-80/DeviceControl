@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P7 状态行：浅灰紫底 + 黑色文案（对齐 1.0 bg_task_control_top / 稿面） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/v2_p7_status_bar_bg" />
+    <corners android:radius="8dp" />
+</shape>

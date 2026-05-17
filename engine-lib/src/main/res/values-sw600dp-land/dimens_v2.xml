@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="v2_p7_control_btn_h">56dp</dimen>
+    <dimen name="v2_p7_start_btn_h">64dp</dimen>
+    <dimen name="v2_inspection_engine_photo_h">160dp</dimen>
+    <dimen name="v2_inspection_status_bar_h">48dp</dimen>
+</resources>

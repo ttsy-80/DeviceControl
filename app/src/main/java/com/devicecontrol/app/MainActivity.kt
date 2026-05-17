@@ -9,6 +9,7 @@ import com.devicecontrol.engine.ui.control.TaskControlActivity
 import com.devicecontrol.engine.ui.model.ModelManagementActivity
 import com.devicecontrol.engine.ui.task.TaskCreateActivity
 import com.devicecontrol.engine.ui.task.TaskListActivity
+import com.devicecontrol.engine.v2.ui.home.V2HomeActivity
 
 class MainActivity : AppCompatActivity() {
     
@@ -49,6 +50,10 @@ class MainActivity : AppCompatActivity() {
         
         binding.btnTaskControl.setOnClickListener {
             startActivity(Intent(this, TaskControlActivity::class.java))
+        }
+
+        binding.btnEnterV2.setOnClickListener {
+            startActivity(Intent(this, V2HomeActivity::class.java))
         }
 
         EngineLog.setFileLogger(this.application)

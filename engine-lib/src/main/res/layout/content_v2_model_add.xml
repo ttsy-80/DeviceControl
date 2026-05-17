@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P14 型号添加：
+  左：引擎信息 | 右：上编辑详情 + 下添加/返回
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v2_inspection_page_bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <!-- 左：引擎信息 -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="28"
+            android:background="@drawable/bg_v2_panel_white"
+            android:elevation="2dp">
+
+            <include
+                android:id="@+id/includeEnginePanel"
+                layout="@layout/include_v2_model_engine_panel" />
+        </FrameLayout>
+
+        <!-- 右：编辑详情 + 添加/返回 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_weight="72"
+            android:background="@drawable/bg_v2_panel_white"
+            android:elevation="2dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@color/v2_primary"
+                android:gravity="center"
+                android:text="@string/v2_edit_detail"
+                android:textColor="@color/v2_on_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAddDetailRows"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fadeScrollbars="false"
+                android:overScrollMode="ifContentScrolls"
+                android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
+                android:scrollbarStyle="insideOverlay"
+                android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
+                android:scrollbars="vertical" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingTop="12dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:id="@+id/btnAddConfirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_v2_pill_orange"
+                    android:gravity="center"
+                    android:minWidth="160dp"
+                    android:paddingHorizontal="36dp"
+                    android:text="@string/v2_add"
+                    android:textColor="@color/v2_on_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnAddBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="24dp"
+                    android:background="@drawable/bg_v2_menu_normal"
+                    android:gravity="center"
+                    android:minWidth="140dp"
+                    android:paddingHorizontal="36dp"
+                    android:text="@string/v2_return"
+                    android:textColor="@color/v2_text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/v2_bottom_bar_height"
+        android:background="@color/v2_inspection_page_bg">
+
+        <include layout="@layout/include_v2_bottom_bar_inspection" />
+    </FrameLayout>
+</LinearLayout>

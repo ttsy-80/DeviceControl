@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="v2_top_bar_height">72dp</dimen>
+    <dimen name="v2_top_bar_corner_radius">16dp</dimen>
+    <dimen name="v2_top_bar_margin_horizontal">12dp</dimen>
+    <dimen name="v2_top_bar_margin_top">10dp</dimen>
+    <dimen name="v2_top_bar_inner_padding_horizontal">16dp</dimen>
+    <dimen name="v2_battery_view_width">44dp</dimen>
+    <dimen name="v2_battery_view_height">22dp</dimen>
+    <dimen name="v2_bottom_bar_height">56dp</dimen>
+    <dimen name="v2_home_card_size">200dp</dimen>
+    <dimen name="v2_home_card_corner">20dp</dimen>
+    <dimen name="v2_settings_sidebar_width">188dp</dimen>
+    <dimen name="v2_menu_item_height">48dp</dimen>
+    <dimen name="v2_settings_menu_gap">10dp</dimen>
+    <dimen name="v2_settings_menu_radius">14dp</dimen>
+    <dimen name="v2_settings_back_btn_height">96dp</dimen>
+    <dimen name="v2_settings_sidebar_back_gap">12dp</dimen>
+    <dimen name="v2_settings_panel_title_margin_bottom">20dp</dimen>
+    <dimen name="v2_settings_panel_title_size">26sp</dimen>
+    <dimen name="v2_settings_list_gap">18dp</dimen>
+    <dimen name="v2_settings_capsule_h">40dp</dimen>
+    <dimen name="v2_settings_capsule_pad_h">48dp</dimen>
+    <dimen name="v2_settings_capsule_pad_v">6dp</dimen>
+    <dimen name="v2_settings_action_min_w">200dp</dimen>
+    <dimen name="v2_settings_action_h">44dp</dimen>
+    <dimen name="v2_settings_action_radius">22dp</dimen>
+    <!-- 右侧内容区：与顶栏/底栏品牌留白，避免遮挡 -->
+    <dimen name="v2_settings_content_padding_top">16dp</dimen>
+    <dimen name="v2_settings_content_padding_bottom">12dp</dimen>
+    <dimen name="v2_settings_footer_margin_bottom">12dp</dimen>
+    <dimen name="v2_settings_footer_reserved_height">56dp</dimen>
+    <dimen name="v2_control_pill_height">48dp</dimen>
+    <dimen name="v2_inspection_left_weight">0.22</dimen>
+    <dimen name="v2_inspection_panel_radius">12dp</dimen>
+    <dimen name="v2_inspection_content_margin">8dp</dimen>
+    <dimen name="v2_inspection_status_bar_h">44dp</dimen>
+    <dimen name="v2_inspection_table_header_h">40dp</dimen>
+    <dimen name="v2_inspection_start_btn_h">56dp</dimen>
+    <dimen name="v2_inspection_col_gap">8dp</dimen>
+    <dimen name="v2_inspection_engine_photo_h">132dp</dimen>
+    <dimen name="v2_end_stroke_width">3dp</dimen>
+    <!-- P7 控制钮：接近 1.0 任务控制尺寸与方角 -->
+    <dimen name="v2_p7_control_btn_h">52dp</dimen>
+    <dimen name="v2_p7_control_btn_radius">6dp</dimen>
+    <dimen name="v2_p7_control_btn_margin">8dp</dimen>
+    <dimen name="v2_p7_start_btn_h">58dp</dimen>
+    <!-- P6 型号宫格 -->
+    <dimen name="v2_p6_model_card_size">168dp</dimen>
+    <dimen name="v2_p6_model_card_corner">20dp</dimen>
+    <dimen name="v2_p6_model_card_elevation">6dp</dimen>
+    <dimen name="v2_p6_model_card_text_size">20sp</dimen>
+    <dimen name="v2_p6_grid_spacing">12dp</dimen>
+    <dimen name="v2_p6_grid_cell_padding">6dp</dimen>
+    <dimen name="v2_p6_content_padding_horizontal">20dp</dimen>
+    <dimen name="v2_p6_content_padding_top">12dp</dimen>
+    <dimen name="v2_p6_scrollbar_width">5dp</dimen>
+    <dimen name="v2_p6_back_home_margin_end">12dp</dimen>
+    <dimen name="v2_top_bar_title_icon_size">36dp</dimen>
+    <!-- P8 / P11 模式设置 -->
+    <dimen name="v2_mode_setting_row_h">76dp</dimen>
+    <dimen name="v2_mode_setting_icon_size">36dp</dimen>
+    <dimen name="v2_mode_setting_stepper_btn">40dp</dimen>
+    <dimen name="v2_mode_setting_action_h">52dp</dimen>
+</resources>

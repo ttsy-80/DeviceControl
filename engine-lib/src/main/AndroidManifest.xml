@@ -33,6 +33,40 @@
             android:name=".ui.control.DebugLogActivity"
             android:screenOrientation="landscape"
             android:exported="false" />
+
+        <!-- 2.0 UI（独立包，不影响 1.0 Activity） -->
+        <activity
+            android:name=".v2.ui.home.V2HomeActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.settings.V2SettingsActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.settings.V2ModeSettingsActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.inspection.V2InspectionModelActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.inspection.V2InspectionControlActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.model.V2ModelCatalogActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.model.V2ModelAddActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".v2.ui.model.V2ModelDetailActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
     </application>
     
 </manifest>

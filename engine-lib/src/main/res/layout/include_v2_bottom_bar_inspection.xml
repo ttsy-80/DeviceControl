@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P7～P10：底栏仅中文公司名、浅灰字（对齐 PDF） -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/v2_bottom_bar_height"
+    android:background="@android:color/transparent">
+
+    <TextView
+        android:id="@+id/tvV2CompanyCn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/v2_company_cn"
+        android:textColor="@color/v2_company_footer_muted"
+        android:textSize="14sp" />
+</FrameLayout>
