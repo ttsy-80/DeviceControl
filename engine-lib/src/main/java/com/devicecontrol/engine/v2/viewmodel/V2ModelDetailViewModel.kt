@@ -3,9 +3,14 @@ package com.devicecontrol.engine.v2.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.devicecontrol.engine.data.model.ConfigItem
+import com.devicecontrol.engine.data.model.EngineModel
+import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.v2.log.V2Log
+import com.devicecontrol.engine.v2.model.V2ModelAppendArgs
 import com.devicecontrol.engine.v2.model.V2ModelEngineFieldUi
-import java.util.UUID
+import kotlinx.coroutines.launch
 
 enum class V2ModelDetailPageMode {
     VIEW,
@@ -13,22 +18,30 @@ enum class V2ModelDetailPageMode {
 }
 
 data class V2ModelDetailRowUi(
-    val id: String,
+    val configItemId: Long,
     val position: String,
     val bladeCount: Int,
     val isRowEditing: Boolean = false,
-)
+) {
+    val id: String get() = configItemId.toString()
+}
 
-/**
- * 型号详情/编辑（P15～P17）UI 状态，后续对接 Room EngineModel / ConfigItem。
- */
-class V2ModelDetailViewModel : ViewModel() {
+class V2ModelDetailViewModel(
+    private val repository: EngineRepository,
+) : ViewModel() {
 
-    private val _modelName = MutableLiveData("CFM56-3B")
+    private var modelNameKey: String = ""
+    private var engineModel: EngineModel? = null
+    private var configItems: List<ConfigItem> = emptyList()
+
+    private val _modelName = MutableLiveData("")
     val modelName: LiveData<String> = _modelName
 
     private val _engineFields = MutableLiveData<List<V2ModelEngineFieldUi>>()
     val engineFields: LiveData<List<V2ModelEngineFieldUi>> = _engineFields
+
+    private val _imagePath = MutableLiveData<String?>(null)
+    val imagePath: LiveData<String?> = _imagePath
 
     private val _rows = MutableLiveData<List<V2ModelDetailRowUi>>()
     val rows: LiveData<List<V2ModelDetailRowUi>> = _rows
@@ -36,22 +49,40 @@ class V2ModelDetailViewModel : ViewModel() {
     private val _pageMode = MutableLiveData(V2ModelDetailPageMode.VIEW)
     val pageMode: LiveData<V2ModelDetailPageMode> = _pageMode
 
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
+
+    private val _modelRemoved = MutableLiveData(false)
+    val modelRemoved: LiveData<Boolean> = _modelRemoved
+
     fun init(modelName: String) {
-        V2Log.i(TAG, "init model=$modelName")
-        _modelName.value = modelName
-        _pageMode.value = V2ModelDetailPageMode.VIEW
-        _engineFields.value = listOf(
-            V2ModelEngineFieldUi("safe_torque", "安全力矩：", "1480 lb·ft", editable = false),
-            V2ModelEngineFieldUi("gear_ratio", "变速比：", "0.5", editable = false),
-            V2ModelEngineFieldUi("position", "位置：", "实际位置", editable = false),
-        )
-        _rows.value = List(6) { index ->
-            V2ModelDetailRowUi(
-                id = "row_$index",
-                position = "LPC1",
-                bladeCount = 45,
-            )
+        modelNameKey = modelName
+        reload()
+    }
+
+    fun reload() {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            val data = repository.getModelWithConfigItemsByName(modelNameKey)
+            if (data == null) {
+                V2Log.w(TAG, "reload: model not found name=$modelNameKey")
+                _errorMessage.value = "未找到型号"
+                return@launch
+            }
+            applyLoaded(data.model, data.configItems)
         }
+    }
+
+    fun getAppendArgs(): V2ModelAppendArgs? {
+        val model = engineModel ?: return null
+        val ratio = configItems.firstOrNull()?.gearRatio ?: return null
+        return V2ModelAppendArgs(
+            modelId = model.id,
+            modelName = model.name,
+            safeTorque = model.safeTorque,
+            gearRatio = ratio,
+            imagePath = model.imagePath,
+        )
     }
 
     fun enterTableEdit() {
@@ -60,53 +91,96 @@ class V2ModelDetailViewModel : ViewModel() {
         _rows.value = _rows.value?.map { it.copy(isRowEditing = false) }
     }
 
-    fun exitTableEdit(save: Boolean) {
+    fun exitTableEdit(save: Boolean, tableRows: List<V2ModelDetailRowUi>?) {
         V2Log.i(TAG, "exitTableEdit save=$save")
+        if (save && tableRows != null) {
+            viewModelScope.launch {
+                try {
+                    tableRows.forEach { row ->
+                        val item = configItems.firstOrNull { it.id == row.configItemId } ?: return@forEach
+                        val pos = row.position.trim()
+                        if (pos.isEmpty()) return@launch
+                        if (item.position != pos || item.bladeCount != row.bladeCount) {
+                            repository.updateConfigItem(
+                                item.copy(position = pos, bladeCount = row.bladeCount),
+                            )
+                        }
+                    }
+                    reload()
+                } catch (e: Exception) {
+                    V2Log.e(TAG, "exitTableEdit save failed", e)
+                    _errorMessage.value = "保存失败: ${e.message}"
+                }
+            }
+        }
         _pageMode.value = V2ModelDetailPageMode.VIEW
         _rows.value = _rows.value?.map { it.copy(isRowEditing = false) }
     }
 
-    fun startRowEdit(rowId: String) {
-        _rows.value = _rows.value?.map {
-            it.copy(isRowEditing = it.id == rowId)
-        }
-    }
-
-    fun saveRowEdit(rowId: String, position: String, bladeCount: Int) {
-        _rows.value = _rows.value?.map {
-            if (it.id == rowId) {
-                it.copy(position = position, bladeCount = bladeCount, isRowEditing = false)
-            } else {
-                it.copy(isRowEditing = false)
+    fun deleteRow(configItemId: Long) {
+        viewModelScope.launch {
+            val item = configItems.firstOrNull { it.id == configItemId } ?: return@launch
+            try {
+                val modelDeleted = repository.deleteConfigItem(item)
+                if (modelDeleted) {
+                    _modelRemoved.value = true
+                } else {
+                    reload()
+                }
+                V2Log.d(TAG, "deleteRow id=$configItemId modelDeleted=$modelDeleted")
+            } catch (e: Exception) {
+                V2Log.e(TAG, "deleteRow failed", e)
+                _errorMessage.value = "删除失败: ${e.message}"
             }
         }
-        V2Log.d(TAG, "saveRowEdit $rowId -> $position / $bladeCount")
     }
 
-    fun deleteRow(rowId: String) {
-        _rows.value = _rows.value?.filterNot { it.id == rowId }
-        V2Log.d(TAG, "deleteRow $rowId")
+    fun duplicateRow(configItemId: Long) {
+        viewModelScope.launch {
+            val source = configItems.firstOrNull { it.id == configItemId } ?: return@launch
+            try {
+                repository.insertConfigItem(
+                    source.copy(
+                        id = 0,
+                        position = source.position,
+                        bladeCount = source.bladeCount,
+                    ),
+                )
+                reload()
+                V2Log.d(TAG, "duplicateRow from $configItemId")
+            } catch (e: Exception) {
+                V2Log.e(TAG, "duplicateRow failed", e)
+                _errorMessage.value = "复制失败: ${e.message}"
+            }
+        }
     }
 
-    fun duplicateRow(rowId: String) {
-        val list = _rows.value?.toMutableList() ?: return
-        val source = list.firstOrNull { it.id == rowId } ?: return
-        list.add(
-            source.copy(
-                id = UUID.randomUUID().toString(),
-                isRowEditing = false,
-            ),
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun consumeModelRemoved() {
+        _modelRemoved.value = false
+    }
+
+    private fun applyLoaded(model: EngineModel, items: List<ConfigItem>) {
+        engineModel = model
+        configItems = items
+        _modelName.value = model.name
+        _imagePath.value = model.imagePath
+        val gearRatioText = items.firstOrNull()?.gearRatio?.toString().orEmpty()
+        _engineFields.value = listOf(
+            V2ModelEngineFieldUi("safe_torque", "安全力矩：", model.safeTorque, editable = false),
+            V2ModelEngineFieldUi("gear_ratio", "变速比：", gearRatioText, editable = false),
         )
-        _rows.value = list
-        V2Log.d(TAG, "duplicateRow from $rowId")
-    }
-
-    fun updateRowsFromEditor(updated: List<V2ModelDetailRowUi>) {
-        _rows.value = updated
-    }
-
-    fun onImportImage() {
-        V2Log.i(TAG, "onImportImage")
+        _rows.value = items.map { item ->
+            V2ModelDetailRowUi(
+                configItemId = item.id,
+                position = item.position,
+                bladeCount = item.bladeCount,
+            )
+        }
+        V2Log.i(TAG, "loaded model=${model.name} configs=${items.size}")
     }
 
     companion object {

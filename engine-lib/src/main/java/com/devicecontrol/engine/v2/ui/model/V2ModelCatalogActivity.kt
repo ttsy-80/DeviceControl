@@ -9,6 +9,7 @@ import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.model.V2ModelCardUi
 import com.devicecontrol.engine.v2.ui.adapter.V2ModelCardAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
+import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2ModelCatalogViewModel
 
 /** 型号管理目录（P13） */
@@ -16,7 +17,9 @@ class V2ModelCatalogActivity : V2BaseShellActivity() {
 
     override val logTag: String = "ModelCatalog"
 
-    private val viewModel: V2ModelCatalogViewModel by viewModels()
+    private val viewModel: V2ModelCatalogViewModel by viewModels {
+        V2EngineViewModelFactory(application)
+    }
     private lateinit var adapter: V2ModelCardAdapter
 
     override fun contentLayoutId(): Int = R.layout.content_v2_model_catalog
@@ -25,7 +28,7 @@ class V2ModelCatalogActivity : V2BaseShellActivity() {
     /** 英文副标题仅在顶栏展示（P13），内容区不再重复 */
     override fun shellTitleEn(): String = getString(R.string.v2_model_catalog)
 
-    override fun showBackHome(): Boolean = true
+    override fun showBackHome(): Boolean = false
 
     override fun onContentCreated(contentRoot: View) {
         adapter = V2ModelCardAdapter { card -> onCardClick(card) }

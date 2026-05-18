@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/v2_surface"
+        android:gravity="center_vertical"
+        android:minHeight="52dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/position"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/etAddDetailPosition"
+            style="@style/V2EditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v2_mode_setting_value"
+            android:gravity="center"
+            android:hint="@string/position"
+            android:imeOptions="flagNoExtractUi|actionDone"
+            android:inputType="text"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/v2_text_primary"
+            android:textColorHint="@color/v2_text_secondary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/v2_table_row_alt"
+        android:gravity="center_vertical"
+        android:minHeight="52dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/blade_count"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/etAddDetailBlade"
+            style="@style/V2EditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v2_mode_setting_value"
+            android:gravity="center"
+            android:hint="@string/blade_count"
+            android:imeOptions="flagNoExtractUi|actionDone"
+            android:inputType="number"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/v2_text_primary"
+            android:textColorHint="@color/v2_text_secondary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

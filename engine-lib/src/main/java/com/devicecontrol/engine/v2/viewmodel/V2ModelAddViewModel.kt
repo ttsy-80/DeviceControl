@@ -3,71 +3,160 @@ package com.devicecontrol.engine.v2.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.v2.log.V2Log
-import com.devicecontrol.engine.v2.model.V2ModelAddDetailRowUi
-import com.devicecontrol.engine.v2.model.V2ModelEngineFieldUi
+import com.devicecontrol.engine.v2.model.V2ModelAppendArgs
+import kotlinx.coroutines.launch
 
-class V2ModelAddViewModel : ViewModel() {
+class V2ModelAddViewModel(
+    private val repository: EngineRepository,
+) : ViewModel() {
 
     private val _modelName = MutableLiveData("")
     val modelName: LiveData<String> = _modelName
 
-    private val _engineFields = MutableLiveData<List<V2ModelEngineFieldUi>>()
-    val engineFields: LiveData<List<V2ModelEngineFieldUi>> = _engineFields
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
 
-    private val _detailRows = MutableLiveData<List<V2ModelAddDetailRowUi>>()
-    val detailRows: LiveData<List<V2ModelAddDetailRowUi>> = _detailRows
+    private val _saveSuccess = MutableLiveData(false)
+    val saveSuccess: LiveData<Boolean> = _saveSuccess
 
-    fun load() {
-        V2Log.i(TAG, "load add model")
+    private var appendArgs: V2ModelAppendArgs? = null
+
+    fun initNewModel() {
+        appendArgs = null
         _modelName.value = ""
-        _engineFields.value = listOf(
-            V2ModelEngineFieldUi("model_name", "型号名称：", ""),
-            V2ModelEngineFieldUi("safe_torque", "安全力矩：", "1480 lb·ft"),
-            V2ModelEngineFieldUi("gear_ratio", "变速比：", "0.5"),
-        )
-        _detailRows.value = listOf(
-            V2ModelAddDetailRowUi("position", "位置", "LPC1"),
-            V2ModelAddDetailRowUi("blade", "叶片数", "45"),
-        )
     }
 
-    fun setModelName(name: String) {
+    fun initAppendConfig(args: V2ModelAppendArgs) {
+        appendArgs = args
+        _modelName.value = args.modelName
+    }
+
+    fun isAppendMode(): Boolean = appendArgs != null
+
+    fun updateModelNameTitle(name: String) {
+        if (appendArgs != null) return
         _modelName.value = name
     }
 
-    fun updateEngineField(key: String, value: String) {
-        updateList(_engineFields) { list ->
-            list.map { if (it.key == key) it.copy(value = value) else it }
-        }
-        if (key == "model_name") {
-            _modelName.value = value
+    fun confirm(
+        modelName: String,
+        safeTorque: String,
+        gearRatioText: String,
+        position: String,
+        bladeText: String,
+    ) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            val append = appendArgs
+            if (append != null) {
+                confirmAppendConfig(append, gearRatioText, position, bladeText)
+                return@launch
+            }
+            confirmNewModel(modelName, safeTorque, gearRatioText, position, bladeText)
         }
     }
 
-    fun updateDetailRow(key: String, value: String) {
-        updateList(_detailRows) { list ->
-            list.map { if (it.key == key) it.copy(value = value) else it }
-        }
-    }
-
-    fun confirm(onSuccess: () -> Unit, onEmptyName: () -> Unit) {
-        val name = _modelName.value?.trim().orEmpty()
-        if (name.isEmpty()) {
-            V2Log.w(TAG, "confirm failed: empty model name")
-            onEmptyName()
+    private suspend fun confirmAppendConfig(
+        append: V2ModelAppendArgs,
+        gearRatioText: String,
+        position: String,
+        bladeText: String,
+    ) {
+        val gearRatio = gearRatioText.trim().toDoubleOrNull() ?: append.gearRatio
+        if (gearRatio <= 0) {
+            _errorMessage.value = MSG_INVALID_NUMBER
             return
         }
-        V2Log.i(TAG, "confirm add model=$name fields=${_engineFields.value} rows=${_detailRows.value}")
-        onSuccess()
+        val positionTrimmed = position.trim()
+        if (positionTrimmed.isEmpty()) {
+            _errorMessage.value = MSG_POSITION_EMPTY
+            return
+        }
+        val bladeCount = bladeText.trim().toIntOrNull()
+        if (bladeCount == null || bladeCount <= 0) {
+            _errorMessage.value = MSG_INVALID_NUMBER
+            return
+        }
+        try {
+            val configId = repository.addConfigItemForModel(
+                modelId = append.modelId,
+                gearRatio = gearRatio,
+                position = positionTrimmed,
+                bladeCount = bladeCount,
+            )
+            V2Log.i(TAG, "append config success configId=$configId model=${append.modelName}")
+            _saveSuccess.value = true
+        } catch (e: Exception) {
+            V2Log.e(TAG, "append config failed", e)
+            _errorMessage.value = "操作失败: ${e.message}"
+        }
     }
 
-    private fun <T> updateList(liveData: MutableLiveData<List<T>>, block: (List<T>) -> List<T>) {
-        val current = liveData.value ?: return
-        liveData.value = block(current)
+    private suspend fun confirmNewModel(
+        modelName: String,
+        safeTorque: String,
+        gearRatioText: String,
+        position: String,
+        bladeText: String,
+    ) {
+        val name = modelName.trim()
+        if (name.isEmpty()) {
+            _errorMessage.value = MSG_NAME_EMPTY
+            return
+        }
+        val existing = repository.getModelByName(name)
+        if (existing != null) {
+            _errorMessage.value = MSG_NAME_DUPLICATE
+            return
+        }
+        val gearRatio = gearRatioText.trim().toDoubleOrNull()
+        if (gearRatio == null || gearRatio <= 0) {
+            _errorMessage.value = MSG_INVALID_NUMBER
+            return
+        }
+        val positionTrimmed = position.trim()
+        if (positionTrimmed.isEmpty()) {
+            _errorMessage.value = MSG_POSITION_EMPTY
+            return
+        }
+        val bladeCount = bladeText.trim().toIntOrNull()
+        if (bladeCount == null || bladeCount <= 0) {
+            _errorMessage.value = MSG_INVALID_NUMBER
+            return
+        }
+        try {
+            val modelId = repository.createModelWithFirstConfigItem(
+                modelName = name,
+                safeTorque = safeTorque.trim(),
+                gearRatio = gearRatio,
+                position = positionTrimmed,
+                bladeCount = bladeCount,
+                imagePath = null,
+            )
+            V2Log.i(TAG, "confirm success modelId=$modelId name=$name")
+            _saveSuccess.value = true
+        } catch (e: Exception) {
+            V2Log.e(TAG, "confirm failed", e)
+            _errorMessage.value = "操作失败: ${e.message}"
+        }
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun consumeSaveSuccess() {
+        _saveSuccess.value = false
     }
 
     companion object {
         private const val TAG = "ModelAddVM"
+        const val MSG_NAME_EMPTY = "型号名称不能为空"
+        const val MSG_NAME_DUPLICATE = "型号名称已存在"
+        const val MSG_INVALID_NUMBER = "请输入有效的数值"
+        const val MSG_POSITION_EMPTY = "位置不能为空"
     }
 }

@@ -13,6 +13,7 @@ import androidx.core.widget.doAfterTextChanged
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
 import com.devicecontrol.engine.v2.viewmodel.V2ModeSettingsViewModel
+import com.devicecontrol.engine.v2.ui.widget.applyV2LandscapeIme
 import com.devicecontrol.engine.v2.viewmodel.V2StepperFieldUi
 
 /** 自动/手动模式参数（P8 / P11） */
@@ -102,6 +103,7 @@ class V2ModeSettingsActivity : V2BaseShellActivity() {
         cellRoot.findViewById<TextView>(R.id.tvModeSettingLabel).text = field.label
         cellRoot.findViewById<TextView>(R.id.tvStepperUnit).text = field.unit
         val et = cellRoot.findViewById<EditText>(R.id.etStepperValue)
+        et.applyV2LandscapeIme()
         et.setText(viewModel.formatValue(field))
         val binding = CellBinding(field.key, et)
         cellBindings.add(binding)

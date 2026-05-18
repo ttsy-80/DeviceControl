@@ -53,11 +53,12 @@
 
         <EditText
             android:id="@+id/etStepperValue"
+            style="@style/V2EditText"
             android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:gravity="center"
-            android:imeOptions="actionDone"
+            android:imeOptions="flagNoExtractUi|actionDone"
             android:inputType="numberDecimal"
             android:maxLines="1"
             android:textColor="@color/v2_text_primary"

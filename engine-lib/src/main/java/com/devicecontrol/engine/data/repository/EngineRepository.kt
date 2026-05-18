@@ -30,9 +30,60 @@ class EngineRepository(private val engineDao: EngineDao) {
         engineDao.insertConfigItem(configItemWithModelId)
         return modelId
     }
+
+    /**
+     * 2.0 型号添加页：创建机型 + 首条配置项（对齐 v1 [ModelManagementViewModel.createModelWithConfigItem]）。
+     */
+    suspend fun createModelWithFirstConfigItem(
+        modelName: String,
+        safeTorque: String,
+        gearRatio: Double,
+        position: String,
+        bladeCount: Int,
+        imagePath: String? = null,
+        jogCount: Int = 1,
+    ): Long {
+        val model = EngineModel(
+            name = modelName.trim(),
+            safeTorque = safeTorque.trim(),
+            imagePath = imagePath,
+        )
+        val configItem = ConfigItem(
+            modelId = 0,
+            gearRatio = gearRatio,
+            position = position.trim(),
+            bladeCount = bladeCount,
+            jogCount = jogCount,
+        )
+        return insertModelWithConfigItem(model, configItem)
+    }
     
     suspend fun insertConfigItem(configItem: ConfigItem): Long {
         return engineDao.insertConfigItem(configItem)
+    }
+
+    /** 为已有型号新增一条配置项（详情页「添加」） */
+    suspend fun addConfigItemForModel(
+        modelId: Long,
+        gearRatio: Double,
+        position: String,
+        bladeCount: Int,
+        jogCount: Int = 1,
+    ): Long {
+        return insertConfigItem(
+            ConfigItem(
+                modelId = modelId,
+                gearRatio = gearRatio,
+                position = position.trim(),
+                bladeCount = bladeCount,
+                jogCount = jogCount,
+            ),
+        )
+    }
+
+    suspend fun getModelWithConfigItemsByName(name: String): EngineModelWithConfigItems? {
+        val model = getModelByName(name) ?: return null
+        return getModelWithConfigItemsById(model.id)
     }
     
     suspend fun deleteConfigItem(configItem: ConfigItem): Boolean {

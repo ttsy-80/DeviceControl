@@ -95,4 +95,8 @@
     <string name="error_select_model">请选择型号</string>
     <string name="error_select_gear_ratio">请至少选择一个变速比</string>
     <string name="error_operation_failed">操作失败</string>
+
+    <!-- V2 型号（与 strings_v2 同模块合并，避免个别 IDE 未索引 strings_v2） -->
+    <string name="v2_config_add_success">配置项添加成功</string>
+    <string name="v2_model_load_failed">型号数据未就绪</string>
 </resources>

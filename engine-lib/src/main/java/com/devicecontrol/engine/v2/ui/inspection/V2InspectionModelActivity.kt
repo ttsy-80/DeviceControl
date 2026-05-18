@@ -11,6 +11,7 @@ import com.devicecontrol.engine.v2.model.V2ModelCardUi
 import com.devicecontrol.engine.v2.ui.adapter.V2InspectionModelAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
 import com.devicecontrol.engine.v2.ui.widget.V2GridSpacingDecoration
+import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2InspectionModelViewModel
 
 /** 发动机检测 - 型号选择（P6） */
@@ -18,7 +19,9 @@ class V2InspectionModelActivity : V2BaseShellActivity() {
 
     override val logTag: String = "InspectionModel"
 
-    private val viewModel: V2InspectionModelViewModel by viewModels()
+    private val viewModel: V2InspectionModelViewModel by viewModels {
+        V2EngineViewModelFactory(application)
+    }
     private lateinit var adapter: V2InspectionModelAdapter
 
     override fun contentLayoutId(): Int = R.layout.content_v2_inspection_models

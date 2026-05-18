@@ -3,12 +3,15 @@ package com.devicecontrol.engine.v2.ui.base
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.devicecontrol.engine.databinding.ActivityV2ShellBinding
 import com.devicecontrol.engine.v2.log.V2Log
 import com.devicecontrol.engine.v2.ui.shell.V2ShellUiBinder
+import com.devicecontrol.engine.v2.ui.widget.applyV2LandscapeIme
 
 /**
  * 2.0 页面基类：顶栏 + 底栏壳层 + 子类内容区。
@@ -62,8 +65,23 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
         shellBinding.includeV2Bottom.root.visibility =
             if (showShellBottomBar()) View.VISIBLE else View.GONE
 
-        onContentCreated(shellBinding.flV2Content.getChildAt(0))
+        val contentRoot = shellBinding.flV2Content.getChildAt(0)
+        onContentCreated(contentRoot)
+        applyV2LandscapeImeInTree(contentRoot)
         V2Log.i(logTag, "onCreate ${javaClass.simpleName}")
+    }
+
+    /** 覆盖 XML 已配置及后续动态 inflate 的输入框 */
+    protected fun applyV2LandscapeImeInTree(root: View?) {
+        if (root == null) return
+        if (root is EditText) {
+            root.applyV2LandscapeIme()
+        }
+        if (root is ViewGroup) {
+            for (i in 0 until root.childCount) {
+                applyV2LandscapeImeInTree(root.getChildAt(i))
+            }
+        }
     }
 
     override fun onResume() {

@@ -60,4 +60,9 @@
     <style name="V2P7ControlButtonEnd" parent="V2P7ControlButtonBase">
         <item name="android:background">@drawable/bg_v2_control_btn_end</item>
     </style>
+
+    <!-- 横屏平板：避免 IME 全屏提取键盘遮挡界面 -->
+    <style name="V2EditText">
+        <item name="android:imeOptions">flagNoExtractUi|actionDone</item>
+    </style>
 </resources>

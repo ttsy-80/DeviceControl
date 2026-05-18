@@ -89,7 +89,10 @@
     <string name="v2_edit">编辑</string>
     <string name="v2_engine_model_subtitle">发动机型号</string>
     <string name="v2_new_model_title">新建型号</string>
+    <string name="v2_hint_model_name">请输入型号名称</string>
+    <string name="v2_hint_safe_torque">请输入安全力矩</string>
     <string name="v2_model_name_required">请输入型号名称</string>
+    <string name="v2_model_create_success">型号创建成功</string>
     <string name="v2_device_sample">设备%1$03d</string>
     <string name="v2_legacy_entry">进入 1.0 旧版系统</string>
     <string name="v2_entry_from_legacy">进入 2.0 电动转动系统</string>

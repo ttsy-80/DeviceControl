@@ -11,22 +11,26 @@
 
     <EditText
         android:id="@+id/etPosition"
+        style="@style/V2EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:background="@android:color/transparent"
         android:gravity="center_vertical"
+        android:imeOptions="flagNoExtractUi|actionDone"
         android:inputType="text"
         android:textColor="@color/v2_text_primary"
         android:textSize="14sp" />
 
     <EditText
         android:id="@+id/etBladeCount"
+        style="@style/V2EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:background="@android:color/transparent"
         android:gravity="center"
+        android:imeOptions="flagNoExtractUi|actionDone"
         android:inputType="number"
         android:textColor="@color/v2_text_primary"
         android:textSize="14sp" />

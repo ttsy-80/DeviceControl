@@ -15,5 +15,9 @@ data class EngineModel(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     /** 机型显示名称 */
-    val name: String
+    val name: String,
+    /** 安全力矩展示文案（如 1480 lb·ft），2.0 型号页录入 */
+    val safeTorque: String = "",
+    /** 导入的发动机示意图本地路径，可选 */
+    val imagePath: String? = null,
 )

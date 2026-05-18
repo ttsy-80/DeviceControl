@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tag_v2_form_text_watcher" type="id" />
+    <item name="tag_v2_field_key" type="id" />
+    <item name="tag_v2_detail_row_key" type="id" />
+    <item name="tag_v2_form_bound" type="id" />
+</resources>

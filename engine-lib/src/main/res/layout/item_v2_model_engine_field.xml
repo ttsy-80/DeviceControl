@@ -16,13 +16,15 @@
 
     <EditText
         android:id="@+id/etFieldValue"
+        style="@style/V2EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_weight="1"
         android:background="@android:color/transparent"
-        android:inputType="text"
+        android:imeOptions="flagNoExtractUi|actionDone"
         android:textColor="@color/v2_text_primary"
+        android:textColorHint="@color/v2_text_secondary"
         android:textSize="15sp"
         android:textStyle="bold" />
 

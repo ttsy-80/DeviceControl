@@ -18,15 +18,17 @@
 
     <EditText
         android:id="@+id/etDetailValue"
+        style="@style/V2EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:background="@drawable/bg_v2_mode_setting_value"
         android:gravity="center"
-        android:inputType="text"
+        android:imeOptions="flagNoExtractUi|actionDone"
         android:paddingHorizontal="10dp"
         android:paddingVertical="6dp"
         android:textColor="@color/v2_text_primary"
+        android:textColorHint="@color/v2_text_secondary"
         android:textSize="15sp"
         android:textStyle="bold" />
 

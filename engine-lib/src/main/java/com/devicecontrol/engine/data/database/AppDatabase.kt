@@ -17,7 +17,7 @@ import com.devicecontrol.engine.data.model.TaskRecord
 
 @Database(
     entities = [EngineModel::class, ConfigItem::class, Task::class, TaskExecution::class, TaskRecord::class],
-    version = 7,  // 版本升级：task_records 增加 angleDegrees
+    version = 8,  // 版本升级：engine_models 增加 safeTorque、imagePath（2.0 型号页）
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -83,6 +83,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
         
+        // 版本 7→8：engine_models 增加 2.0 型号页字段
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE engine_models ADD COLUMN safeTorque TEXT NOT NULL DEFAULT ''",
+                )
+                database.execSQL(
+                    "ALTER TABLE engine_models ADD COLUMN imagePath TEXT",
+                )
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -90,7 +102,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "engine_control_database"
                 )
-                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6,
+                        MIGRATION_6_7,
+                        MIGRATION_7_8,
+                    )
                     .fallbackToDestructiveMigration() // 仅在开发阶段使用，生产环境应移除
                     .build()
                 INSTANCE = instance

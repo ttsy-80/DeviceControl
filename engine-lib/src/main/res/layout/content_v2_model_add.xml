@@ -50,17 +50,12 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvAddDetailRows"
+            <include
+                android:id="@+id/includeAddDetailForm"
+                layout="@layout/include_v2_model_add_detail_form"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:fadeScrollbars="false"
-                android:overScrollMode="ifContentScrolls"
-                android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
-                android:scrollbarStyle="insideOverlay"
-                android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
-                android:scrollbars="vertical" />
+                android:layout_weight="1" />
 
             <LinearLayout
                 android:layout_width="match_parent"
