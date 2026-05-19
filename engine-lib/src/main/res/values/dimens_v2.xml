@@ -57,9 +57,20 @@
     <dimen name="v2_p6_scrollbar_width">5dp</dimen>
     <dimen name="v2_p6_back_home_margin_end">12dp</dimen>
     <dimen name="v2_top_bar_title_icon_size">36dp</dimen>
-    <!-- P8 / P11 模式设置 -->
-    <dimen name="v2_mode_setting_row_h">76dp</dimen>
-    <dimen name="v2_mode_setting_icon_size">36dp</dimen>
-    <dimen name="v2_mode_setting_stepper_btn">40dp</dimen>
+    <!-- P8 / P11 模式设置（对齐稿面双列/单列步进器） -->
+    <dimen name="v2_mode_setting_content_pad_h">28dp</dimen>
+    <dimen name="v2_mode_setting_content_pad_top">20dp</dimen>
+    <dimen name="v2_mode_setting_content_pad_bottom">12dp</dimen>
+    <dimen name="v2_mode_setting_footer_pad_top">8dp</dimen>
+    <dimen name="v2_mode_setting_footer_pad_bottom">16dp</dimen>
+    <dimen name="v2_mode_setting_action_gap">24dp</dimen>
+    <dimen name="v2_mode_setting_action_pad_h">40dp</dimen>
+    <dimen name="v2_mode_setting_row_h">84dp</dimen>
+    <dimen name="v2_mode_setting_icon_size">40dp</dimen>
+    <dimen name="v2_mode_setting_stepper_btn">44dp</dimen>
     <dimen name="v2_mode_setting_action_h">52dp</dimen>
+    <dimen name="v2_mode_setting_action_min_w">200dp</dimen>
+    <dimen name="v2_mode_setting_cell_pad_h">16dp</dimen>
+    <dimen name="v2_mode_setting_label_text">17sp</dimen>
+    <dimen name="v2_mode_setting_value_text">16sp</dimen>
 </resources>

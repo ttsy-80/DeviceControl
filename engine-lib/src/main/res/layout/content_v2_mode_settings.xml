@@ -1,54 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- P8 自动 / P11 手动模式设置 -->
+<!-- P8 自动 / P11 手动模式设置：白底 + 内嵌配置区 + 定宽底栏按钮 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/v2_inspection_page_bg"
-    android:orientation="vertical"
-    android:paddingHorizontal="12dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="8dp">
+    android:background="@color/v2_surface"
+    android:orientation="vertical">
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollModeSettings"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        app:cardBackgroundColor="@color/v2_panel_grey"
-        app:cardCornerRadius="@dimen/v2_inspection_panel_radius"
-        app:cardElevation="2dp"
-        app:strokeColor="#E0E0E0"
-        app:strokeWidth="1dp">
+        android:clipToPadding="false"
+        android:fadeScrollbars="false"
+        android:fillViewport="true"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingHorizontal="@dimen/v2_mode_setting_content_pad_h"
+        android:paddingTop="@dimen/v2_mode_setting_content_pad_top"
+        android:paddingBottom="@dimen/v2_mode_setting_content_pad_bottom"
+        android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
+        android:scrollbars="vertical">
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scrollModeSettings"
+        <LinearLayout
+            android:id="@+id/modeSettingsPanel"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:fadeScrollbars="false"
-            android:fillViewport="true"
-            android:overScrollMode="ifContentScrolls"
-            android:paddingBottom="8dp"
-            android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
-            android:scrollbarStyle="insideOverlay"
-            android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
-            android:scrollbars="vertical">
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_v2_mode_settings_panel"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:id="@+id/llSteppers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="4dp" />
-        </androidx.core.widget.NestedScrollView>
-    </com.google.android.material.card.MaterialCardView>
+                android:orientation="vertical" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/v2_mode_setting_footer_pad_top"
+        android:paddingBottom="@dimen/v2_mode_setting_footer_pad_bottom">
 
         <TextView
             android:id="@+id/btnConfirmSettings"
@@ -56,8 +52,8 @@
             android:layout_height="@dimen/v2_mode_setting_action_h"
             android:background="@drawable/bg_v2_pill_orange"
             android:gravity="center"
-            android:minWidth="160dp"
-            android:paddingHorizontal="36dp"
+            android:minWidth="@dimen/v2_mode_setting_action_min_w"
+            android:paddingHorizontal="@dimen/v2_mode_setting_action_pad_h"
             android:text="@string/v2_confirm_edit"
             android:textColor="@color/v2_on_primary"
             android:textSize="18sp"
@@ -67,13 +63,13 @@
             android:id="@+id/btnCancelSettings"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/v2_mode_setting_action_h"
-            android:layout_marginStart="24dp"
-            android:background="@drawable/bg_v2_menu_normal"
+            android:layout_marginStart="@dimen/v2_mode_setting_action_gap"
+            android:background="@drawable/bg_v2_pill_grey"
             android:gravity="center"
-            android:minWidth="140dp"
-            android:paddingHorizontal="36dp"
+            android:minWidth="@dimen/v2_mode_setting_action_min_w"
+            android:paddingHorizontal="@dimen/v2_mode_setting_action_pad_h"
             android:text="@string/v2_return"
-            android:textColor="@color/v2_text_primary"
+            android:textColor="@color/v2_on_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>

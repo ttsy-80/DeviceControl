@@ -29,4 +29,9 @@
     <color name="v2_dropdown">#5C6BC0</color>
     <color name="v2_end_border">#E53935</color>
     <color name="v2_panel_grey">#EEEEEE</color>
+    <!-- P8/P11 设置行斑马纹 -->
+    <color name="v2_mode_setting_panel_bg">#F5F5F5</color>
+    <color name="v2_mode_setting_row_gray">#F2F2F2</color>
+    <color name="v2_mode_setting_btn_grey">#9E9E9E</color>
+    <color name="v2_mode_setting_col_divider">#D8D8D8</color>
 </resources>
