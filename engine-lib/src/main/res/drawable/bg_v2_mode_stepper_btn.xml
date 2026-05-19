@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P8/P11 稿面：白底、粗黑边、圆角方钮 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/v2_surface" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/v2_text_primary" />
+    <corners android:radius="6dp" />
+</shape>

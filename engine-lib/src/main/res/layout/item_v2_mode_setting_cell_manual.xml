@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P11：[图标+标签 1.5] | [− 1] | [数值+单位 1] | [+ 1] | [占位 0.5] -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/modeSettingCellRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/v2_mode_setting_row_h"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/v2_mode_setting_cell_pad_h"
+    android:paddingVertical="12dp">
+
+    <LinearLayout
+        android:id="@+id/groupLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.5"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivModeSettingIcon"
+            android:layout_width="@dimen/v2_mode_setting_icon_size"
+            android:layout_height="@dimen/v2_mode_setting_icon_size"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/tvModeSettingLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="@dimen/v2_mode_setting_label_text"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/btnMinus"
+            android:layout_width="@dimen/v2_mode_setting_stepper_btn"
+            android:layout_height="@dimen/v2_mode_setting_stepper_btn"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_v2_mode_stepper_btn"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="−"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etStepperValue"
+            style="@style/V2EditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:gravity="center"
+            android:imeOptions="flagNoExtractUi|actionDone"
+            android:inputType="numberDecimal"
+            android:maxLines="1"
+            android:minWidth="36dp"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="@dimen/v2_mode_setting_value_text"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvStepperUnit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="@dimen/v2_mode_setting_value_text"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/btnPlus"
+            android:layout_width="@dimen/v2_mode_setting_stepper_btn"
+            android:layout_height="@dimen/v2_mode_setting_stepper_btn"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_v2_mode_stepper_btn"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@color/v2_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="0.5" />
+</LinearLayout>
