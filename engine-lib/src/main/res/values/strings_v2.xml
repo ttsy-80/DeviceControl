@@ -42,6 +42,16 @@
     <string name="v2_model_catalog">MODEL CATALOG</string>
     <string name="v2_add_model">新增</string>
     <string name="v2_engine_info">引擎信息</string>
+    <string name="v2_param_safe_torque">安全扭矩</string>
+    <string name="v2_param_blade_count">叶片数</string>
+    <string name="v2_param_current_speed">当前速度</string>
+    <string name="v2_param_set_speed">设定速度</string>
+    <string name="v2_param_remaining_time">剩余时间</string>
+    <string name="v2_param_rotation_time">转动时间</string>
+    <string name="v2_param_backlash">游隙消除</string>
+    <string name="v2_param_run_time">运行时间</string>
+    <string name="v2_param_motor_torque">电机力矩</string>
+    <string name="v2_param_value_empty"> </string>
     <string name="v2_auto_mode">自动模式</string>
     <string name="v2_manual_mode">手动模式</string>
     <string name="v2_lpc_format">LPC %1$d</string>

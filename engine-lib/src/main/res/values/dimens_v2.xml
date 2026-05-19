@@ -40,10 +40,14 @@
     <dimen name="v2_inspection_col_gap">8dp</dimen>
     <dimen name="v2_inspection_engine_photo_h">132dp</dimen>
     <dimen name="v2_end_stroke_width">3dp</dimen>
-    <!-- P7 控制钮：接近 1.0 任务控制尺寸与方角 -->
-    <dimen name="v2_p7_control_btn_h">52dp</dimen>
-    <dimen name="v2_p7_control_btn_radius">6dp</dimen>
-    <dimen name="v2_p7_control_btn_margin">8dp</dimen>
+    <!-- P7/P10 控制钮：稿面圆角胶囊 + 投影 -->
+    <dimen name="v2_p7_control_btn_h">56dp</dimen>
+    <!-- 游隙消除/结束：竖向三行，与结束钮同高 -->
+    <dimen name="v2_p7_control_btn_tall_h">78dp</dimen>
+    <dimen name="v2_p7_control_btn_radius">28dp</dimen>
+    <dimen name="v2_p7_control_btn_margin">6dp</dimen>
+    <dimen name="v2_p7_control_btn_elevation">5dp</dimen>
+    <dimen name="v2_spinner_arrow_size">18dp</dimen>
     <dimen name="v2_p7_start_btn_h">58dp</dimen>
     <!-- P6 型号宫格 -->
     <dimen name="v2_p6_model_card_size">168dp</dimen>

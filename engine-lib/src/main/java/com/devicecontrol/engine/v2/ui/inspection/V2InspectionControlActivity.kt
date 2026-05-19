@@ -1,5 +1,7 @@
 package com.devicecontrol.engine.v2.ui.inspection
 
+import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
@@ -10,11 +12,8 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import android.content.res.ColorStateList
-import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.widget.ImageViewCompat
@@ -27,11 +26,13 @@ import com.devicecontrol.engine.v2.ui.adapter.V2RecordRowAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
 import com.devicecontrol.engine.v2.ui.dialog.V2ErrorDialog
 import com.devicecontrol.engine.v2.ui.dialog.V2LpcDialog
-import com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder
 import com.devicecontrol.engine.v2.ui.settings.V2ModeSettingsActivity
+import com.devicecontrol.engine.v2.viewmodel.V2ControlHighlightState
 import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2InspectionControlViewModel
 import com.devicecontrol.engine.v2.viewmodel.V2UiOperationMode
+import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.launch
 
 /** 检测主控（P7 自动 / P10 手动） */
 class V2InspectionControlActivity : V2BaseShellActivity() {
@@ -46,6 +47,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     private var bladeCounts: List<Int> = emptyList()
     private var suppressLpcSelection = false
     private var suppressModeSelection = false
+    private var lastHighlight = V2ControlHighlightState()
 
     override fun contentLayoutId(): Int = R.layout.content_v2_inspection_control
 
@@ -88,7 +90,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         }
         viewModel.imagePath.observe(this) { path ->
             val photoPanel = root.findViewById<View>(R.id.ivEnginePhoto).parent as View
-            V2ModelEnginePanelBinder.bindEngineImage(photoPanel, path)
+            com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder.bindEngineImage(photoPanel, path)
         }
         viewModel.engineParamsText.observe(this) {
             root.findViewById<TextView>(R.id.tvEngineParams).text = it
@@ -107,6 +109,12 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             suppressModeSelection = true
             spinner.setSelection(if (mode == V2UiOperationMode.AUTO) 0 else 1, false)
             suppressModeSelection = false
+            applyControlHighlights(root, lastHighlight, mode == V2UiOperationMode.MANUAL)
+        }
+        viewModel.controlHighlight.observe(this) { state ->
+            lastHighlight = state
+            val manual = viewModel.operationMode.value == V2UiOperationMode.MANUAL
+            applyControlHighlights(root, state, manual)
         }
         viewModel.isRunning.observe(this) { running ->
             updateControlEnabled(root, running)
@@ -138,7 +146,6 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 从 P8/P11 设置页返回后，重新加载当前模式的 Room 配置
         viewModel.reapplyModeSettings()
     }
 
@@ -149,48 +156,46 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
     private fun setupAutoControlPills(root: View) {
         val specs = listOf(
-            PillSpec(R.id.btnForward, R.string.v2_forward, R.drawable.ic_v2_ctrl_forward, R.color.v2_primary),
-            PillSpec(R.id.btnReverse, R.string.v2_reverse, R.drawable.ic_v2_ctrl_reverse, R.color.v2_action_green),
-            PillSpec(R.id.btnAccel, R.string.v2_accel, R.drawable.ic_v2_ctrl_accel, R.color.v2_primary),
-            PillSpec(R.id.btnDecel, R.string.v2_decel, R.drawable.ic_v2_ctrl_decel, R.color.v2_primary),
-            PillSpec(R.id.btnContinuous, R.string.v2_continuous, R.drawable.ic_v2_ctrl_continuous, R.color.v2_action_green),
-            PillSpec(R.id.btnJog, R.string.v2_jog, R.drawable.ic_v2_ctrl_jog, R.color.v2_primary),
-            PillSpec(R.id.btnAutoPhoto, R.string.v2_auto_photo, R.drawable.ic_v2_ctrl_camera, R.color.v2_action_green),
-            PillSpec(R.id.btnControlSettings, R.string.v2_settings_btn, R.drawable.ic_v2_ctrl_settings, R.color.v2_primary),
-            PillSpec(R.id.btnBacklash, R.string.v2_backlash, R.drawable.ic_v2_ctrl_backlash, R.color.v2_primary),
-            PillSpec(R.id.btnEnd, R.string.v2_end, R.drawable.ic_v2_ctrl_end, R.color.v2_primary, R.drawable.bg_v2_control_btn_end),
+            PillSpec(R.id.btnForward, R.string.v2_forward, R.drawable.ic_v2_ctrl_forward),
+            PillSpec(R.id.btnReverse, R.string.v2_reverse, R.drawable.ic_v2_ctrl_forward, rotateIcon180 = true),
+            PillSpec(R.id.btnAccel, R.string.v2_accel, R.drawable.ic_v2_ctrl_accel),
+            PillSpec(R.id.btnDecel, R.string.v2_decel, R.drawable.ic_v2_ctrl_decel),
+            PillSpec(R.id.btnContinuous, R.string.v2_continuous, R.drawable.ic_v2_ctrl_continuous),
+            PillSpec(R.id.btnJog, R.string.v2_jog, R.drawable.ic_v2_ctrl_jog),
+            PillSpec(R.id.btnAutoPhoto, R.string.v2_auto_photo, R.drawable.ic_v2_ctrl_camera),
+            PillSpec(R.id.btnControlSettings, R.string.v2_settings_btn, R.drawable.ic_v2_ctrl_settings),
+            PillSpec(R.id.btnBacklash, R.string.v2_backlash, R.drawable.ic_v2_ctrl_backlash, showBacklashStatus = true),
+            PillSpec(R.id.btnEnd, R.string.v2_end, R.drawable.ic_v2_ctrl_end, isEnd = true),
         )
         specs.forEach { bindPill(root, it) }
     }
 
     private fun setupManualControlPills(root: View) {
         val specs = listOf(
-            PillSpec(R.id.btnForwardManual, R.string.v2_forward, R.drawable.ic_v2_ctrl_forward, R.color.v2_primary),
-            PillSpec(R.id.btnReverseManual, R.string.v2_reverse, R.drawable.ic_v2_ctrl_reverse, R.color.v2_action_green),
-            PillSpec(R.id.btnAccelManual, R.string.v2_accel, R.drawable.ic_v2_ctrl_accel, R.color.v2_primary),
-            PillSpec(R.id.btnDecelManual, R.string.v2_decel, R.drawable.ic_v2_ctrl_decel, R.color.v2_primary),
-            PillSpec(R.id.btnContinuousManual, R.string.v2_continuous, R.drawable.ic_v2_ctrl_continuous, R.color.v2_action_green),
-            PillSpec(R.id.btnJogManual, R.string.v2_jog, R.drawable.ic_v2_ctrl_jog, R.color.v2_primary),
+            PillSpec(R.id.btnForwardManual, R.string.v2_forward, R.drawable.ic_v2_ctrl_forward),
+            PillSpec(R.id.btnReverseManual, R.string.v2_reverse, R.drawable.ic_v2_ctrl_forward, rotateIcon180 = true),
+            PillSpec(R.id.btnAccelManual, R.string.v2_accel, R.drawable.ic_v2_ctrl_accel),
+            PillSpec(R.id.btnDecelManual, R.string.v2_decel, R.drawable.ic_v2_ctrl_decel),
+            PillSpec(R.id.btnContinuousManual, R.string.v2_continuous, R.drawable.ic_v2_ctrl_continuous),
+            PillSpec(R.id.btnJogManual, R.string.v2_jog, R.drawable.ic_v2_ctrl_jog),
             PillSpec(
                 R.id.btnManualModeSettings,
                 R.string.v2_manual_mode_settings,
                 R.drawable.ic_v2_ctrl_settings,
-                R.color.v2_primary,
             ),
-            PillSpec(R.id.btnBacklashManual, R.string.v2_backlash, R.drawable.ic_v2_ctrl_backlash, R.color.v2_primary),
             PillSpec(
-                R.id.btnEndManual,
-                R.string.v2_end,
-                R.drawable.ic_v2_ctrl_end,
-                R.color.v2_primary,
-                R.drawable.bg_v2_control_btn_end,
+                R.id.btnBacklashManual,
+                R.string.v2_backlash,
+                R.drawable.ic_v2_ctrl_backlash,
+                showBacklashStatus = true,
             ),
+            PillSpec(R.id.btnEndManual, R.string.v2_end, R.drawable.ic_v2_ctrl_end, isEnd = true),
         )
         specs.forEach { bindPill(root, it) }
     }
 
     private fun setupStartPauseButtons(root: View) {
-        val pad = (resources.displayMetrics.density * 10).toInt()
+        val pad = (resources.displayMetrics.density * 12).toInt()
         val start = root.findViewById<Button>(R.id.btnStart)
         TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(
             start, whiteIconDrawable(R.drawable.ic_v2_start_badge), null, null, null,
@@ -212,20 +217,70 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
     private fun bindPill(root: View, spec: PillSpec) {
         val pill = root.findViewById<View>(spec.viewId)
+        val card = pill.findViewById<MaterialCardView>(R.id.cardControlRoot)
+            ?: (pill as? MaterialCardView)
+            ?: return
         pill.findViewById<TextView>(R.id.tvControlLabel).setText(spec.labelRes)
         pill.findViewById<ImageView>(R.id.ivControlIcon).apply {
             setImageResource(spec.iconRes)
+            rotation = if (spec.rotateIcon180) 180f else 0f
             ImageViewCompat.setImageTintList(
                 this,
                 ColorStateList.valueOf(ContextCompat.getColor(this@V2InspectionControlActivity, R.color.v2_on_primary)),
             )
         }
-        val bg = spec.backgroundRes ?: if (spec.colorRes == R.color.v2_action_green) {
-            R.drawable.bg_v2_control_btn_green
-        } else {
-            R.drawable.bg_v2_control_btn_orange
+        pill.findViewById<TextView>(R.id.tvControlSubLabel)?.let { sub ->
+            if (spec.showBacklashStatus) {
+                sub.visibility = View.VISIBLE
+                sub.text = getString(R.string.v2_backlash_status_ok)
+            } else {
+                sub.visibility = View.GONE
+            }
         }
-        pill.background = ContextCompat.getDrawable(this, bg)
+        applyPillBackground(card, green = false, end = spec.isEnd)
+        pill.tag = spec
+    }
+
+    private fun applyPillBackground(card: MaterialCardView, green: Boolean, end: Boolean) {
+        val bgRes = when {
+            end -> R.drawable.bg_v2_control_btn_end
+            green -> R.drawable.bg_v2_control_btn_green
+            else -> R.drawable.bg_v2_control_btn_orange
+        }
+        card.background = ContextCompat.getDrawable(this, bgRes)
+    }
+
+    private fun applyControlHighlights(root: View, state: V2ControlHighlightState, manual: Boolean) {
+        if (manual) {
+            applyHighlightFor(root, R.id.btnForwardManual, state.forwardGreen)
+            applyHighlightFor(root, R.id.btnReverseManual, state.reverseGreen)
+            applyHighlightFor(root, R.id.btnContinuousManual, state.continuousGreen)
+            applyHighlightFor(root, R.id.btnJogManual, state.jogGreen)
+            applyHighlightFor(root, R.id.btnAccelManual, false)
+            applyHighlightFor(root, R.id.btnDecelManual, false)
+            applyHighlightFor(root, R.id.btnManualModeSettings, false)
+            applyHighlightFor(root, R.id.btnBacklashManual, false)
+            applyHighlightFor(root, R.id.btnEndManual, false, end = true)
+        } else {
+            applyHighlightFor(root, R.id.btnForward, state.forwardGreen)
+            applyHighlightFor(root, R.id.btnReverse, state.reverseGreen)
+            applyHighlightFor(root, R.id.btnContinuous, state.continuousGreen)
+            applyHighlightFor(root, R.id.btnJog, state.jogGreen)
+            applyHighlightFor(root, R.id.btnAutoPhoto, state.autoPhotoGreen)
+            applyHighlightFor(root, R.id.btnAccel, false)
+            applyHighlightFor(root, R.id.btnDecel, false)
+            applyHighlightFor(root, R.id.btnControlSettings, false)
+            applyHighlightFor(root, R.id.btnBacklash, false)
+            applyHighlightFor(root, R.id.btnEnd, false, end = true)
+        }
+    }
+
+    private fun applyHighlightFor(root: View, viewId: Int, green: Boolean, end: Boolean = false) {
+        val pill = root.findViewById<View>(viewId) ?: return
+        val card = pill.findViewById<MaterialCardView>(R.id.cardControlRoot)
+            ?: (pill as? MaterialCardView)
+            ?: return
+        applyPillBackground(card, green = green && !end, end = end)
     }
 
     private fun setupModeSpinner(root: View) {
@@ -278,7 +333,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         val auto = mode == V2UiOperationMode.AUTO
         root.findViewById<View>(R.id.panelAutoOps).visibility = if (auto) View.VISIBLE else View.GONE
         root.findViewById<View>(R.id.panelManualOps).visibility = if (auto) View.GONE else View.VISIBLE
-        root.findViewById<View>(R.id.scrollOperation).scrollTo(0, 0)
+        root.findViewById<androidx.core.widget.NestedScrollView>(R.id.scrollOperation).scrollTo(0, 0)
     }
 
     private fun updateControlEnabled(root: View, running: Boolean) {
@@ -323,6 +378,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     private fun bindSpinnerTextView(view: View, text: String) {
         val tv = view.findViewById<TextView>(android.R.id.text1) ?: (view as? TextView) ?: return
         tv.text = text
+        tv.gravity = android.view.Gravity.CENTER
     }
 
     private fun bindControlClicks(root: View) {
@@ -390,8 +446,9 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         val viewId: Int,
         @StringRes val labelRes: Int,
         @DrawableRes val iconRes: Int,
-        @ColorRes val colorRes: Int,
-        @DrawableRes val backgroundRes: Int? = null,
+        val rotateIcon180: Boolean = false,
+        val showBacklashStatus: Boolean = false,
+        val isEnd: Boolean = false,
     )
 
     companion object {

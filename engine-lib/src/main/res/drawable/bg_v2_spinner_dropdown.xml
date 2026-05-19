@@ -7,7 +7,9 @@
         </shape>
     </item>
     <item
+        android:width="@dimen/v2_spinner_arrow_size"
+        android:height="@dimen/v2_spinner_arrow_size"
         android:drawable="@drawable/ic_v2_spinner_arrow"
         android:gravity="end|center_vertical"
-        android:end="10dp" />
+        android:end="8dp" />
 </layer-list>

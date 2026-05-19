@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.devicecontrol.engine.R
 import com.devicecontrol.engine.data.model.ConfigItem
 import com.devicecontrol.engine.data.model.EngineModel
 import com.devicecontrol.engine.data.model.OperationMode
@@ -30,6 +31,15 @@ enum class V2UiOperationMode {
     AUTO,
     MANUAL,
 }
+
+/** P7/P10 操作钮高亮（绿=选中态，橙=默认） */
+data class V2ControlHighlightState(
+    val forwardGreen: Boolean = false,
+    val reverseGreen: Boolean = false,
+    val continuousGreen: Boolean = false,
+    val jogGreen: Boolean = false,
+    val autoPhotoGreen: Boolean = false,
+)
 
 class V2InspectionControlViewModel(
     application: Application,
@@ -86,6 +96,9 @@ class V2InspectionControlViewModel(
 
     private val _sessionReady = MutableLiveData(false)
     val sessionReady: LiveData<Boolean> = _sessionReady
+
+    private val _controlHighlight = MutableLiveData(V2ControlHighlightState())
+    val controlHighlight: LiveData<V2ControlHighlightState> = _controlHighlight
 
     private val taskObservers = MediatorLiveData<Unit>().apply {
         addSource(engine.taskExecution) { exec ->
@@ -301,54 +314,62 @@ class V2InspectionControlViewModel(
         if (model != null && config != null) {
             _engineParamsText.value = buildEngineParams(model, config, exec)
         }
-        exec?.let { _statusBarText.value = buildStatusBar(it) }
+        exec?.let {
+            _statusBarText.value = buildStatusBar(it)
+            refreshControlHighlight(it)
+        }
     }
 
     private fun buildEngineParams(
         model: EngineModel,
         config: ConfigItem,
         exec: com.devicecontrol.engine.data.model.TaskExecution?,
-    ): String = buildString {
-        val mode = _operationMode.value ?: V2UiOperationMode.AUTO
-        appendLine("模式: ${if (mode == V2UiOperationMode.AUTO) "自动(P8)" else "手动(P11)"}")
-        appendLine("安全扭矩: ${model.safeTorque.ifBlank { "—" }}")
-        appendLine("叶片数: ${config.bladeCount}")
-        appendLine("变速比: ${config.gearRatio}")
-        appendLine("位置: ${config.position}")
-        if (exec != null) {
-            val ctx = buildCommandContext(exec)
-            val speedSec = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx)
-            appendLine("设定速度: ${formatSecPerRev(speedSec)}")
-            if (mode == V2UiOperationMode.AUTO) {
-                appendLine("点动角度: ${autoConfig.autoJogAngle.toInt()}°")
-                appendLine("基础速度: ${autoConfig.baseJogSpeed.toInt()}°/分钟")
-                appendLine("停滞: ${autoConfig.jogHoldSec.toInt()} S")
-                appendLine("多转数: ${autoConfig.autoTurns.toInt()} 片")
-            } else {
-                appendLine("调速步进: ${formatSecPerRev(V2InspectionCommandDispatcher.resolveSpeedStepSecPerRev(ctx))}")
-            }
-            appendLine("运行状态: ${exec.status}")
-            appendLine("方向: ${if (exec.rotationDirection == RotationDirection.FORWARD) "正转" else "反转"}")
+    ): String {
+        fun line(labelRes: Int, value: String?) =
+            "${getApplication<Application>().getString(labelRes)}: ${value?.takeIf { it.isNotBlank() } ?: ""}"
+
+        val setSpeed = exec?.let {
+            val speedSec = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(buildCommandContext(it))
+            formatMinPerRev(speedSec)
         }
+        return buildString {
+            appendLine(line(R.string.v2_param_safe_torque, model.safeTorque))
+            appendLine(line(R.string.v2_param_blade_count, config.bladeCount.toString()))
+            appendLine(line(R.string.v2_param_current_speed, null))
+            appendLine(line(R.string.v2_param_set_speed, setSpeed))
+            appendLine(line(R.string.v2_param_remaining_time, null))
+            appendLine(line(R.string.v2_param_rotation_time, null))
+            appendLine(line(R.string.v2_param_backlash, null))
+            appendLine(line(R.string.v2_param_run_time, null))
+            appendLine(line(R.string.v2_param_motor_torque, null))
+        }.trimEnd()
     }
 
     private fun buildStatusBar(exec: com.devicecontrol.engine.data.model.TaskExecution): String {
-        val modeLabel = when (_operationMode.value) {
-            V2UiOperationMode.MANUAL -> when (exec.operationMode) {
-                OperationMode.JOG -> "手动·点动"
-                OperationMode.CONTINUOUS -> "手动·连续"
-            }
-            else -> "自动·点动"
+        val modeWord = when (exec.operationMode) {
+            OperationMode.CONTINUOUS -> "连续"
+            OperationMode.JOG -> "点动"
         }
         val ctx = buildCommandContext(exec)
         val minPerRev = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx) / 60.0
         val dir = if (exec.rotationDirection == RotationDirection.FORWARD) "正转" else "反转"
-        return "$modeLabel ${"%.1f".format(minPerRev)}分钟/圈 $dir"
+        return "$modeWord ${"%.1f".format(minPerRev)}分钟/圈 $dir"
     }
 
-    private fun formatSecPerRev(sec: Double): String {
-        val min = sec / 60.0
-        return "${"%.1f".format(min)} 分钟/圈"
+    private fun refreshControlHighlight(exec: com.devicecontrol.engine.data.model.TaskExecution) {
+        val uiMode = _operationMode.value ?: V2UiOperationMode.AUTO
+        _controlHighlight.value = V2ControlHighlightState(
+            forwardGreen = exec.rotationDirection == RotationDirection.FORWARD,
+            reverseGreen = exec.rotationDirection == RotationDirection.REVERSE,
+            continuousGreen = exec.operationMode == OperationMode.CONTINUOUS,
+            jogGreen = exec.operationMode == OperationMode.JOG,
+            autoPhotoGreen = uiMode == V2UiOperationMode.AUTO,
+        )
+    }
+
+    private fun formatMinPerRev(secPerRev: Double): String {
+        val min = secPerRev / 60.0
+        return "${"%.1f".format(min)}分钟/圈"
     }
 
     override fun onCleared() {
