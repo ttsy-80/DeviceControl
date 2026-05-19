@@ -32,7 +32,8 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_v2_start_inspection" />
+                android:src="@drawable/ic_v2_start_inspection"
+                app:tint="@color/v2_on_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -79,7 +80,8 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_v2_model_manage" />
+                android:src="@drawable/ic_v2_model_manage"
+                app:tint="@color/v2_on_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -125,7 +127,8 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_v2_settings_gear" />
+                android:src="@drawable/ic_v2_settings_gear"
+                app:tint="@color/v2_on_primary" />
 
             <TextView
                 android:layout_width="wrap_content"

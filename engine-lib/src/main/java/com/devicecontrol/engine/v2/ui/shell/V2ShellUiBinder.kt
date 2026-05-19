@@ -12,8 +12,11 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.LifecycleOwner
 import com.devicecontrol.engine.R
+import android.content.res.ColorStateList
 import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.connection.V2ConnectionState
 import com.devicecontrol.engine.v2.ui.widget.V2BatteryView
@@ -76,6 +79,10 @@ class V2ShellUiBinder(
             ivTitleIcon.visibility = View.GONE
         } else {
             ivTitleIcon.setImageResource(iconRes)
+            ImageViewCompat.setImageTintList(
+                ivTitleIcon,
+                ColorStateList.valueOf(ContextCompat.getColor(context, R.color.v2_on_primary)),
+            )
             ivTitleIcon.visibility = View.VISIBLE
         }
     }

@@ -13,7 +13,11 @@ import androidx.activity.viewModels
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -189,20 +193,33 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         val pad = (resources.displayMetrics.density * 10).toInt()
         val start = root.findViewById<Button>(R.id.btnStart)
         TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            start, start.context.getDrawable(R.drawable.ic_v2_start_badge), null, null, null,
+            start, whiteIconDrawable(R.drawable.ic_v2_start_badge), null, null, null,
         )
         start.compoundDrawablePadding = pad
         val pause = root.findViewById<Button>(R.id.btnPause)
         TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            pause, pause.context.getDrawable(R.drawable.ic_v2_pause_badge), null, null, null,
+            pause, whiteIconDrawable(R.drawable.ic_v2_pause_badge), null, null, null,
         )
         pause.compoundDrawablePadding = pad
+    }
+
+    private fun whiteIconDrawable(@DrawableRes resId: Int): Drawable? {
+        val base = ContextCompat.getDrawable(this, resId) ?: return null
+        val wrapped = DrawableCompat.wrap(base.mutate())
+        DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.v2_on_primary))
+        return wrapped
     }
 
     private fun bindPill(root: View, spec: PillSpec) {
         val pill = root.findViewById<View>(spec.viewId)
         pill.findViewById<TextView>(R.id.tvControlLabel).setText(spec.labelRes)
-        pill.findViewById<ImageView>(R.id.ivControlIcon).setImageResource(spec.iconRes)
+        pill.findViewById<ImageView>(R.id.ivControlIcon).apply {
+            setImageResource(spec.iconRes)
+            ImageViewCompat.setImageTintList(
+                this,
+                ColorStateList.valueOf(ContextCompat.getColor(this@V2InspectionControlActivity, R.color.v2_on_primary)),
+            )
+        }
         val bg = spec.backgroundRes ?: if (spec.colorRes == R.color.v2_action_green) {
             R.drawable.bg_v2_control_btn_green
         } else {
