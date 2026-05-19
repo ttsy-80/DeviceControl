@@ -64,6 +64,7 @@ class V2InspectionModelActivity : V2BaseShellActivity() {
         viewModel.selectModel(card.id)
         startActivity(
             Intent(this, V2InspectionControlActivity::class.java).apply {
+                putExtra(V2InspectionControlActivity.EXTRA_MODEL_ID, card.id)
                 putExtra(V2InspectionControlActivity.EXTRA_MODEL_NAME, card.name)
             },
         )

@@ -73,6 +73,7 @@
                     android:textSize="14sp" />
 
                 <ImageView
+                    android:id="@+id/ivEnginePhoto"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/v2_inspection_engine_photo_h"
                     android:layout_marginTop="8dp"

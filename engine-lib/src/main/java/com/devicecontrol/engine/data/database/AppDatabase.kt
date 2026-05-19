@@ -9,15 +9,24 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.devicecontrol.engine.data.database.dao.EngineDao
 import com.devicecontrol.engine.data.database.dao.TaskDao
+import com.devicecontrol.engine.data.database.dao.V2ModeSettingDao
 import com.devicecontrol.engine.data.model.ConfigItem
 import com.devicecontrol.engine.data.model.EngineModel
 import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
 import com.devicecontrol.engine.data.model.TaskRecord
+import com.devicecontrol.engine.data.model.V2ModeSetting
 
 @Database(
-    entities = [EngineModel::class, ConfigItem::class, Task::class, TaskExecution::class, TaskRecord::class],
-    version = 8,  // 版本升级：engine_models 增加 safeTorque、imagePath（2.0 型号页）
+    entities = [
+        EngineModel::class,
+        ConfigItem::class,
+        Task::class,
+        TaskExecution::class,
+        TaskRecord::class,
+        V2ModeSetting::class,
+    ],
+    version = 9,  // v2_mode_settings；tasks.source
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -25,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     
     abstract fun engineDao(): EngineDao
     abstract fun taskDao(): TaskDao
+    abstract fun v2ModeSettingDao(): V2ModeSettingDao
     
     companion object {
         @Volatile
@@ -95,6 +105,29 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // 版本 8→9：V2 检测模式参数表；tasks 增加来源标记
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE tasks ADD COLUMN source TEXT NOT NULL DEFAULT ''",
+                )
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS v2_mode_settings (
+                        modelId INTEGER NOT NULL,
+                        manual INTEGER NOT NULL,
+                        settingKey TEXT NOT NULL,
+                        value REAL NOT NULL,
+                        PRIMARY KEY(modelId, manual, settingKey)
+                    )
+                    """.trimIndent(),
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_v2_mode_settings_modelId ON v2_mode_settings(modelId)",
+                )
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -108,6 +141,7 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_5_6,
                         MIGRATION_6_7,
                         MIGRATION_7_8,
+                        MIGRATION_8_9,
                     )
                     .fallbackToDestructiveMigration() // 仅在开发阶段使用，生产环境应移除
                     .build()

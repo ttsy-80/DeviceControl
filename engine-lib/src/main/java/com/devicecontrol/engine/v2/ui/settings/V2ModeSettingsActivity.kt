@@ -9,19 +9,23 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.lifecycleScope
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
-import com.devicecontrol.engine.v2.viewmodel.V2ModeSettingsViewModel
 import com.devicecontrol.engine.v2.ui.widget.applyV2LandscapeIme
+import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
+import com.devicecontrol.engine.v2.viewmodel.V2ModeSettingsViewModel
 import com.devicecontrol.engine.v2.viewmodel.V2StepperFieldUi
+import kotlinx.coroutines.launch
 
 /** 自动/手动模式参数（P8 / P11） */
 class V2ModeSettingsActivity : V2BaseShellActivity() {
 
     override val logTag: String = "ModeSettings"
 
-    private val viewModel: V2ModeSettingsViewModel by viewModels()
+    private val viewModel: V2ModeSettingsViewModel by viewModels {
+        V2EngineViewModelFactory(application)
+    }
     private lateinit var stepperContainer: LinearLayout
     private val cellBindings = mutableListOf<CellBinding>()
 
@@ -42,7 +46,8 @@ class V2ModeSettingsActivity : V2BaseShellActivity() {
 
     override fun onContentCreated(contentRoot: View) {
         stepperContainer = contentRoot.findViewById(R.id.llSteppers)
-        if (isManualMode()) viewModel.loadManualMode() else viewModel.loadAutoMode()
+        val modelId = intent.getLongExtra(EXTRA_MODEL_ID, 0L)
+        viewModel.init(modelId, isManualMode())
 
         viewModel.fields.observe(this) { fields ->
             if (cellBindings.isEmpty()) {
@@ -54,8 +59,10 @@ class V2ModeSettingsActivity : V2BaseShellActivity() {
 
         contentRoot.findViewById<View>(R.id.btnConfirmSettings).setOnClickListener {
             commitAllInputs()
-            viewModel.confirm()
-            finish()
+            lifecycleScope.launch {
+                viewModel.saveSettings()
+                finish()
+            }
         }
         contentRoot.findViewById<View>(R.id.btnCancelSettings).setOnClickListener { finish() }
     }
@@ -155,5 +162,6 @@ class V2ModeSettingsActivity : V2BaseShellActivity() {
 
     companion object {
         const val EXTRA_MANUAL = "extra_v2_manual_mode"
+        const val EXTRA_MODEL_ID = "extra_v2_mode_settings_model_id"
     }
 }

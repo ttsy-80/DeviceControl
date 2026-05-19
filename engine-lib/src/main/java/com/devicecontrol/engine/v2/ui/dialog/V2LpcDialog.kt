@@ -17,7 +17,13 @@ object V2LpcDialog {
 
     private const val TAG = "LpcDialog"
 
-    fun show(context: Context, items: List<String>, selectedIndex: Int, onSelected: (Int) -> Unit) {
+    fun show(
+        context: Context,
+        positions: List<String>,
+        bladeCounts: List<Int>,
+        selectedIndex: Int,
+        onSelected: (Int) -> Unit,
+    ) {
         V2Log.i(TAG, "show lpc picker selected=$selectedIndex")
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_v2_lpc, null)
         val rv = view.findViewById<RecyclerView>(R.id.rvLpcList)
@@ -29,12 +35,12 @@ object V2LpcDialog {
                 return VH(row)
             }
 
-            override fun getItemCount() = items.size
+            override fun getItemCount() = positions.size
 
             override fun onBindViewHolder(holder: VH, position: Int) {
-                val selected = position + 1 == picked
-                holder.tvPosition.text = items[position]
-                holder.tvBlade.text = "33"
+                val selected = position == picked
+                holder.tvPosition.text = positions[position]
+                holder.tvBlade.text = bladeCounts.getOrNull(position)?.toString().orEmpty()
                 holder.itemView.setBackgroundColor(
                     ContextCompat.getColor(
                         holder.itemView.context,
@@ -42,7 +48,7 @@ object V2LpcDialog {
                     ),
                 )
                 holder.itemView.setOnClickListener {
-                    picked = position + 1
+                    picked = position
                     notifyDataSetChanged()
                 }
             }
@@ -55,7 +61,7 @@ object V2LpcDialog {
             .create()
         view.findViewById<View>(R.id.btnLpcCancel).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.btnLpcSelect).setOnClickListener {
-            V2Log.i(TAG, "lpc selected=$picked")
+            V2Log.i(TAG, "lpc selected index=$picked")
             onSelected(picked)
             dialog.dismiss()
         }

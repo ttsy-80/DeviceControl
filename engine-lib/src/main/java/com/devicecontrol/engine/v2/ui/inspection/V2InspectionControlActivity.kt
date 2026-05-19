@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
@@ -17,10 +18,14 @@ import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.devicecontrol.engine.R
+import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.ui.adapter.V2RecordRowAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
+import com.devicecontrol.engine.v2.ui.dialog.V2ErrorDialog
 import com.devicecontrol.engine.v2.ui.dialog.V2LpcDialog
+import com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder
 import com.devicecontrol.engine.v2.ui.settings.V2ModeSettingsActivity
+import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2InspectionControlViewModel
 import com.devicecontrol.engine.v2.viewmodel.V2UiOperationMode
 
@@ -29,8 +34,13 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
     override val logTag: String = "InspectionControl"
 
-    private val viewModel: V2InspectionControlViewModel by viewModels()
-    private val recordAdapter = V2RecordRowAdapter()
+    private val viewModel: V2InspectionControlViewModel by viewModels {
+        V2EngineViewModelFactory(application)
+    }
+    private lateinit var recordAdapter: V2RecordRowAdapter
+    private lateinit var contentRoot: View
+    private var bladeCounts: List<Int> = emptyList()
+    private var suppressLpcSelection = false
 
     override fun contentLayoutId(): Int = R.layout.content_v2_inspection_control
 
@@ -42,44 +52,84 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
     override fun showBackHome(): Boolean = true
 
-    /** 公司底栏在内容区展示（与 P6 一致），避免壳层白条与设计稿不符 */
     override fun showShellBottomBar(): Boolean = false
 
-    override fun onContentCreated(contentRoot: View) {
-        val modelName = intent.getStringExtra(EXTRA_MODEL_NAME) ?: "CFM56-3B"
-        viewModel.initEngineModel(modelName)
-
-        contentRoot.findViewById<TextView>(R.id.tvEngineModelName).text = modelName
-        viewModel.engineParamsText.observe(this) {
-            contentRoot.findViewById<TextView>(R.id.tvEngineParams).text = it
+    override fun onContentCreated(root: View) {
+        contentRoot = root
+        val modelId = intent.getLongExtra(EXTRA_MODEL_ID, 0L)
+        val modelName = intent.getStringExtra(EXTRA_MODEL_NAME).orEmpty()
+        if (modelId <= 0L) {
+            Toast.makeText(this, R.string.v2_model_load_failed, Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
-        viewModel.statusBarText.observe(this) {
-            contentRoot.findViewById<TextView>(R.id.tvStatusBar).text = it
-        }
-        viewModel.records.observe(this) { recordAdapter.submitList(it) }
 
-        contentRoot.findViewById<RecyclerView>(R.id.rvRecords).apply {
+        root.findViewById<TextView>(R.id.tvEngineModelName).text = modelName
+
+        recordAdapter = V2RecordRowAdapter(
+            onReturn = { row -> viewModel.playbackRecord(row.taskRecord) },
+            onDelete = { row -> viewModel.deleteRecord(row.taskRecord) },
+        )
+        root.findViewById<RecyclerView>(R.id.rvRecords).apply {
             layoutManager = LinearLayoutManager(this@V2InspectionControlActivity)
             adapter = recordAdapter
         }
 
-        setupAutoControlPills(contentRoot)
-        setupManualControlPills(contentRoot)
-        setupStartPauseButtons(contentRoot)
-        setupModeSpinner(contentRoot)
-        setupLpcSpinner(contentRoot)
-        bindControlClicks(contentRoot)
-        applyOperationModeUi(contentRoot, V2UiOperationMode.AUTO)
+        viewModel.initInspection(modelId, modelName)
 
-        contentRoot.findViewById<View>(R.id.btnStart).setOnClickListener { viewModel.onStart() }
-        contentRoot.findViewById<View>(R.id.btnPause).setOnClickListener { viewModel.onPause() }
-        bindEndClicks(contentRoot)
-        contentRoot.findViewById<View>(R.id.btnRecord).setOnClickListener {
-            viewModel.onControlAction("RECORD")
+        viewModel.engineModelName.observe(this) { name ->
+            root.findViewById<TextView>(R.id.tvEngineModelName).text = name
+            shellBinder.bindTitles(name, getString(R.string.v2_inspection_title_en))
         }
-        contentRoot.findViewById<View>(R.id.btnBacklashOnReturn).setOnClickListener {
+        viewModel.imagePath.observe(this) { path ->
+            val photoPanel = root.findViewById<View>(R.id.ivEnginePhoto).parent as View
+            V2ModelEnginePanelBinder.bindEngineImage(photoPanel, path)
+        }
+        viewModel.engineParamsText.observe(this) {
+            root.findViewById<TextView>(R.id.tvEngineParams).text = it
+        }
+        viewModel.statusBarText.observe(this) {
+            root.findViewById<TextView>(R.id.tvStatusBar).text = it
+        }
+        viewModel.records.observe(this) { recordAdapter.submitList(it) }
+        viewModel.lpcPositions.observe(this) { positions ->
+            bladeCounts = viewModel.configBladeCounts()
+            setupLpcSpinner(root, positions)
+        }
+        viewModel.operationMode.observe(this) { mode ->
+            applyOperationModeUi(root, mode)
+        }
+        viewModel.isRunning.observe(this) { running ->
+            updateControlEnabled(root, running)
+        }
+        viewModel.canStart.observe(this) { can ->
+            root.findViewById<View>(R.id.btnStart).isEnabled = can
+        }
+        viewModel.errorMessage.observe(this) { error ->
+            error?.let {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearError()
+            }
+        }
+
+        setupAutoControlPills(root)
+        setupManualControlPills(root)
+        setupStartPauseButtons(root)
+        setupModeSpinner(root)
+        bindControlClicks(root)
+        bindEndClicks(root)
+
+        root.findViewById<View>(R.id.btnStart).setOnClickListener { viewModel.onStart() }
+        root.findViewById<View>(R.id.btnPause).setOnClickListener { viewModel.onPause() }
+        root.findViewById<View>(R.id.btnRecord).setOnClickListener { viewModel.onControlAction("RECORD") }
+        root.findViewById<View>(R.id.btnBacklashOnReturn).setOnClickListener {
             viewModel.onControlAction("BACKLASH_ON_RETURN")
         }
+    }
+
+    override fun onDestroy() {
+        viewModel.destroySession()
+        super.onDestroy()
     }
 
     private fun setupAutoControlPills(root: View) {
@@ -159,10 +209,40 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val mode = if (position == 0) V2UiOperationMode.AUTO else V2UiOperationMode.MANUAL
                 viewModel.setOperationMode(mode)
-                applyOperationModeUi(root, mode)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+    }
+
+    private fun setupLpcSpinner(root: View, positions: List<String>) {
+        val spinner = root.findViewById<Spinner>(R.id.spinnerLpc)
+        if (positions.isEmpty()) {
+            spinner.adapter = buildSpinnerAdapter(emptyList())
+            return
+        }
+        suppressLpcSelection = true
+        spinner.adapter = buildSpinnerAdapter(positions)
+        val index = viewModel.currentLpcIndex.value ?: 0
+        spinner.setSelection(index.coerceIn(0, positions.lastIndex), false)
+        suppressLpcSelection = false
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (suppressLpcSelection) return
+                viewModel.setLpcIndex(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+        spinner.setOnLongClickListener {
+            val selected = viewModel.currentLpcIndex.value ?: 0
+            V2LpcDialog.show(this, positions, bladeCounts, selected) { index ->
+                suppressLpcSelection = true
+                viewModel.setLpcIndex(index)
+                spinner.setSelection(index)
+                suppressLpcSelection = false
+            }
+            true
         }
     }
 
@@ -173,24 +253,19 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         root.findViewById<View>(R.id.scrollOperation).scrollTo(0, 0)
     }
 
-    private fun setupLpcSpinner(root: View) {
-        val spinner = root.findViewById<Spinner>(R.id.spinnerLpc)
-        val items = (1..4).map { getString(R.string.v2_lpc_format, it) }
-        spinner.adapter = buildSpinnerAdapter(items)
-        spinner.setSelection(0, false)
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                viewModel.setLpcIndex(position + 1)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        spinner.setOnLongClickListener {
-            V2LpcDialog.show(this, items, viewModel.lpcIndex.value ?: 1) { index ->
-                viewModel.setLpcIndex(index)
-                spinner.setSelection(index - 1)
-            }
-            true
+    private fun updateControlEnabled(root: View, running: Boolean) {
+        val autoMode = viewModel.operationMode.value == V2UiOperationMode.AUTO
+        val disableMotion = running && autoMode
+        val autoIds = listOf(
+            R.id.btnForward, R.id.btnReverse, R.id.btnAccel, R.id.btnDecel,
+            R.id.btnContinuous, R.id.btnJog, R.id.btnBacklash,
+        )
+        val manualIds = listOf(
+            R.id.btnForwardManual, R.id.btnReverseManual, R.id.btnAccelManual, R.id.btnDecelManual,
+            R.id.btnContinuousManual, R.id.btnJogManual, R.id.btnBacklashManual,
+        )
+        (autoIds + manualIds).forEach { id ->
+            root.findViewById<View>(id).isEnabled = !disableMotion
         }
     }
 
@@ -218,9 +293,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     }
 
     private fun bindSpinnerTextView(view: View, text: String) {
-        val tv = view.findViewById<TextView>(android.R.id.text1)
-            ?: (view as? TextView)
-            ?: return
+        val tv = view.findViewById<TextView>(android.R.id.text1) ?: (view as? TextView) ?: return
         tv.text = text
     }
 
@@ -243,6 +316,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             R.id.btnBacklashManual to "BACKLASH",
         ).forEach { (id, action) ->
             root.findViewById<View>(id).setOnClickListener {
+                if (!ensureConnectedForControl()) return@setOnClickListener
                 viewModel.onControlAction(action)
             }
         }
@@ -264,11 +338,24 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     }
 
     private fun openModeSettings(manual: Boolean) {
+        val modelId = intent.getLongExtra(EXTRA_MODEL_ID, 0L)
         startActivity(
             android.content.Intent(this, V2ModeSettingsActivity::class.java).apply {
                 putExtra(V2ModeSettingsActivity.EXTRA_MANUAL, manual)
+                putExtra(V2ModeSettingsActivity.EXTRA_MODEL_ID, modelId)
             },
         )
+    }
+
+    private fun ensureConnectedForControl(): Boolean {
+        if (V2ConnectionRepository.isConnected()) return true
+        V2ErrorDialog.show(
+            context = this,
+            message = getString(R.string.v2_error_sample),
+            onClose = null,
+            onBackHome = { navigateToHome() },
+        )
+        return false
     }
 
     private data class PillSpec(
@@ -280,6 +367,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     )
 
     companion object {
+        const val EXTRA_MODEL_ID = "extra_v2_inspection_model_id"
         const val EXTRA_MODEL_NAME = "extra_v2_model_name"
     }
 }

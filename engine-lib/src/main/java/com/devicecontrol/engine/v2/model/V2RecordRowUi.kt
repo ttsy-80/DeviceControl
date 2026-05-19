@@ -1,7 +1,11 @@
 package com.devicecontrol.engine.v2.model
 
-/** 检测主控记录表行（UI 占位，后续对接 TaskRecord） */
+import com.devicecontrol.engine.data.model.TaskRecord
+
+/** 检测主控记录表行 */
 data class V2RecordRowUi(
+    val recordId: Long,
     val positionLabel: String,
     val bladeCount: Int,
+    val taskRecord: TaskRecord,
 )

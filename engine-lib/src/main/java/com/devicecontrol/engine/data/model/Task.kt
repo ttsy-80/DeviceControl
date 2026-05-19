@@ -23,5 +23,7 @@ data class Task(
     /** 机型名称快照，便于展示与历史追溯 */
     val modelName: String,
     /** 本任务选用的配置项 ID 列表（对应 [ConfigItem.id]） */
-    val configItemIds: List<Long>
+    val configItemIds: List<Long>,
+    /** 任务来源：空为 1.0；`v2_inspection` 为 2.0 检测隐式任务 */
+    val source: String = "",
 )
