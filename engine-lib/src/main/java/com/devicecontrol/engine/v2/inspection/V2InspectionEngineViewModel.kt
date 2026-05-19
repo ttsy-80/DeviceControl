@@ -127,21 +127,51 @@ class V2InspectionEngineViewModel(
     /** 点动步进循环或连续模式「按圈计时后自动停」的协程，[pause] 时会取消 */
     private var jogJob: Job? = null
 
-    fun loadTask(taskId: Long) {
-//        scanAndConnect()
-        scanAndConnect2()
-        viewModelScope.launch {
-            val task = taskRepository.getTaskById(taskId)
-            EngineLog.d(TAG, "loadTask: id=$taskId, configItemIds=${task?.configItemIds?.size}")
-            _task.value = task
+    /** V2 检测指令上下文（含自动/手动配置实体），下发 CAN 前由控制页注入。 */
+    @Volatile
+    private var commandContext: V2InspectionCommandContext? = null
 
-            if (task != null) {
-                // 必须 suspend 顺序执行：若在内层再 launch，会与 loadTaskExecution 竞态，读库可能早于写库
-                resetAllTaskExecutionsStatus(taskId, task.configItemIds.size)
-                currentGearRatioIndex = 0
-                loadTaskExecution(taskId, currentGearRatioIndex)
-            }
+    fun bindCommandContext(ctx: V2InspectionCommandContext) {
+        commandContext = ctx
+    }
+
+    private fun commandCtx(exec: TaskExecution = _taskExecution.value!!): V2InspectionCommandContext {
+        val base = commandContext
+            ?: error("V2InspectionEngineViewModel: commandContext 未绑定")
+        return base.copy(execution = exec)
+    }
+
+    fun loadTask(taskId: Long) {
+        viewModelScope.launch { prepareInspectionTask(taskId) }
+    }
+
+    /** V2 检测页：加载任务并等待 [taskExecution] 就绪（供应用 P8/P11 后再下发指令）。 */
+    suspend fun prepareInspectionTask(taskId: Long) {
+        withContext(Dispatchers.Main) {
+            if (vcpManager == null) scanAndConnect2()
         }
+        val task = taskRepository.getTaskById(taskId) ?: return
+        EngineLog.d(TAG, "prepareInspectionTask: id=$taskId, lpc=${task.configItemIds.size}")
+        withContext(Dispatchers.Main) { _task.value = task }
+        resetAllTaskExecutionsStatus(taskId, task.configItemIds.size)
+        currentGearRatioIndex = 0
+        loadTaskExecutionBlocking(taskId, currentGearRatioIndex)
+    }
+
+    suspend fun switchToTaskAndWait(index: Int) {
+        val task = withContext(Dispatchers.Main) { _task.value } ?: return
+        if (index < 0 || index >= task.configItemIds.size) return
+        EngineLog.i(TAG, "switchToTaskAndWait: gearIndex=$index (from=$currentGearRatioIndex)")
+        if (!stopCurrentTaskMotionBeforeSwitch()) {
+            EngineLog.w(TAG, "switchToTaskAndWait: 停止当前运动失败，取消切换")
+            return
+        }
+        val latest = withContext(Dispatchers.Main) { _taskExecution.value }
+        if (latest != null) {
+            taskRepository.insertOrUpdateTaskExecution(latest)
+        }
+        currentGearRatioIndex = index
+        loadTaskExecutionBlocking(task.id, currentGearRatioIndex)
     }
 
     private fun scanAndConnect2() {
@@ -321,45 +351,53 @@ class V2InspectionEngineViewModel(
     }
 
     private fun loadTaskExecution(taskId: Long, configItemIndex: Int) {
-        viewModelScope.launch {
-            val task = _task.value ?: return@launch
+        viewModelScope.launch { loadTaskExecutionBlocking(taskId, configItemIndex) }
+    }
 
-            // 加载或创建该子任务的执行记录
-            var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex)
-            if (execution == null) {
-                val previousExecution = if (configItemIndex > 0) {
-                    taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex - 1)
-                } else {
-                    null
-                }
+    private suspend fun loadTaskExecutionBlocking(taskId: Long, configItemIndex: Int) {
+        val task = withContext(Dispatchers.Main) { _task.value }
+            ?: taskRepository.getTaskById(taskId)
+            ?: return
 
-                execution = TaskExecution(
-                    taskId = taskId,
-                    gearRatioIndex = configItemIndex,
-                    speed = previousExecution?.speed ?: DEFAULT_SPEED_SEC_PER_REV,
-                    speedStep = previousExecution?.speedStep ?: DEFAULT_SPEED_STEP_SEC,
-                    continuousCycles = previousExecution?.continuousCycles ?: 1,
-                    jogInterval = previousExecution?.jogInterval ?: 1,
-                    playbackSpeed = previousExecution?.playbackSpeed
-                        ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
-                )
-                taskRepository.insertOrUpdateTaskExecution(execution)
+        var execution = taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex)
+        if (execution == null) {
+            val previousExecution = if (configItemIndex > 0) {
+                taskRepository.getTaskExecutionByTaskIdAndIndex(taskId, configItemIndex - 1)
+            } else {
+                null
             }
-            _taskExecution.value = execution
-            EngineLog.i(
-                TAG,
-                "loadTaskExecution: taskId=$taskId gearIndex=$configItemIndex status=${execution.status} mode=${execution.operationMode} speedSec=${execution.speed}"
+            execution = TaskExecution(
+                taskId = taskId,
+                gearRatioIndex = configItemIndex,
+                speed = previousExecution?.speed ?: DEFAULT_SPEED_SEC_PER_REV,
+                speedStep = previousExecution?.speedStep ?: DEFAULT_SPEED_STEP_SEC,
+                continuousCycles = previousExecution?.continuousCycles ?: 1,
+                jogInterval = previousExecution?.jogInterval ?: 1,
+                playbackSpeed = previousExecution?.playbackSpeed
+                    ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV,
             )
-
-            // 加载当前配置项
-            loadCurrentConfigItem(task, configItemIndex)
-
-            // 更新任务索引显示
-            updateTaskIndex(task, configItemIndex)
-
-            // 加载记录列表
-            loadTaskRecords(taskId, configItemIndex)
+            taskRepository.insertOrUpdateTaskExecution(execution)
         }
+
+        val model = engineRepository.getModelWithConfigItemsById(task.modelId)
+        val configItem = if (model != null && configItemIndex < task.configItemIds.size) {
+            val configItemId = task.configItemIds[configItemIndex]
+            model.configItems.find { it.id == configItemId }
+        } else {
+            null
+        }
+        val records = taskRepository.getTaskRecordsByTaskIdAndIndex(taskId, configItemIndex)
+
+        withContext(Dispatchers.Main) {
+            _taskExecution.value = execution
+            _currentConfigItem.value = configItem
+            updateTaskIndex(task, configItemIndex)
+            _taskRecords.value = records
+        }
+        EngineLog.i(
+            TAG,
+            "loadTaskExecutionBlocking: taskId=$taskId gearIndex=$configItemIndex speedSec=${execution.speed} jogInt=${execution.jogInterval}",
+        )
     }
 
     private fun loadTaskRecords(taskId: Long, gearRatioIndex: Int) {
@@ -438,7 +476,7 @@ class V2InspectionEngineViewModel(
 
         val pending = exec.copy(status = TaskStatus.PAUSED)
         val reqs = withContext(Dispatchers.Main) {
-            requestsForCommand(EngineControlCommand.pause(n, p), pending)
+            requestsForCommand(EngineControlCommand.pause(n, p), commandCtx(pending))
         }
         if (reqs.isEmpty()) {
             EngineLog.w(TAG, "stopCurrentTaskMotionBeforeSwitch: 无 PAUSE CAN 请求")
@@ -502,7 +540,7 @@ class V2InspectionEngineViewModel(
             val n = modelName() ?: return@withContext null
             val p = position() ?: return@withContext null
             val pauseCmd = EngineControlCommand.pause(n, p)
-            val reqs = requestsForCommand(pauseCmd, cur)
+            val reqs = requestsForCommand(pauseCmd, commandCtx(cur))
             if (reqs.isEmpty()) null else reqs to cur.copy(status = TaskStatus.STOPPED)
         }
         if (bundle == null) {
@@ -592,7 +630,7 @@ class V2InspectionEngineViewModel(
             }
 
             val continuousCmd = EngineControlCommand.continuous(task.modelName, positionStr)
-            val moveRequests = requestsForCommand(continuousCmd, execForStart)
+            val moveRequests = requestsForCommand(continuousCmd, commandCtx(execForStart))
             if (moveRequests.isEmpty()) {
                 EngineLog.w(TAG, "startContinuousLoop: 无 CAN 请求")
                 return@launch
@@ -664,15 +702,17 @@ class V2InspectionEngineViewModel(
         jogJob?.cancel()
         jogJob = viewModelScope.launch(Dispatchers.IO) {
             val initialExec = _taskExecution.value ?: return@launch
+            val ctx = commandContext ?: return@launch
             val bladeCount = _currentConfigItem.value?.bladeCount ?: 10
             val validBladeCount = if (bladeCount > 0) bladeCount else 10
-            val targetSteps = initialExec.continuousCycles * validBladeCount
+            val cycles = V2InspectionCommandDispatcher.resolveJogCycles(ctx)
+            val targetSteps = cycles * validBladeCount
             var stepCount = 0
             var runningPersisted = false
 
             EngineLog.i(
                 TAG,
-                "startJogLoop: taskId=${task.id} first=$first targetSteps=$targetSteps blades=$validBladeCount cycles=${initialExec.continuousCycles}"
+                "startJogLoop: taskId=${task.id} first=$first targetSteps=$targetSteps blades=$validBladeCount cycles=$cycles"
             )
 
             while (isActive) {
@@ -686,7 +726,7 @@ class V2InspectionEngineViewModel(
                         val n = modelName() ?: return@withContext null
                         val p = position() ?: return@withContext null
                         val pauseCmd = EngineControlCommand.pause(n, p)
-                        val reqs = requestsForCommand(pauseCmd, cur)
+                        val reqs = requestsForCommand(pauseCmd, commandCtx(cur))
                         if (reqs.isEmpty()) null else reqs to cur.copy(status = TaskStatus.STOPPED)
                     }
                     if (bundle != null) {
@@ -703,14 +743,18 @@ class V2InspectionEngineViewModel(
                     break
                 }
 
-                val onceRotate = 360.0 / validBladeCount
+                val onceRotate = if (ctx.uiMode == com.devicecontrol.engine.v2.viewmodel.V2UiOperationMode.AUTO) {
+                    V2InspectionCommandDispatcher.resolveJogStepDegrees(ctx)
+                } else {
+                    360.0 / validBladeCount
+                }
                 val gearRatio = getRealGearRatio()
 
                 val isForward = currentExec.rotationDirection == RotationDirection.FORWARD
                 val signedDegrees = if (isForward) onceRotate else -onceRotate
                 val relativePulses =
                     ((signedDegrees / 360.0) * encoderResolution * gearRatio).toInt()
-                val speedSec = currentExec.speed
+                val speedSec = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(commandCtx(currentExec))
                 val pbVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
 
                 val requests = CANOpenHelper.startRelativePositionMode(
@@ -746,7 +790,8 @@ class V2InspectionEngineViewModel(
                 }
 
                 stepCount++
-                delay(currentExec.jogInterval * 1000L)
+                val holdSec = V2InspectionCommandDispatcher.resolveJogHoldSec(commandCtx(currentExec))
+                delay(holdSec * 1000L)
             }
         }
     }
@@ -812,10 +857,6 @@ class V2InspectionEngineViewModel(
         applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.CONTINUOUS) }
     }
 
-    fun applyExecutionFromV2(update: (TaskExecution) -> TaskExecution) {
-        updateExecution(update)
-    }
-
     fun isSlcanReady(): Boolean = slcanManager?.state == SlcanManager.State.READY
 
     fun deleteRecord(record: TaskRecord) {
@@ -828,23 +869,28 @@ class V2InspectionEngineViewModel(
 
     fun increaseSpeed() {
         val execution = _taskExecution.value ?: return
-        val step = execution.speedStep
-        val newSpeed = (execution.speed - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
-        EngineLog.d(TAG, "increaseSpeed: ${execution.speed}s -> ${newSpeed}s per rev")
-        val pending = execution.copy(speed = newSpeed)
+        val ctx = commandContext ?: return
+        val current = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx)
+        val step = V2InspectionCommandDispatcher.resolveSpeedStepSecPerRev(ctx)
+        val newSpeed = (current - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
+        EngineLog.d(TAG, "increaseSpeed: ${current}s -> ${newSpeed}s per rev")
+        commandContext = ctx.copy(speedSecOverride = newSpeed)
         val n = modelName() ?: return
         val p = position() ?: return
-        sendCommandThenPersist(EngineControlCommand.speedPlus(n, p), pending)
+        sendCommandThenPersist(EngineControlCommand.speedPlus(n, p), execution)
     }
 
     fun decreaseSpeed() {
         val execution = _taskExecution.value ?: return
-        val newSpeed = execution.speed + execution.speedStep
-        EngineLog.d(TAG, "decreaseSpeed: ${execution.speed}s -> ${newSpeed}s per rev")
-        val pending = execution.copy(speed = newSpeed)
+        val ctx = commandContext ?: return
+        val current = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx)
+        val step = V2InspectionCommandDispatcher.resolveSpeedStepSecPerRev(ctx)
+        val newSpeed = current + step
+        EngineLog.d(TAG, "decreaseSpeed: ${current}s -> ${newSpeed}s per rev")
+        commandContext = ctx.copy(speedSecOverride = newSpeed)
         val n = modelName() ?: return
         val p = position() ?: return
-        sendCommandThenPersist(EngineControlCommand.speedMinus(n, p), pending)
+        sendCommandThenPersist(EngineControlCommand.speedMinus(n, p), execution)
     }
 
     /**
@@ -931,7 +977,9 @@ class V2InspectionEngineViewModel(
             TAG,
             "playbackRecord: recordId=${record.recordId} angle=${record.angleDegrees}° pulses将按当前减速比换算"
         )
-        val pbSpeed = execution()?.playbackSpeed ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
+        val pbSpeed = commandContext?.let { V2InspectionCommandDispatcher.resolvePlaybackSpeedSecPerRev(it) }
+            ?: execution()?.playbackSpeed
+            ?: TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV
         val gearRatio = getRealGearRatio()
         // 回查速度同为秒/圈，与主运行速度使用同一换算（耗时越短 → 下发速度越大）
         val pbVelocity = canVelocityFromSecPerRev(pbSpeed, gearRatio)
@@ -984,24 +1032,10 @@ class V2InspectionEngineViewModel(
     }
 
     /**
-     * 按逻辑指令字符串与期望的执行快照，构建 CAN 写序列（速度/方向取自 [exec]）。
+     * 按逻辑指令与 [V2InspectionCommandContext] 构建 CAN 写序列（配置实体由 Dispatcher 读取）。
      */
-    private fun requestsForCommand(cmd: String, exec: TaskExecution): List<SlcanRequest> {
-        val speedSec = exec.speed.coerceAtLeast(MIN_SPEED_SEC_PER_REV)
-        val gearRatio = getRealGearRatio()
-        val canVelocity = canVelocityFromSecPerRev(speedSec, gearRatio)
-        val isForward = exec.rotationDirection == RotationDirection.FORWARD
-        val signedVelocity = if (isForward) canVelocity else -canVelocity
-        return when {
-            cmd.startsWith("START") -> CANOpenHelper.startSpeedMode(signedVelocity)
-            cmd.startsWith("PAUSE") -> CANOpenHelper.stop()
-            cmd.startsWith("CONTINUOUS") -> CANOpenHelper.startSpeedMode(signedVelocity)
-            cmd.startsWith("SPEED_") -> CANOpenHelper.changeVelocity(signedVelocity)
-            cmd.startsWith("FORWARD") -> CANOpenHelper.reverseDirection(signedVelocity)
-            cmd.startsWith("REVERSE") -> CANOpenHelper.reverseDirection(signedVelocity)
-            else -> emptyList()
-        }
-    }
+    private fun requestsForCommand(cmd: String, ctx: V2InspectionCommandContext): List<SlcanRequest> =
+        V2InspectionCommandDispatcher.buildRequests(cmd, ctx, getRealGearRatio())
 
     /**
      * 先下发 CAN，**仅成功时** 将 [executionAfterSuccess] 落库并刷新 LiveData；失败则提示且不修改数据库。
@@ -1011,7 +1045,7 @@ class V2InspectionEngineViewModel(
         executionAfterSuccess: TaskExecution,
         onSuccess: () -> Unit = {}
     ) {
-        val requests = requestsForCommand(cmd, executionAfterSuccess)
+        val requests = requestsForCommand(cmd, commandCtx(executionAfterSuccess))
         if (requests.isEmpty()) {
             EngineLog.d(TAG, "sendCommandThenPersist: 未映射 CAN 指令, $cmd")
             return

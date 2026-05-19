@@ -12,13 +12,16 @@ import com.devicecontrol.engine.data.model.OperationMode
 import com.devicecontrol.engine.data.model.RotationDirection
 import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
+import com.devicecontrol.engine.data.model.V2AutoInspectionConfig
+import com.devicecontrol.engine.data.model.V2ManualInspectionConfig
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.data.V2InspectionRepository
+import com.devicecontrol.engine.v2.inspection.V2InspectionCommandContext
+import com.devicecontrol.engine.v2.inspection.V2InspectionCommandDispatcher
 import com.devicecontrol.engine.v2.inspection.V2InspectionEngineViewModel
 import com.devicecontrol.engine.v2.inspection.V2InspectionSession
-import com.devicecontrol.engine.v2.inspection.V2ModeSettingsMapper
 import com.devicecontrol.engine.v2.log.V2Log
 import com.devicecontrol.engine.v2.model.V2RecordRowUi
 import kotlinx.coroutines.launch
@@ -45,6 +48,8 @@ class V2InspectionControlViewModel(
     private var modelId: Long = 0
     private var engineModel: EngineModel? = null
     private var configItems: List<ConfigItem> = emptyList()
+    private var autoConfig: V2AutoInspectionConfig = V2AutoInspectionConfig.defaults(0)
+    private var manualConfig: V2ManualInspectionConfig = V2ManualInspectionConfig.defaults(0)
 
     private val _engineModelName = MutableLiveData("")
     val engineModelName: LiveData<String> = _engineModelName
@@ -85,9 +90,13 @@ class V2InspectionControlViewModel(
     private val taskObservers = MediatorLiveData<Unit>().apply {
         addSource(engine.taskExecution) { exec ->
             _isRunning.value = exec?.status == TaskStatus.RUNNING
+            syncCommandContext()
             refreshDerivedUi()
         }
-        addSource(engine.currentConfigItem) { refreshDerivedUi() }
+        addSource(engine.currentConfigItem) {
+            syncCommandContext()
+            refreshDerivedUi()
+        }
         addSource(engine.taskRecords) { list ->
             val label = engine.currentConfigItem.value?.position.orEmpty()
             _records.value = list.map { record ->
@@ -125,13 +134,30 @@ class V2InspectionControlViewModel(
             }
             engineModel = loaded.model
             configItems = loaded.configItems
+            autoConfig = inspectionRepository.getOrCreateAutoConfig(modelId)
+            manualConfig = inspectionRepository.getOrCreateManualConfig(modelId)
+            _operationMode.value = inspectionRepository.getLastUiMode(modelId)
             _imagePath.value = loaded.model.imagePath
             _lpcPositions.value = loaded.configItems.map { it.position }
             _currentLpcIndex.value = 0
-            engine.loadTask(loaded.taskId)
+            engine.prepareInspectionTask(loaded.taskId)
+            syncCommandContext()
             _sessionReady.value = true
             refreshDerivedUi()
-            V2Log.i(TAG, "initInspection modelId=$modelId taskId=${loaded.taskId} lpc=${loaded.configItems.size}")
+            V2Log.i(
+                TAG,
+                "initInspection modelId=$modelId mode=${_operationMode.value} taskId=${loaded.taskId}",
+            )
+        }
+    }
+
+    fun reapplyModeSettings() {
+        if (modelId <= 0L || _sessionReady.value != true) return
+        viewModelScope.launch {
+            autoConfig = inspectionRepository.getOrCreateAutoConfig(modelId)
+            manualConfig = inspectionRepository.getOrCreateManualConfig(modelId)
+            syncCommandContext()
+            refreshDerivedUi()
         }
     }
 
@@ -140,7 +166,12 @@ class V2InspectionControlViewModel(
             engine.pause()
         }
         _operationMode.value = mode
-        V2Log.i(TAG, "setOperationMode=$mode")
+        viewModelScope.launch {
+            inspectionRepository.saveLastUiMode(modelId, mode)
+            syncCommandContext()
+            refreshDerivedUi()
+            V2Log.i(TAG, "setOperationMode=$mode saved")
+        }
     }
 
     fun configBladeCounts(): List<Int> = configItems.map { it.bladeCount }
@@ -148,26 +179,19 @@ class V2InspectionControlViewModel(
     fun setLpcIndex(index: Int) {
         if (index < 0 || index >= configItems.size) return
         _currentLpcIndex.value = index
-        engine.switchToTask(index)
+        viewModelScope.launch {
+            engine.switchToTaskAndWait(index)
+            syncCommandContext()
+        }
     }
 
     fun onStart() {
         if (!canOperate()) return
         viewModelScope.launch {
-            val exec = engine.taskExecution.value ?: return@launch
-            val manual = _operationMode.value == V2UiOperationMode.MANUAL
-            val defaults = if (manual) {
-                V2ModeSettingsViewModel.defaultManualFields()
-            } else {
-                V2ModeSettingsViewModel.defaultAutoFields()
+            syncCommandContext()
+            if (_operationMode.value == V2UiOperationMode.AUTO) {
+                engine.setOperationModeJogOnly()
             }
-            val snapshot = inspectionRepository.loadModeSettings(modelId, manual, defaults)
-            val updated = if (manual) {
-                V2ModeSettingsMapper.applyManualToExecution(snapshot, exec)
-            } else {
-                V2ModeSettingsMapper.applyAutoToExecution(snapshot, exec)
-            }
-            engine.applyExecutionFromV2 { updated }
             engine.start(first = true)
         }
     }
@@ -184,17 +208,20 @@ class V2InspectionControlViewModel(
         if (_isRunning.value == true && _operationMode.value == V2UiOperationMode.AUTO) {
             if (action !in AUTO_ALLOWED_WHILE_RUNNING) return
         }
-        when (action) {
-            "FORWARD" -> engine.setForward()
-            "REVERSE" -> engine.setReverse()
-            "ACCEL" -> engine.increaseSpeed()
-            "DECEL" -> engine.decreaseSpeed()
-            "CONTINUOUS" -> engine.setOperationModeContinuousOnly()
-            "JOG" -> engine.setOperationModeJogOnly()
-            "AUTO_PHOTO" -> engine.takePhoto()
-            "BACKLASH", "BACKLASH_ON_RETURN" -> V2Log.i(TAG, "controlAction=$action (stub)")
-            "RECORD" -> addRecord()
-            else -> V2Log.i(TAG, "controlAction=$action")
+        viewModelScope.launch {
+            syncCommandContext()
+            when (action) {
+                "FORWARD" -> engine.setForward()
+                "REVERSE" -> engine.setReverse()
+                "ACCEL" -> engine.increaseSpeed()
+                "DECEL" -> engine.decreaseSpeed()
+                "CONTINUOUS" -> engine.setOperationModeContinuousOnly()
+                "JOG" -> engine.setOperationModeJogOnly()
+                "AUTO_PHOTO" -> engine.takePhoto()
+                "BACKLASH", "BACKLASH_ON_RETURN" -> V2Log.i(TAG, "controlAction=$action (stub)")
+                "RECORD" -> addRecord()
+                else -> V2Log.i(TAG, "controlAction=$action")
+            }
         }
     }
 
@@ -203,6 +230,7 @@ class V2InspectionControlViewModel(
             _errorMessage.value = "未连接到设备"
             return
         }
+        syncCommandContext()
         engine.playbackRecord(record)
     }
 
@@ -216,6 +244,24 @@ class V2InspectionControlViewModel(
 
     fun destroySession() {
         engine.destroy()
+    }
+
+    private fun syncCommandContext() {
+        val exec = engine.taskExecution.value ?: return
+        engine.bindCommandContext(buildCommandContext(exec))
+    }
+
+    private fun buildCommandContext(exec: com.devicecontrol.engine.data.model.TaskExecution): V2InspectionCommandContext {
+        val mode = _operationMode.value ?: V2UiOperationMode.AUTO
+        return V2InspectionCommandContext(
+            uiMode = mode,
+            autoConfig = autoConfig,
+            manualConfig = manualConfig,
+            execution = exec,
+            configItem = engine.currentConfigItem.value,
+            modelName = engineModel?.name ?: _engineModelName.value,
+            position = engine.currentConfigItem.value?.position,
+        )
     }
 
     private fun addRecord() {
@@ -255,9 +301,7 @@ class V2InspectionControlViewModel(
         if (model != null && config != null) {
             _engineParamsText.value = buildEngineParams(model, config, exec)
         }
-        if (exec != null) {
-            _statusBarText.value = buildStatusBar(exec)
-        }
+        exec?.let { _statusBarText.value = buildStatusBar(it) }
     }
 
     private fun buildEngineParams(
@@ -265,26 +309,41 @@ class V2InspectionControlViewModel(
         config: ConfigItem,
         exec: com.devicecontrol.engine.data.model.TaskExecution?,
     ): String = buildString {
+        val mode = _operationMode.value ?: V2UiOperationMode.AUTO
+        appendLine("模式: ${if (mode == V2UiOperationMode.AUTO) "自动(P8)" else "手动(P11)"}")
         appendLine("安全扭矩: ${model.safeTorque.ifBlank { "—" }}")
         appendLine("叶片数: ${config.bladeCount}")
         appendLine("变速比: ${config.gearRatio}")
         appendLine("位置: ${config.position}")
         if (exec != null) {
-            appendLine("当前速度: ${formatSecPerRev(exec.speed)}")
-            appendLine("设定速度: ${formatSecPerRev(exec.speed)}")
+            val ctx = buildCommandContext(exec)
+            val speedSec = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx)
+            appendLine("设定速度: ${formatSecPerRev(speedSec)}")
+            if (mode == V2UiOperationMode.AUTO) {
+                appendLine("点动角度: ${autoConfig.autoJogAngle.toInt()}°")
+                appendLine("基础速度: ${autoConfig.baseJogSpeed.toInt()}°/分钟")
+                appendLine("停滞: ${autoConfig.jogHoldSec.toInt()} S")
+                appendLine("多转数: ${autoConfig.autoTurns.toInt()} 片")
+            } else {
+                appendLine("调速步进: ${formatSecPerRev(V2InspectionCommandDispatcher.resolveSpeedStepSecPerRev(ctx))}")
+            }
             appendLine("运行状态: ${exec.status}")
             appendLine("方向: ${if (exec.rotationDirection == RotationDirection.FORWARD) "正转" else "反转"}")
         }
     }
 
     private fun buildStatusBar(exec: com.devicecontrol.engine.data.model.TaskExecution): String {
-        val modeLabel = when (exec.operationMode) {
-            OperationMode.JOG -> "点动"
-            OperationMode.CONTINUOUS -> "连续"
+        val modeLabel = when (_operationMode.value) {
+            V2UiOperationMode.MANUAL -> when (exec.operationMode) {
+                OperationMode.JOG -> "手动·点动"
+                OperationMode.CONTINUOUS -> "手动·连续"
+            }
+            else -> "自动·点动"
         }
+        val ctx = buildCommandContext(exec)
+        val minPerRev = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx) / 60.0
         val dir = if (exec.rotationDirection == RotationDirection.FORWARD) "正转" else "反转"
-        val minPerRev = exec.speed / 60.0
-        return "${modeLabel} ${"%.1f".format(minPerRev)}分钟/圈 $dir"
+        return "$modeLabel ${"%.1f".format(minPerRev)}分钟/圈 $dir"
     }
 
     private fun formatSecPerRev(sec: Double): String {

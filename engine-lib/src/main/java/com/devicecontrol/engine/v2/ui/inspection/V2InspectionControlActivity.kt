@@ -41,6 +41,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     private lateinit var contentRoot: View
     private var bladeCounts: List<Int> = emptyList()
     private var suppressLpcSelection = false
+    private var suppressModeSelection = false
 
     override fun contentLayoutId(): Int = R.layout.content_v2_inspection_control
 
@@ -98,6 +99,10 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         }
         viewModel.operationMode.observe(this) { mode ->
             applyOperationModeUi(root, mode)
+            val spinner = root.findViewById<Spinner>(R.id.spinnerMode)
+            suppressModeSelection = true
+            spinner.setSelection(if (mode == V2UiOperationMode.AUTO) 0 else 1, false)
+            suppressModeSelection = false
         }
         viewModel.isRunning.observe(this) { running ->
             updateControlEnabled(root, running)
@@ -125,6 +130,12 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         root.findViewById<View>(R.id.btnBacklashOnReturn).setOnClickListener {
             viewModel.onControlAction("BACKLASH_ON_RETURN")
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 从 P8/P11 设置页返回后，重新加载当前模式的 Room 配置
+        viewModel.reapplyModeSettings()
     }
 
     override fun onDestroy() {
@@ -204,9 +215,9 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         val spinner = root.findViewById<Spinner>(R.id.spinnerMode)
         val labels = listOf(getString(R.string.v2_auto_mode), getString(R.string.v2_manual_mode))
         spinner.adapter = buildSpinnerAdapter(labels)
-        spinner.setSelection(0, false)
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (suppressModeSelection) return
                 val mode = if (position == 0) V2UiOperationMode.AUTO else V2UiOperationMode.MANUAL
                 viewModel.setOperationMode(mode)
             }

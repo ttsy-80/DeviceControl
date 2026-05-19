@@ -10,14 +10,10 @@ object V2InspectionRepositoryProvider {
 
     fun get(context: Context): V2InspectionRepository {
         return repository ?: synchronized(this) {
-            repository ?: run {
-                val app = context.applicationContext
-                val db = AppDatabase.getDatabase(app)
-                V2InspectionRepository(
-                    TaskRepositoryProvider.get(app),
-                    db.v2ModeSettingDao(),
-                ).also { repository = it }
-            }
+            repository ?: V2InspectionRepository(
+                TaskRepositoryProvider.get(context.applicationContext),
+                AppDatabase.getDatabase(context.applicationContext).v2InspectionConfigDao(),
+            ).also { repository = it }
         }
     }
 }

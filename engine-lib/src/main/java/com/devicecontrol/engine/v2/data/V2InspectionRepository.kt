@@ -1,19 +1,20 @@
 package com.devicecontrol.engine.v2.data
 
-import com.devicecontrol.engine.data.database.dao.V2ModeSettingDao
+import com.devicecontrol.engine.data.database.dao.V2InspectionConfigDao
 import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
-import com.devicecontrol.engine.data.model.V2ModeSetting
+import com.devicecontrol.engine.data.model.V2AutoInspectionConfig
+import com.devicecontrol.engine.data.model.V2InspectionPrefs
+import com.devicecontrol.engine.data.model.V2ManualInspectionConfig
 import com.devicecontrol.engine.data.repository.TaskRepository
-import com.devicecontrol.engine.v2.inspection.V2ModeSettingsSnapshot
-import com.devicecontrol.engine.v2.viewmodel.V2StepperFieldUi
+import com.devicecontrol.engine.v2.viewmodel.V2UiOperationMode
 
 /**
- * V2 检测页数据：隐式任务、P8/P11 模式参数（Room）。
+ * V2 检测页：隐式任务、自动/手动配置实体、上次 UI 模式。
  */
 class V2InspectionRepository(
     private val taskRepository: TaskRepository,
-    private val modeSettingDao: V2ModeSettingDao,
+    private val configDao: V2InspectionConfigDao,
 ) {
 
     suspend fun findOrCreateV2InspectionTask(
@@ -38,64 +39,59 @@ class V2InspectionRepository(
                 source = SOURCE_V2_INSPECTION,
             ),
         )
-        applyPreviousTaskConfigurations(modelId, taskId, configItemCount)
+        applyInitialExecutions(taskId, configItemCount)
         return taskId
     }
 
-    suspend fun loadModeSettings(
-        modelId: Long,
-        manual: Boolean,
-        defaults: List<V2StepperFieldUi>,
-    ): V2ModeSettingsSnapshot {
-        if (modelId <= 0L) {
-            return V2ModeSettingsSnapshot(defaults.associate { it.key to it.value })
+    suspend fun getOrCreateAutoConfig(modelId: Long): V2AutoInspectionConfig {
+        val raw = configDao.getAutoConfig(modelId)
+        if (raw != null) {
+            val clamped = raw.clamped()
+            if (clamped != raw) {
+                configDao.upsertAutoConfig(clamped)
+            }
+            return clamped
         }
-        val stored = modeSettingDao.getByModel(modelId, manual).associate { it.settingKey to it.value }
-        val map = defaults.associate { field ->
-            field.key to (stored[field.key] ?: field.value)
-        }
-        return V2ModeSettingsSnapshot(map)
+        val defaults = V2AutoInspectionConfig.defaults(modelId)
+        configDao.upsertAutoConfig(defaults)
+        return defaults
     }
 
-    suspend fun saveModeSettings(
-        modelId: Long,
-        manual: Boolean,
-        fields: List<V2StepperFieldUi>,
-    ) {
-        if (modelId <= 0L) return
-        modeSettingDao.deleteByModel(modelId, manual)
-        modeSettingDao.upsertAll(
-            fields.map { field ->
-                V2ModeSetting(
-                    modelId = modelId,
-                    manual = manual,
-                    settingKey = field.key,
-                    value = field.value,
-                )
-            },
-        )
+    suspend fun getOrCreateManualConfig(modelId: Long): V2ManualInspectionConfig {
+        val stored = configDao.getManualConfig(modelId)
+        if (stored != null) return stored
+        val defaults = V2ManualInspectionConfig.defaults(modelId)
+        configDao.upsertManualConfig(defaults)
+        return defaults
     }
 
-    private suspend fun applyPreviousTaskConfigurations(
-        modelId: Long,
-        newTaskId: Long,
-        configItemCount: Int,
-    ) {
-        val previousExecution = taskRepository.getLatestTaskExecutionByModelId(modelId, newTaskId)
+    suspend fun saveAutoConfig(config: V2AutoInspectionConfig) {
+        configDao.upsertAutoConfig(config.clamped())
+    }
+
+    suspend fun saveManualConfig(config: V2ManualInspectionConfig) {
+        configDao.upsertManualConfig(config)
+    }
+
+    suspend fun getLastUiMode(modelId: Long): V2UiOperationMode {
+        val prefs = configDao.getPrefs(modelId) ?: return V2UiOperationMode.AUTO
+        return when (prefs.lastUiMode) {
+            V2InspectionPrefs.MODE_MANUAL -> V2UiOperationMode.MANUAL
+            else -> V2UiOperationMode.AUTO
+        }
+    }
+
+    suspend fun saveLastUiMode(modelId: Long, mode: V2UiOperationMode) {
+        val code = when (mode) {
+            V2UiOperationMode.AUTO -> V2InspectionPrefs.MODE_AUTO
+            V2UiOperationMode.MANUAL -> V2InspectionPrefs.MODE_MANUAL
+        }
+        configDao.upsertPrefs(V2InspectionPrefs(modelId = modelId, lastUiMode = code))
+    }
+
+    private suspend fun applyInitialExecutions(newTaskId: Long, configItemCount: Int) {
         for (index in 0 until configItemCount) {
-            val execution = if (previousExecution != null) {
-                TaskExecution(
-                    taskId = newTaskId,
-                    gearRatioIndex = index,
-                    speed = previousExecution.speed,
-                    speedStep = previousExecution.speedStep,
-                    continuousCycles = previousExecution.continuousCycles,
-                    jogInterval = previousExecution.jogInterval,
-                    playbackSpeed = previousExecution.playbackSpeed,
-                    operationMode = previousExecution.operationMode,
-                    rotationDirection = previousExecution.rotationDirection,
-                )
-            } else {
+            taskRepository.insertOrUpdateTaskExecution(
                 TaskExecution(
                     taskId = newTaskId,
                     gearRatioIndex = index,
@@ -104,9 +100,8 @@ class V2InspectionRepository(
                     continuousCycles = 1,
                     jogInterval = 1,
                     playbackSpeed = TaskExecution.DEFAULT_PLAYBACK_SEC_PER_REV,
-                )
-            }
-            taskRepository.insertOrUpdateTaskExecution(execution)
+                ),
+            )
         }
     }
 
