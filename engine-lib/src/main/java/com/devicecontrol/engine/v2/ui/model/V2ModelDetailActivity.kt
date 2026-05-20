@@ -3,6 +3,7 @@ package com.devicecontrol.engine.v2.ui.model
 import android.content.Intent
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -69,6 +70,7 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
 
         val btnEdit = contentRoot.findViewById<View>(R.id.btnDetailEdit)
         val btnSave = contentRoot.findViewById<View>(R.id.btnDetailSave)
+        val btnBack = contentRoot.findViewById<TextView>(R.id.btnDetailBack)
 
         viewModel.imagePath.observe(this) { path ->
             V2ModelEnginePanelBinder.bindEngineImage(panelRoot, path)
@@ -94,6 +96,9 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
             val editing = mode == V2ModelDetailPageMode.TABLE_EDIT
             btnEdit.visibility = if (editing) View.GONE else View.VISIBLE
             btnSave.visibility = if (editing) View.VISIBLE else View.GONE
+            btnBack.setText(
+                if (editing) getString(R.string.v2_cancel) else getString(R.string.v2_return),
+            )
         }
         viewModel.errorMessage.observe(this) { error ->
             error?.let {
@@ -124,7 +129,7 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
             }
         }
 
-        contentRoot.findViewById<View>(R.id.btnDetailBack).setOnClickListener {
+        btnBack.setOnClickListener {
             if (viewModel.pageMode.value == V2ModelDetailPageMode.TABLE_EDIT) {
                 viewModel.exitTableEdit(save = false, tableRows = null)
             } else {

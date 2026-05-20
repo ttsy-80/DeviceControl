@@ -226,14 +226,19 @@ object V2ModelEnginePanelBinder {
         et.isFocusable = field.editable
         et.isFocusableInTouchMode = field.editable
         et.isClickable = field.editable
-        val cellEditBg = R.drawable.bg_v2_detail_table_cell_edit
-        val cellPadV = row.context.resources.getDimensionPixelSize(R.dimen.v2_detail_table_cell_edit_pad_v)
-        val cellMinH = row.context.resources.getDimensionPixelSize(R.dimen.v2_detail_table_cell_edit_min_h)
         if (field.editable) {
             et.inputType = engineFieldInputType(field.key)
-            et.setBackgroundResource(cellEditBg)
-            et.setPadding(et.paddingLeft.coerceAtLeast(0), cellPadV, et.paddingRight.coerceAtLeast(0), cellPadV)
-            et.minHeight = cellMinH
+            et.setBackgroundResource(R.drawable.bg_v2_detail_table_cell_edit)
+            val res = row.context.resources
+            et.setPadding(
+                res.getDimensionPixelSize(R.dimen.v2_engine_field_edit_pad_start),
+                res.getDimensionPixelSize(R.dimen.v2_engine_field_edit_pad_v),
+                res.getDimensionPixelSize(R.dimen.v2_engine_field_edit_pad_end),
+                res.getDimensionPixelSize(R.dimen.v2_engine_field_edit_pad_v),
+            )
+            et.minHeight = 0
+            et.minLines = 1
+            et.maxLines = 1
         } else {
             et.inputType = InputType.TYPE_NULL
             et.background = null
