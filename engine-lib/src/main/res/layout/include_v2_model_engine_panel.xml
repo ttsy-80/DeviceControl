@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,7 +15,6 @@
             android:layout_height="match_parent"
             android:background="@drawable/bg_v2_engine_info_tab"
             android:gravity="center"
-            android:paddingHorizontal="10dp"
             android:text="@string/v2_engine_info"
             android:textColor="@color/v2_on_primary"
             android:textSize="13sp"
@@ -50,6 +48,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="14dp"
+            android:layout_marginBottom="20dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -90,7 +90,7 @@
                         android:layout_height="52dp"
                         android:contentDescription="@null"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_v2_import_image"
+                        android:src="@drawable/ic_v2_import_img"
                         app:tint="@color/v2_on_primary" />
 
                     <TextView

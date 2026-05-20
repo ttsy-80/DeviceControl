@@ -3,70 +3,90 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/v2_inspection_page_bg"
-    android:orientation="vertical"
-    android:padding="8dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="14dp"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- 左：引擎信息 -->
+        <!-- 左：引擎信息（圆角灰底） -->
         <FrameLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="32"
-            android:background="@drawable/bg_v2_panel_grey"
-            android:elevation="2dp">
+            android:layout_weight="1"
+            android:layout_marginStart="28dp"
+            android:layout_marginBottom="28dp"
+            android:background="@drawable/bg_v2_panel_grey">
 
             <include
                 android:id="@+id/includeEnginePanel"
                 layout="@layout/include_v2_model_engine_panel" />
         </FrameLayout>
 
-        <!-- 右：编辑详情 + 底部按钮 -->
+        <!-- 右：圆角灰底编辑详情 + 下方添加/返回（无背景） -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="8dp"
-            android:layout_weight="68"
-            android:background="@drawable/bg_v2_panel_grey"
-            android:elevation="2dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginEnd="28dp"
+            android:layout_weight="1.5"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@color/v2_primary"
-                android:gravity="center"
-                android:text="@string/v2_edit_detail"
-                android:textColor="@color/v2_on_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <FrameLayout
+            <!-- 编辑详情：圆角灰色面板（标题 + 表格） -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_margin="10dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_v2_model_add_table">
+                android:orientation="vertical">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvAddDetailRows"
+                <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:fadeScrollbars="false"
-                    android:overScrollMode="ifContentScrolls"
-                    android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
-                    android:scrollbarStyle="insideOverlay"
-                    android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
-                    android:scrollbarTrackVertical="@drawable/bg_v2_scrollbar_track"
-                    android:scrollbars="vertical" />
-            </FrameLayout>
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_v2_edit_detail_header"
+                    android:gravity="start|center_vertical"
+                    android:text="@string/v2_edit_detail"
+                    android:paddingStart="14dp"
+                    android:textColor="@color/v2_on_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    app:cardCornerRadius="@dimen/v2_inspection_panel_radius"
+                    android:background="@drawable/bg_v2_panel_grey2"
+                    android:padding="10dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_v2_model_add_table"
+                        android:padding="1dp">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvAddDetailRows"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/v2_surface"
+                            android:clipToPadding="true"
+                            android:fadeScrollbars="false"
+                            android:overScrollMode="ifContentScrolls"
+                            android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
+                            android:scrollbarStyle="outsideOverlay"
+                            android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
+                            android:scrollbarTrackVertical="@drawable/bg_v2_scrollbar_track"
+                            android:scrollbars="vertical" />
+                    </FrameLayout>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 添加 / 返回：透明底，露出页面背景 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,6 +120,36 @@
                     android:text="@string/v2_return"
                     android:textColor="@color/v2_on_primary"
                     android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginBottom="2dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvV2CompanyCn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/v2_company_cn"
+                    android:alpha="0.3"
+                    android:textColor="@color/v2_primary"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvV2CompanyEn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:alpha="0.3"
+                    android:fontFamily="serif"
+                    android:text="@string/v2_company_en"
+                    android:textColor="@color/v2_primary"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>

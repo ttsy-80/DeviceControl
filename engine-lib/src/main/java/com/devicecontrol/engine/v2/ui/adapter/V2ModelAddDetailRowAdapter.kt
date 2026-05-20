@@ -47,50 +47,52 @@ class V2ModelAddDetailRowAdapter(
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        holder.bind(items[position], position)
+        holder.bind(items[position])
     }
 
     class Holder(
-        itemView: android.view.View,
+        itemView: View,
         private val onValueChanged: (String, String) -> Unit,
     ) : RecyclerView.ViewHolder(itemView) {
         private val tvLabel: TextView = itemView.findViewById(R.id.tvDetailLabel)
+        private val ivLabelEdit: ImageView = itemView.findViewById(R.id.ivLabelEdit)
         private val etValue: EditText = itemView.findViewById(R.id.etDetailValue)
-        private val ivEdit: ImageView = itemView.findViewById(R.id.ivDetailEdit)
+        private val ivValueEdit: ImageView = itemView.findViewById(R.id.ivValueEdit)
 
-        fun bind(item: V2ModelAddDetailRowUi, position: Int) {
+        fun bind(item: V2ModelAddDetailRowUi) {
             val ctx = itemView.context
             val placeholder = item.key.startsWith("empty_")
             itemView.setTag(R.id.tag_v2_detail_row_key, item.key)
+
+            ivValueEdit.visibility = View.VISIBLE
+            ivValueEdit.isClickable = false
+            ivValueEdit.isFocusable = false
+
+            if (placeholder) {
+                tvLabel.visibility = View.GONE
+                ivLabelEdit.visibility = View.VISIBLE
+
+                etValue.visibility = View.GONE
+                return
+            }
+
+            tvLabel.visibility = View.VISIBLE
             tvLabel.text = item.label
-            tvLabel.visibility = if (item.label.isBlank()) View.INVISIBLE else View.VISIBLE
-            etValue.hint = if (placeholder) "" else detailFieldHint(ctx, item.key)
+            ivLabelEdit.visibility = View.GONE
+
+            etValue.visibility = View.VISIBLE
+            etValue.hint = detailFieldHint(ctx, item.key)
             etValue.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_hint))
             etValue.inputType = detailFieldInputType(item.key)
-            if (!placeholder) {
-                etValue.applyV2LandscapeIme()
-            }
             if (!etValue.isFocused) {
                 etValue.setTextKeepSelection(item.value)
             }
-            if (placeholder) {
-                etValue.isEnabled = false
-                etValue.isFocusable = false
-                etValue.isFocusableInTouchMode = false
-                etValue.isClickable = false
-                ivEdit.visibility = View.INVISIBLE
-                ivEdit.setOnClickListener(null)
-                itemView.isClickable = false
-                itemView.isFocusable = false
-            } else {
-                etValue.isEnabled = true
-                etValue.isFocusableInTouchMode = true
-                etValue.isClickable = true
-                ivEdit.visibility = View.VISIBLE
-                etValue.setV2FormTextWatcher { text -> onValueChanged(item.key, text) }
-                ivEdit.setOnClickListener { etValue.requestFocus() }
-                itemView.isClickable = true
-            }
+            etValue.isEnabled = true
+            etValue.isFocusableInTouchMode = true
+            etValue.applyV2LandscapeIme()
+            etValue.setV2FormTextWatcher { text -> onValueChanged(item.key, text) }
+            ivValueEdit.isClickable = true
+            ivValueEdit.setOnClickListener { etValue.requestFocus() }
         }
 
         fun currentValue(): String = etValue.text?.toString().orEmpty()

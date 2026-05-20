@@ -1,43 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- P14 编辑详情：左列标签 | 右列数值；横竖橙线用 1dp View，避免被单元格背景盖住 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_v2_table_row_bottom_line"
-    android:gravity="center_vertical"
-    android:minHeight="52dp"
-    android:orientation="horizontal"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="8dp">
+    android:baselineAligned="false"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvDetailLabel"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="@color/v2_text_primary"
-        android:textSize="15sp" />
+        android:baselineAligned="false"
+        android:minHeight="52dp"
+        android:orientation="horizontal">
 
-    <EditText
-        android:id="@+id/etDetailValue"
-        style="@style/V2EditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="@android:color/transparent"
-        android:gravity="center"
-        android:imeOptions="flagNoExtractUi|actionDone"
-        android:textColor="@color/v2_text_primary"
-        android:textColorHint="@color/v2_text_hint"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        <!-- 标签列 -->
+        <FrameLayout
+            android:id="@+id/cellLabel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v2_table_cell_label"
+            android:minHeight="52dp"
+            android:paddingEnd="@dimen/v2_model_add_table_cell_pad_end">
 
-    <ImageView
-        android:id="@+id/ivDetailEdit"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:layout_marginStart="8dp"
-        android:contentDescription="@null"
-        android:src="@drawable/ic_v2_edit_pencil"
-        app:tint="@color/v2_text_primary" />
+            <TextView
+                android:id="@+id/tvDetailLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textColor="@color/v2_text_primary"
+                android:textSize="15sp" />
+
+            <ImageView
+                android:id="@+id/ivLabelEdit"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center_vertical|end"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_v2_edit_pencil"
+                android:visibility="gone"
+                app:tint="@color/v2_text_primary" />
+        </FrameLayout>
+
+        <View
+            android:layout_width="@dimen/v2_model_add_table_divider"
+            android:layout_height="match_parent"
+            android:background="@color/v2_primary" />
+
+        <!-- 数值列：文字居中，编辑图标靠右 -->
+        <FrameLayout
+            android:id="@+id/cellValue"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v2_table_cell_value"
+            android:minHeight="52dp"
+            android:paddingEnd="@dimen/v2_model_add_table_cell_pad_end">
+
+            <EditText
+                android:id="@+id/etDetailValue"
+                style="@style/V2EditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="@dimen/v2_model_add_table_value_margin_end"
+                android:background="@android:color/transparent"
+                android:gravity="center"
+                android:imeOptions="flagNoExtractUi|actionDone"
+                android:textColor="@color/v2_text_primary"
+                android:textColorHint="@color/v2_text_hint"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivValueEdit"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center_vertical|end"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_v2_edit_pencil"
+                app:tint="@color/v2_text_primary" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/v2_model_add_table_divider"
+        android:background="@color/v2_primary" />
 </LinearLayout>

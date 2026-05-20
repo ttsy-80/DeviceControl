@@ -44,6 +44,10 @@ class V2ModelAddActivity : V2BaseShellActivity() {
     /** 稿面装饰用编辑图标，不响应点击 */
     override fun showShellTitleEdit(): Boolean = appendArgs == null
 
+    override fun showShellBottomBar(): Boolean {
+        return false
+    }
+
     override fun onContentCreated(contentRoot: View) {
         appendArgs = readAppendArgs(intent)
         if (appendArgs != null) {
