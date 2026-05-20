@@ -5,9 +5,15 @@ import android.content.Intent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.model.V2ModelAddDetailRowUi
 import com.devicecontrol.engine.v2.model.V2ModelAppendArgs
@@ -29,6 +35,27 @@ class V2ModelAddActivity : V2BaseShellActivity() {
     private lateinit var detailRowAdapter: V2ModelAddDetailRowAdapter
     private lateinit var rvAddDetailRows: RecyclerView
     private var appendArgs: V2ModelAppendArgs? = null
+
+    /** 系统相册/Photo Picker，无需存储权限 */
+    private val pickEngineImageLauncher = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            val path = withContext(Dispatchers.IO) {
+                V2EngineImageImporter.copyToAppStorage(this@V2ModelAddActivity, uri)
+            }
+            if (path != null) {
+                viewModel.setImagePath(path)
+            } else {
+                Toast.makeText(
+                    this@V2ModelAddActivity,
+                    R.string.v2_import_image_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
 
     override fun contentLayoutId(): Int = R.layout.content_v2_model_add
 
@@ -73,7 +100,7 @@ class V2ModelAddActivity : V2BaseShellActivity() {
         } else {
             V2ModelEnginePanelBinder.configureImageArea(panelRoot, showImport = true)
             panelRoot.findViewById<View>(R.id.btnImportImage).setOnClickListener {
-                Toast.makeText(this, R.string.v2_import_image, Toast.LENGTH_SHORT).show()
+                launchEngineImagePicker()
             }
             V2ModelEnginePanelBinder.setupAddEngineFields(engineFieldsContainer) { name ->
                 viewModel.updateModelNameTitle(name)
@@ -90,6 +117,9 @@ class V2ModelAddActivity : V2BaseShellActivity() {
             val title = name.takeIf { it.isNotBlank() }
                 ?: getString(R.string.v2_new_model_title)
             shellBinder.bindTitles(title, getString(R.string.v2_engine_model_subtitle))
+        }
+        viewModel.imagePath.observe(this) { path ->
+            V2ModelEnginePanelBinder.bindEngineImage(panelRoot, path)
         }
         viewModel.errorMessage.observe(this) { error ->
             error?.let {
@@ -122,6 +152,12 @@ class V2ModelAddActivity : V2BaseShellActivity() {
         V2ModelAddDetailRowUi("empty_2", "", ""),
         V2ModelAddDetailRowUi("empty_3", "", ""),
     )
+
+    private fun launchEngineImagePicker() {
+        pickEngineImageLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+        )
+    }
 
     private fun commitFormAndConfirm() {
         currentFocus?.clearFocus()

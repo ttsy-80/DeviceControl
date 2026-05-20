@@ -67,7 +67,7 @@ object V2ModelEnginePanelBinder {
         onModelNameChanged(modelName)
         configureImageArea(panelRoot, showImport = false)
         bindEngineImage(panelRoot, imagePath)
-        showModelNameStrip(panelRoot, modelName)
+//        showModelNameStrip(panelRoot, modelName)
     }
 
     fun showModelNameStrip(panelRoot: View, modelName: String) {

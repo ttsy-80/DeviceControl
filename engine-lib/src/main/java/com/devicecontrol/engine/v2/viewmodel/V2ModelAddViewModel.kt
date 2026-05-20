@@ -22,16 +22,26 @@ class V2ModelAddViewModel(
     private val _saveSuccess = MutableLiveData(false)
     val saveSuccess: LiveData<Boolean> = _saveSuccess
 
+    private val _imagePath = MutableLiveData<String?>(null)
+    val imagePath: LiveData<String?> = _imagePath
+
     private var appendArgs: V2ModelAppendArgs? = null
 
     fun initNewModel() {
         appendArgs = null
         _modelName.value = ""
+        _imagePath.value = null
+    }
+
+    fun setImagePath(path: String) {
+        if (appendArgs != null) return
+        _imagePath.value = path
     }
 
     fun initAppendConfig(args: V2ModelAppendArgs) {
         appendArgs = args
         _modelName.value = args.modelName
+        _imagePath.value = args.imagePath
     }
 
     fun isAppendMode(): Boolean = appendArgs != null
@@ -134,7 +144,7 @@ class V2ModelAddViewModel(
                 gearRatio = gearRatio,
                 position = positionTrimmed,
                 bladeCount = bladeCount,
-                imagePath = null,
+                imagePath = _imagePath.value?.takeIf { it.isNotBlank() },
             )
             V2Log.i(TAG, "confirm success modelId=$modelId name=$name")
             _saveSuccess.value = true

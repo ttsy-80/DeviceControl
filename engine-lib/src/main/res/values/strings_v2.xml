@@ -93,6 +93,7 @@
     <string name="v2_close_hint">关闭提示</string>
     <string name="v2_error_banner">ERROR</string>
     <string name="v2_import_image">导入图片</string>
+    <string name="v2_import_image_failed">图片导入失败，请重试</string>
     <string name="v2_edit_detail">编辑详情</string>
     <string name="v2_add">添加</string>
     <string name="v2_save">保存</string>
