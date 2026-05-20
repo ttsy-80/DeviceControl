@@ -70,9 +70,6 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
         val btnEdit = contentRoot.findViewById<View>(R.id.btnDetailEdit)
         val btnSave = contentRoot.findViewById<View>(R.id.btnDetailSave)
 
-        viewModel.modelName.observe(this) { model ->
-            shellBinder.bindTitles(model, getString(R.string.v2_engine_model_subtitle))
-        }
         viewModel.imagePath.observe(this) { path ->
             V2ModelEnginePanelBinder.bindEngineImage(panelRoot, path)
         }
@@ -82,7 +79,14 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
                 container = engineFieldsContainer,
                 fields = fields,
                 imagePath = viewModel.imagePath.value,
+                modelName = viewModel.modelName.value.orEmpty(),
             )
+        }
+        viewModel.modelName.observe(this) { name ->
+            shellBinder.bindTitles(name, getString(R.string.v2_engine_model_subtitle))
+            if (viewModel.pageMode.value != V2ModelDetailPageMode.TABLE_EDIT) {
+                V2ModelEnginePanelBinder.showModelNameStrip(panelRoot, "")
+            }
         }
         viewModel.rows.observe(this) { rowAdapter.submitList(it) }
         viewModel.pageMode.observe(this) { mode ->

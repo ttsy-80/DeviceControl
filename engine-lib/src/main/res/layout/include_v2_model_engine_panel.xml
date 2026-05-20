@@ -3,11 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="44dp"
         android:orientation="horizontal">
 
         <com.devicecontrol.engine.v2.ui.widget.V2EngineInfoTabTextView
@@ -15,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
-            android:minWidth="160dp"
+            android:minWidth="140dp"
             android:paddingHorizontal="10dp"
             android:text="@string/v2_engine_info"
             android:textColor="@color/v2_on_primary"
@@ -25,19 +26,29 @@
             app:v2EngineInfoTabRightEdgeAngle="45"
             app:v2EngineInfoTabTopLeftRadius="@dimen/v2_engine_info_tab_top_left_radius" />
 
-        <TextView
+        <com.devicecontrol.engine.v2.ui.widget.V2EngineModelStripTextView
             android:id="@+id/tvPanelModelName"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_height="23dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_v2_engine_model_strip"
+            android:ellipsize="end"
+            android:layout_marginTop="2dp"
             android:gravity="center_vertical"
-            android:paddingHorizontal="10dp"
+            android:maxLines="1"
             android:textColor="@color/v2_primary"
             android:textSize="14sp"
             android:textStyle="bold"
-            android:visibility="gone" />
-    </LinearLayout>
+            android:layout_marginStart="120dp"
+            android:layout_marginEnd="12dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:v2EngineStripBottomRightRadius="@dimen/v2_inspection_panel_radius"
+            app:v2EngineStripGradientAngle="0"
+            app:v2EngineStripGradientEndColor="@color/v2_surface"
+            app:v2EngineStripGradientStartColor="@color/v2_peach"
+            app:v2EngineStripLeftEdgeAngle="45"
+            app:v2EngineStripTopRightRadius="@dimen/v2_inspection_panel_radius" />
+    </RelativeLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/svEngineContent"

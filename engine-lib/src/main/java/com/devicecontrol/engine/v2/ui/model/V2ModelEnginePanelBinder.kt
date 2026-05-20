@@ -67,24 +67,35 @@ object V2ModelEnginePanelBinder {
         onModelNameChanged(modelName)
         configureImageArea(panelRoot, showImport = false)
         bindEngineImage(panelRoot, imagePath)
-//        showModelNameStrip(panelRoot, modelName)
+        showModelNameStrip(panelRoot, "")
     }
 
     fun showModelNameStrip(panelRoot: View, modelName: String) {
-        panelRoot.findViewById<TextView>(R.id.tvPanelModelName)?.apply {
+        panelRoot.findViewById<com.devicecontrol.engine.v2.ui.widget.V2EngineModelStripTextView>(
+            R.id.tvPanelModelName,
+        )?.apply {
             text = modelName
             visibility = View.VISIBLE
         }
     }
 
-    /** P15～P17 详情：灰底区展示安全力矩/变速比/位置 + 底部发动机图，无型号条、无导入。 */
+    fun hideModelNameStrip(panelRoot: View) {
+        panelRoot.findViewById<View>(R.id.tvPanelModelName)?.visibility = View.GONE
+    }
+
+    /** P15～P17 详情：灰底区展示安全力矩/变速比 + 底部发动机图 + 右侧型号条。 */
     fun setupDetailEnginePanel(
         panelRoot: View,
         container: LinearLayout,
         fields: List<V2ModelEngineFieldUi>,
         imagePath: String?,
+        modelName: String,
     ) {
-        panelRoot.findViewById<View>(R.id.tvPanelModelName)?.visibility = View.GONE
+        if (modelName.isNotBlank()) {
+            showModelNameStrip(panelRoot, "")
+        } else {
+            hideModelNameStrip(panelRoot)
+        }
         configureImageArea(panelRoot, showImport = false)
         bindFields(
             container = container,
