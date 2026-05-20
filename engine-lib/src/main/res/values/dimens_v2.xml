@@ -40,6 +40,7 @@
     <dimen name="v2_settings_footer_reserved_height">56dp</dimen>
     <dimen name="v2_control_pill_height">48dp</dimen>
     <dimen name="v2_inspection_left_weight">0.22</dimen>
+    <dimen name="v2_engine_import_image_height">160dp</dimen>
     <dimen name="v2_inspection_panel_radius">12dp</dimen>
     <dimen name="v2_inspection_content_margin">8dp</dimen>
     <dimen name="v2_inspection_status_bar_h">44dp</dimen>

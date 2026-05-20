@@ -48,6 +48,14 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
     /** 是否显示顶栏「返回首页」 */
     protected open fun showBackHome(): Boolean = false
 
+    /** 标题旁编辑图标（如 P14 修改型号名） */
+    protected open fun showShellTitleEdit(): Boolean = false
+
+    protected open fun onShellTitleEditClick() {}
+
+    /** 标题旁编辑图标是否可点击；仅展示时返回 false */
+    protected open fun shellTitleEditClickable(): Boolean = false
+
     /** 顶栏标题左侧图标（如 P6 检测放大镜）；null 不显示 */
     @DrawableRes
     protected open fun shellTitleIcon(): Int? = null
@@ -76,6 +84,10 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
             V2Log.i(logTag, "backHome clicked")
             navigateToHome()
         }
+        shellBinder.setTitleEditVisible(
+            showShellTitleEdit(),
+            if (shellTitleEditClickable()) {{ onShellTitleEditClick() }} else null,
+        )
         shellBinder.observeConnection()
 
         bottomBarBinder = V2ShellBottomBarBinder(shellBinding.includeV2Bottom.root)

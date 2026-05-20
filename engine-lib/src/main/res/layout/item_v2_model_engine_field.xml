@@ -25,7 +25,7 @@
         android:background="@android:color/transparent"
         android:imeOptions="flagNoExtractUi|actionDone"
         android:textColor="@color/v2_text_primary"
-        android:textColorHint="@color/v2_text_secondary"
+        android:textColorHint="@color/v2_text_hint"
         android:textSize="15sp"
         android:textStyle="bold" />
 

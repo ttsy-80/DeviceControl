@@ -20,11 +20,11 @@ object V2ModelEnginePanelBinder {
 
     private val addEngineFields = listOf(
         V2ModelEngineFieldUi("model_name", "型号名称：", ""),
-        V2ModelEngineFieldUi("safe_torque", "安全力矩：", ""),
+        V2ModelEngineFieldUi("safe_torque", "安全扭矩：", ""),
         V2ModelEngineFieldUi("gear_ratio", "变速比：", ""),
     )
 
-    /** P14 添加页：只 inflate 一次，不随 LiveData 重绑 */
+    /** P14 新建：型号名称 / 安全扭矩 / 变速比 */
     fun setupAddEngineFields(
         container: LinearLayout,
         onModelNameChanged: (String) -> Unit,
@@ -139,9 +139,12 @@ object V2ModelEnginePanelBinder {
         et.isFocusableInTouchMode = true
         val ctx = row.context
         et.hint = engineFieldHint(ctx, field.key)
-        et.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_secondary))
+        et.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_hint))
         et.inputType = engineFieldInputType(field.key)
         et.applyV2LandscapeIme()
+        if (field.value.isNotEmpty()) {
+            et.setText(field.value)
+        }
         et.setV2FormTextWatcher { text ->
             if (field.key == "model_name") onModelNameChanged(text)
         }
@@ -195,7 +198,7 @@ object V2ModelEnginePanelBinder {
         if (!bound) {
             val ctx = row.context
             et.hint = engineFieldHint(ctx, field.key)
-            et.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_secondary))
+            et.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_hint))
             et.inputType = engineFieldInputType(field.key)
             et.applyV2LandscapeIme()
             et.setText(field.value)
@@ -221,7 +224,7 @@ object V2ModelEnginePanelBinder {
         when (key) {
             "model_name" -> ctx.getString(R.string.v2_hint_model_name)
             "safe_torque" -> ctx.getString(R.string.v2_hint_safe_torque)
-            "gear_ratio" -> ctx.getString(R.string.gear_ratio)
+            "gear_ratio" -> ctx.getString(R.string.v2_hint_gear_ratio)
             else -> ""
         }
 

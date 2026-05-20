@@ -3,14 +3,16 @@ package com.devicecontrol.engine.v2.ui.model
 import android.content.Context
 import android.content.Intent
 import android.view.View
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.devicecontrol.engine.R
+import com.devicecontrol.engine.v2.model.V2ModelAddDetailRowUi
 import com.devicecontrol.engine.v2.model.V2ModelAppendArgs
+import com.devicecontrol.engine.v2.ui.adapter.V2ModelAddDetailRowAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
-import com.devicecontrol.engine.v2.ui.widget.applyV2LandscapeIme
 import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2ModelAddViewModel
 
@@ -24,8 +26,8 @@ class V2ModelAddActivity : V2BaseShellActivity() {
     }
     private lateinit var engineFieldsContainer: LinearLayout
     private lateinit var panelRoot: View
-    private lateinit var etDetailPosition: EditText
-    private lateinit var etDetailBlade: EditText
+    private lateinit var detailRowAdapter: V2ModelAddDetailRowAdapter
+    private lateinit var rvAddDetailRows: RecyclerView
     private var appendArgs: V2ModelAppendArgs? = null
 
     override fun contentLayoutId(): Int = R.layout.content_v2_model_add
@@ -39,7 +41,8 @@ class V2ModelAddActivity : V2BaseShellActivity() {
 
     override fun showBackHome(): Boolean = true
 
-    override fun showShellBottomBar(): Boolean = false
+    /** 稿面装饰用编辑图标，不响应点击 */
+    override fun showShellTitleEdit(): Boolean = appendArgs == null
 
     override fun onContentCreated(contentRoot: View) {
         appendArgs = readAppendArgs(intent)
@@ -73,11 +76,11 @@ class V2ModelAddActivity : V2BaseShellActivity() {
             }
         }
 
-        val detailForm = contentRoot.findViewById<View>(R.id.includeAddDetailForm)
-        etDetailPosition = detailForm.findViewById(R.id.etAddDetailPosition)
-        etDetailBlade = detailForm.findViewById(R.id.etAddDetailBlade)
-        etDetailPosition.applyV2LandscapeIme()
-        etDetailBlade.applyV2LandscapeIme()
+        detailRowAdapter = V2ModelAddDetailRowAdapter { _, _ -> }
+        rvAddDetailRows = contentRoot.findViewById(R.id.rvAddDetailRows)
+        rvAddDetailRows.layoutManager = LinearLayoutManager(this)
+        rvAddDetailRows.adapter = detailRowAdapter
+        detailRowAdapter.submitRows(buildDetailRows())
 
         viewModel.modelName.observe(this) { name ->
             val title = name.takeIf { it.isNotBlank() }
@@ -108,16 +111,25 @@ class V2ModelAddActivity : V2BaseShellActivity() {
         contentRoot.findViewById<View>(R.id.btnAddBack).setOnClickListener { finish() }
     }
 
+    private fun buildDetailRows(): List<V2ModelAddDetailRowUi> = listOf(
+        V2ModelAddDetailRowUi("position", getString(R.string.v2_col_position), ""),
+        V2ModelAddDetailRowUi("blade", getString(R.string.v2_col_blade), ""),
+        V2ModelAddDetailRowUi("empty_1", "", ""),
+        V2ModelAddDetailRowUi("empty_2", "", ""),
+        V2ModelAddDetailRowUi("empty_3", "", ""),
+    )
+
     private fun commitFormAndConfirm() {
         currentFocus?.clearFocus()
         val engineValues = V2ModelEnginePanelBinder.readFieldValues(engineFieldsContainer)
+        val detailValues = detailRowAdapter.readRowValues(rvAddDetailRows)
         val locked = appendArgs
         viewModel.confirm(
             modelName = locked?.modelName ?: engineValues["model_name"].orEmpty(),
             safeTorque = locked?.safeTorque ?: engineValues["safe_torque"].orEmpty(),
             gearRatioText = locked?.gearRatio?.toString() ?: engineValues["gear_ratio"].orEmpty(),
-            position = etDetailPosition.text?.toString().orEmpty(),
-            bladeText = etDetailBlade.text?.toString().orEmpty(),
+            position = detailValues["position"].orEmpty(),
+            bladeText = detailValues["blade"].orEmpty(),
         )
     }
 

@@ -16,6 +16,7 @@
     <color name="v2_on_primary">#FFFFFF</color>
     <color name="v2_text_primary">#1C1B1F</color>
     <color name="v2_text_secondary">#666666</color>
+    <color name="v2_text_hint">#B0B0B0</color>
     <!-- P7～P10 底栏公司名（稿面浅灰，仅中文） -->
     <color name="v2_company_footer_muted">#B3B3B3</color>
     <color name="v2_menu_normal">#E8E8E8</color>

@@ -2,8 +2,10 @@ package com.devicecontrol.engine.v2.ui.adapter
 
 import android.text.InputType
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -29,6 +31,7 @@ class V2ModelAddDetailRowAdapter(
         val map = mutableMapOf<String, String>()
         for (i in items.indices) {
             val key = items[i].key
+            if (key.startsWith("empty_")) continue
             val holder = recyclerView.findViewHolderForAdapterPosition(i) as? Holder
             map[key] = holder?.currentValue() ?: items[i].value
         }
@@ -53,26 +56,40 @@ class V2ModelAddDetailRowAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
         private val tvLabel: TextView = itemView.findViewById(R.id.tvDetailLabel)
         private val etValue: EditText = itemView.findViewById(R.id.etDetailValue)
+        private val ivEdit: ImageView = itemView.findViewById(R.id.ivDetailEdit)
 
         fun bind(item: V2ModelAddDetailRowUi, position: Int) {
             val ctx = itemView.context
+            val placeholder = item.key.startsWith("empty_")
             itemView.setTag(R.id.tag_v2_detail_row_key, item.key)
-            itemView.setBackgroundColor(
-                ContextCompat.getColor(
-                    ctx,
-                    if (position % 2 == 0) R.color.v2_surface else R.color.v2_table_row_alt,
-                ),
-            )
             tvLabel.text = item.label
-            etValue.hint = detailFieldHint(ctx, item.key)
-            etValue.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_secondary))
+            tvLabel.visibility = if (item.label.isBlank()) View.INVISIBLE else View.VISIBLE
+            etValue.hint = if (placeholder) "" else detailFieldHint(ctx, item.key)
+            etValue.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_hint))
             etValue.inputType = detailFieldInputType(item.key)
-            etValue.applyV2LandscapeIme()
+            if (!placeholder) {
+                etValue.applyV2LandscapeIme()
+            }
             if (!etValue.isFocused) {
                 etValue.setTextKeepSelection(item.value)
             }
-            etValue.setV2FormTextWatcher { text ->
-                onValueChanged(item.key, text)
+            if (placeholder) {
+                etValue.isEnabled = false
+                etValue.isFocusable = false
+                etValue.isFocusableInTouchMode = false
+                etValue.isClickable = false
+                ivEdit.visibility = View.INVISIBLE
+                ivEdit.setOnClickListener(null)
+                itemView.isClickable = false
+                itemView.isFocusable = false
+            } else {
+                etValue.isEnabled = true
+                etValue.isFocusableInTouchMode = true
+                etValue.isClickable = true
+                ivEdit.visibility = View.VISIBLE
+                etValue.setV2FormTextWatcher { text -> onValueChanged(item.key, text) }
+                ivEdit.setOnClickListener { etValue.requestFocus() }
+                itemView.isClickable = true
             }
         }
 
@@ -82,8 +99,8 @@ class V2ModelAddDetailRowAdapter(
     companion object {
         private fun detailFieldHint(ctx: android.content.Context, key: String): String =
             when (key) {
-                "position" -> ctx.getString(R.string.position)
-                "blade" -> ctx.getString(R.string.blade_count)
+                "position" -> ctx.getString(R.string.v2_hint_position)
+                "blade" -> ctx.getString(R.string.v2_hint_blade_count)
                 else -> ""
             }
 

@@ -35,6 +35,7 @@ class V2ShellUiBinder(
     private val tvTime: TextView = topBarRoot.findViewById(R.id.tvV2Time)
     private val tvDate: TextView = topBarRoot.findViewById(R.id.tvV2Date)
     private val ivTitleIcon: ImageView = topBarRoot.findViewById(R.id.ivV2TitleIcon)
+    private val ivTitleEdit: ImageView = topBarRoot.findViewById(R.id.ivV2TitleEdit)
     private val tvTitleCn: TextView = topBarRoot.findViewById(R.id.tvV2TitleCn)
     private val tvTitleEn: TextView = topBarRoot.findViewById(R.id.tvV2TitleEn)
     private val btnBackHome: TextView = topBarRoot.findViewById(R.id.btnV2BackHome)
@@ -84,6 +85,27 @@ class V2ShellUiBinder(
                 ColorStateList.valueOf(ContextCompat.getColor(context, R.color.v2_on_primary)),
             )
             ivTitleIcon.visibility = View.VISIBLE
+        }
+    }
+
+    fun setTitleEditVisible(visible: Boolean, onClick: (() -> Unit)? = null) {
+        if (visible) {
+            ivTitleEdit.visibility = View.VISIBLE
+            ImageViewCompat.setImageTintList(
+                ivTitleEdit,
+                ColorStateList.valueOf(ContextCompat.getColor(context, R.color.v2_on_primary)),
+            )
+            ivTitleEdit.isClickable = onClick != null
+            ivTitleEdit.isFocusable = onClick != null
+            if (onClick != null) {
+                ivTitleEdit.setOnClickListener { onClick() }
+            } else {
+                ivTitleEdit.setOnClickListener(null)
+            }
+        } else {
+            ivTitleEdit.visibility = View.GONE
+            ivTitleEdit.setOnClickListener(null)
+            ivTitleEdit.isClickable = false
         }
     }
 
