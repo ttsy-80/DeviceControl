@@ -55,7 +55,6 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
 
         panelRoot = contentRoot.findViewById(R.id.includeEnginePanel)
         engineFieldsContainer = panelRoot.findViewById(R.id.llEngineFields)
-        V2ModelEnginePanelBinder.configureImageArea(panelRoot, showImport = false)
 
         rowAdapter = V2ModelDetailRowAdapter(
             onAddConfig = { launchAddConfig() },
@@ -71,20 +70,17 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
 
         viewModel.modelName.observe(this) { model ->
             shellBinder.bindTitles(model, getString(R.string.v2_engine_model_subtitle))
-            V2ModelEnginePanelBinder.showModelNameStrip(panelRoot, model)
         }
         viewModel.imagePath.observe(this) { path ->
             V2ModelEnginePanelBinder.bindEngineImage(panelRoot, path)
         }
         viewModel.engineFields.observe(this) { fields ->
-            if (engineFieldsContainer.childCount == 0) {
-                V2ModelEnginePanelBinder.bindFields(
-                    engineFieldsContainer,
-                    fields,
-                    showEditIcon = false,
-                    onValueChanged = { _, _ -> },
-                )
-            }
+            V2ModelEnginePanelBinder.setupDetailEnginePanel(
+                panelRoot = panelRoot,
+                container = engineFieldsContainer,
+                fields = fields,
+                imagePath = viewModel.imagePath.value,
+            )
         }
         viewModel.rows.observe(this) { rowAdapter.submitList(it) }
         viewModel.pageMode.observe(this) { mode ->

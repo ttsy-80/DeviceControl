@@ -22,6 +22,9 @@ data class V2ModelDetailRowUi(
     val position: String,
     val bladeCount: Int,
     val isRowEditing: Boolean = false,
+    val showBottomDivider: Boolean = true,
+    /** 列表刷新代次，追加行后强制重绑以更新行底橙线 */
+    val listGeneration: Int = 0,
 ) {
     val id: String get() = configItemId.toString()
 }
@@ -33,6 +36,7 @@ class V2ModelDetailViewModel(
     private var modelNameKey: String = ""
     private var engineModel: EngineModel? = null
     private var configItems: List<ConfigItem> = emptyList()
+    private var listGeneration: Int = 0
 
     private val _modelName = MutableLiveData("")
     val modelName: LiveData<String> = _modelName
@@ -169,15 +173,20 @@ class V2ModelDetailViewModel(
         _modelName.value = model.name
         _imagePath.value = model.imagePath
         val gearRatioText = items.firstOrNull()?.gearRatio?.toString().orEmpty()
+        val positionSummary = items.firstOrNull()?.position.orEmpty()
         _engineFields.value = listOf(
             V2ModelEngineFieldUi("safe_torque", "安全力矩：", model.safeTorque, editable = false),
             V2ModelEngineFieldUi("gear_ratio", "变速比：", gearRatioText, editable = false),
+            V2ModelEngineFieldUi("position", "位置：", positionSummary, editable = false),
         )
+        listGeneration++
         _rows.value = items.map { item ->
             V2ModelDetailRowUi(
                 configItemId = item.id,
                 position = item.position,
                 bladeCount = item.bladeCount,
+                showBottomDivider = true,
+                listGeneration = listGeneration,
             )
         }
         V2Log.i(TAG, "loaded model=${model.name} configs=${items.size}")

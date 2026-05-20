@@ -77,6 +77,24 @@ object V2ModelEnginePanelBinder {
         }
     }
 
+    /** P15～P17 详情：灰底区展示安全力矩/变速比/位置 + 底部发动机图，无型号条、无导入。 */
+    fun setupDetailEnginePanel(
+        panelRoot: View,
+        container: LinearLayout,
+        fields: List<V2ModelEngineFieldUi>,
+        imagePath: String?,
+    ) {
+        panelRoot.findViewById<View>(R.id.tvPanelModelName)?.visibility = View.GONE
+        configureImageArea(panelRoot, showImport = false)
+        bindFields(
+            container = container,
+            fields = fields,
+            showEditIcon = false,
+            onValueChanged = { _, _ -> },
+        )
+        bindEngineImage(panelRoot, imagePath)
+    }
+
     fun bindEngineImage(panelRoot: View, imagePath: String?) {
         val iv = panelRoot.findViewById<ImageView>(R.id.ivEnginePhoto) ?: return
         val importBtn = panelRoot.findViewById<View>(R.id.btnImportImage)

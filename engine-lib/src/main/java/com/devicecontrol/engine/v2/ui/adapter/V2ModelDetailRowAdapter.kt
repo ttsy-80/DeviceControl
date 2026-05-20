@@ -47,11 +47,18 @@ class V2ModelDetailRowAdapter(
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        holder.bind(getItem(position), pageMode, onAddConfig, onDuplicateRow, onRowDelete)
+        holder.bind(
+            item = getItem(position),
+            pageMode = pageMode,
+            onAddConfig = onAddConfig,
+            onDuplicateRow = onDuplicateRow,
+            onRowDelete = onRowDelete,
+        )
     }
 
     class Holder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val root: View = itemView.findViewById(R.id.modelDetailRowRoot)
+        private val rowContent: View = itemView.findViewById(R.id.detailRowContent)
+        private val dividerRowBottom: View = itemView.findViewById(R.id.dividerRowBottom)
         private val etPosition: EditText = itemView.findViewById(R.id.etPosition)
         private val etBlade: EditText = itemView.findViewById(R.id.etBladeCount)
         private val btnAdd: TextView = itemView.findViewById(R.id.btnRowAdd)
@@ -71,15 +78,14 @@ class V2ModelDetailRowAdapter(
             onRowDelete: (V2ModelDetailRowUi) -> Unit,
         ) {
             val ctx = itemView.context
-            val alt = bindingAdapterPosition % 2 == 1
-            root.setBackgroundColor(
-                ContextCompat.getColor(
-                    ctx,
-                    if (alt) R.color.v2_table_row_alt else R.color.v2_surface,
-                ),
-            )
-
             val tableEditing = pageMode == V2ModelDetailPageMode.TABLE_EDIT
+            val textColor = ContextCompat.getColor(ctx, R.color.v2_text_primary)
+            rowContent.setBackgroundColor(ContextCompat.getColor(ctx, R.color.v2_surface))
+            etPosition.setTextColor(textColor)
+            etBlade.setTextColor(textColor)
+            // 非最后一行显示行底橙线；数据变更时按 rowIndex 绑定，避免新增行后上一行不重绑导致缺线
+            dividerRowBottom.visibility =
+                if (item.showBottomDivider) View.VISIBLE else View.GONE
 
             if (!bound) {
                 etPosition.applyV2LandscapeIme()
@@ -127,6 +133,7 @@ class V2ModelDetailRowAdapter(
         override fun areItemsTheSame(a: V2ModelDetailRowUi, b: V2ModelDetailRowUi) =
             a.configItemId == b.configItemId
 
-        override fun areContentsTheSame(a: V2ModelDetailRowUi, b: V2ModelDetailRowUi) = a == b
+        override fun areContentsTheSame(a: V2ModelDetailRowUi, b: V2ModelDetailRowUi) =
+            a == b && a.listGeneration == b.listGeneration
     }
 }
