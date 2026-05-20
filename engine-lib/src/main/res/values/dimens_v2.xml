@@ -46,6 +46,8 @@
     <dimen name="v2_model_add_table_value_margin_end">34dp</dimen>
     <dimen name="v2_model_add_table_divider">1dp</dimen>
     <dimen name="v2_model_detail_table_divider">1dp</dimen>
+    <dimen name="v2_detail_table_cell_edit_min_h">40dp</dimen>
+    <dimen name="v2_detail_table_cell_edit_pad_v">8dp</dimen>
     <dimen name="v2_model_add_table_border">2dp</dimen>
     <dimen name="v2_inspection_panel_radius">12dp</dimen>
     <dimen name="v2_inspection_content_margin">8dp</dimen>

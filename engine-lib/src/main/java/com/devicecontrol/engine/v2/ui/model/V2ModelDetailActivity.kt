@@ -11,8 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.ui.adapter.V2ModelDetailRowAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
+import com.devicecontrol.engine.v2.ui.dialog.V2ConfirmDialog
 import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2ModelDetailPageMode
+import com.devicecontrol.engine.v2.viewmodel.V2ModelDetailRowUi
 import com.devicecontrol.engine.v2.viewmodel.V2ModelDetailViewModel
 
 /** 型号详情/编辑（P15～P17） */
@@ -59,7 +61,7 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
         rowAdapter = V2ModelDetailRowAdapter(
             onAddConfig = { launchAddConfig() },
             onDuplicateRow = { viewModel.duplicateRow(it.configItemId) },
-            onRowDelete = { viewModel.deleteRow(it.configItemId) },
+            onRowDelete = { showDeleteConfigConfirm(it) },
         )
         rvDetailRows = contentRoot.findViewById(R.id.rvDetailRows)
         rvDetailRows.layoutManager = LinearLayoutManager(this)
@@ -98,6 +100,7 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
         viewModel.modelRemoved.observe(this) { removed ->
             if (removed) {
                 viewModel.consumeModelRemoved()
+                Toast.makeText(this, R.string.v2_model_deleted_no_config, Toast.LENGTH_SHORT).show()
                 setResult(RESULT_OK)
                 finish()
             }
@@ -105,10 +108,18 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
 
         btnEdit.setOnClickListener { viewModel.enterTableEdit() }
         btnSave.setOnClickListener {
+            currentFocus?.clearFocus()
             val rows = rowAdapter.readTableRowValues(rvDetailRows)
-            viewModel.exitTableEdit(save = true, tableRows = rows)
-            Toast.makeText(this, R.string.v2_save, Toast.LENGTH_SHORT).show()
+            val engineValues = V2ModelEnginePanelBinder.readFieldValues(engineFieldsContainer)
+            viewModel.exitTableEdit(save = true, tableRows = rows, engineValues = engineValues)
         }
+        viewModel.saveSuccess.observe(this) { success ->
+            if (success) {
+                Toast.makeText(this, R.string.v2_save, Toast.LENGTH_SHORT).show()
+                viewModel.consumeSaveSuccess()
+            }
+        }
+
         contentRoot.findViewById<View>(R.id.btnDetailBack).setOnClickListener {
             if (viewModel.pageMode.value == V2ModelDetailPageMode.TABLE_EDIT) {
                 viewModel.exitTableEdit(save = false, tableRows = null)
@@ -116,6 +127,17 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
                 finish()
             }
         }
+    }
+
+    private fun showDeleteConfigConfirm(row: V2ModelDetailRowUi) {
+        V2ConfirmDialog.show(
+            context = this,
+            title = getString(R.string.v2_confirm_delete_title),
+            message = getString(R.string.v2_confirm_delete_config_message),
+            confirmText = getString(R.string.v2_delete),
+            cancelText = getString(R.string.v2_cancel),
+            onConfirm = { viewModel.deleteRow(row.configItemId) },
+        )
     }
 
     private fun launchAddConfig() {

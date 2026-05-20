@@ -107,25 +107,45 @@ class V2ModelDetailRowAdapter(
             etPosition.inputType = if (tableEditing) InputType.TYPE_CLASS_TEXT else InputType.TYPE_NULL
             etBlade.inputType = if (tableEditing) InputType.TYPE_CLASS_NUMBER else InputType.TYPE_NULL
 
+            val cellEditBg = R.drawable.bg_v2_detail_table_cell_edit
+            val cellPadV = ctx.resources.getDimensionPixelSize(R.dimen.v2_detail_table_cell_edit_pad_v)
+            val cellMinH = ctx.resources.getDimensionPixelSize(R.dimen.v2_detail_table_cell_edit_min_h)
             if (tableEditing) {
-                etPosition.setBackgroundResource(R.drawable.bg_v2_mode_setting_value)
-                etBlade.setBackgroundResource(R.drawable.bg_v2_mode_setting_value)
+                listOf(etPosition, etBlade).forEach { et ->
+                    et.setBackgroundResource(cellEditBg)
+                    et.setPadding(et.paddingLeft, cellPadV, et.paddingRight, cellPadV)
+                    et.minHeight = cellMinH
+                }
             } else {
-                etPosition.background = null
-                etBlade.background = null
+                listOf(etPosition, etBlade).forEach { et ->
+                    et.background = null
+                    et.minHeight = 0
+                    et.setPadding(
+                        et.paddingLeft,
+                        0,
+                        et.paddingRight,
+                        0,
+                    )
+                }
             }
 
             btnSave.visibility = View.GONE
             btnAdd.visibility = View.VISIBLE
+            val actionsEnabled = !tableEditing
+            btnAdd.isEnabled = actionsEnabled
+            btnDelete.isEnabled = actionsEnabled
+            btnAdd.isClickable = actionsEnabled
+            btnDelete.isClickable = actionsEnabled
+            btnAdd.alpha = if (actionsEnabled) 1f else 0.4f
+            btnDelete.alpha = if (actionsEnabled) 1f else 0.4f
 
-            btnAdd.setOnClickListener {
-                if (tableEditing) {
-                    onDuplicateRow(item)
-                } else {
-                    onAddConfig()
-                }
+            if (actionsEnabled) {
+                btnAdd.setOnClickListener { onAddConfig() }
+                btnDelete.setOnClickListener { onRowDelete(item) }
+            } else {
+                btnAdd.setOnClickListener(null)
+                btnDelete.setOnClickListener(null)
             }
-            btnDelete.setOnClickListener { onRowDelete(item) }
         }
     }
 

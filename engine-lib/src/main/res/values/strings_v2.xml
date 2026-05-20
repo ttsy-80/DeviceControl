@@ -98,6 +98,9 @@
     <string name="v2_add">添加</string>
     <string name="v2_save">保存</string>
     <string name="v2_delete">删除</string>
+    <string name="v2_confirm_delete_title">确认删除</string>
+    <string name="v2_confirm_delete_config_message">确定要删除这个配置项吗？</string>
+    <string name="v2_model_deleted_no_config">型号已自动删除（无配置项）</string>
     <string name="v2_edit">编辑</string>
     <string name="v2_engine_model_subtitle">发动机型号</string>
     <string name="v2_new_model_title">新建型号</string>

@@ -212,12 +212,27 @@ object V2ModelEnginePanelBinder {
         val icon = row.findViewById<ImageView>(R.id.ivFieldEdit)
         icon.visibility = if (showEditIcon && field.editable) View.VISIBLE else View.GONE
         et.isEnabled = field.editable
+        et.isFocusable = field.editable
         et.isFocusableInTouchMode = field.editable
+        et.isClickable = field.editable
+        val cellEditBg = R.drawable.bg_v2_detail_table_cell_edit
+        val cellPadV = row.context.resources.getDimensionPixelSize(R.dimen.v2_detail_table_cell_edit_pad_v)
+        val cellMinH = row.context.resources.getDimensionPixelSize(R.dimen.v2_detail_table_cell_edit_min_h)
+        if (field.editable) {
+            et.inputType = engineFieldInputType(field.key)
+            et.setBackgroundResource(cellEditBg)
+            et.setPadding(et.paddingLeft.coerceAtLeast(0), cellPadV, et.paddingRight.coerceAtLeast(0), cellPadV)
+            et.minHeight = cellMinH
+        } else {
+            et.inputType = InputType.TYPE_NULL
+            et.background = null
+            et.minHeight = 0
+            et.setPadding(0, 0, 0, 0)
+        }
         if (!bound) {
             val ctx = row.context
             et.hint = engineFieldHint(ctx, field.key)
             et.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_hint))
-            et.inputType = engineFieldInputType(field.key)
             et.applyV2LandscapeIme()
             et.setText(field.value)
             et.setV2FormTextWatcher { text -> onValueChanged(field.key, text) }
@@ -225,7 +240,7 @@ object V2ModelEnginePanelBinder {
         } else if (!et.isFocused) {
             et.setText(field.value)
         }
-        icon.setOnClickListener { et.requestFocus() }
+        icon.setOnClickListener { if (field.editable) et.requestFocus() }
     }
 
     fun configureImageArea(

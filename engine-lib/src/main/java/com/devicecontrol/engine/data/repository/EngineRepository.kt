@@ -111,6 +111,10 @@ class EngineRepository(private val engineDao: EngineDao) {
     suspend fun updateConfigItem(configItem: ConfigItem) {
         engineDao.updateConfigItem(configItem)
     }
+
+    suspend fun updateModel(model: EngineModel) {
+        engineDao.updateModel(model)
+    }
     
     suspend fun updateAllConfigItemsGearRatioByModelId(modelId: Long, newGearRatio: Double) {
         engineDao.updateAllConfigItemsGearRatioByModelId(modelId, newGearRatio)

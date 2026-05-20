@@ -59,6 +59,9 @@ class V2ModelDetailViewModel(
     private val _modelRemoved = MutableLiveData(false)
     val modelRemoved: LiveData<Boolean> = _modelRemoved
 
+    private val _saveSuccess = MutableLiveData(false)
+    val saveSuccess: LiveData<Boolean> = _saveSuccess
+
     fun init(modelName: String) {
         modelNameKey = modelName
         reload()
@@ -93,32 +96,63 @@ class V2ModelDetailViewModel(
         V2Log.i(TAG, "enterTableEdit")
         _pageMode.value = V2ModelDetailPageMode.TABLE_EDIT
         _rows.value = _rows.value?.map { it.copy(isRowEditing = false) }
+        publishEngineFields(editable = true)
     }
 
-    fun exitTableEdit(save: Boolean, tableRows: List<V2ModelDetailRowUi>?) {
+    fun exitTableEdit(
+        save: Boolean,
+        tableRows: List<V2ModelDetailRowUi>?,
+        engineValues: Map<String, String>? = null,
+    ) {
         V2Log.i(TAG, "exitTableEdit save=$save")
-        if (save && tableRows != null) {
-            viewModelScope.launch {
-                try {
-                    tableRows.forEach { row ->
-                        val item = configItems.firstOrNull { it.id == row.configItemId } ?: return@forEach
-                        val pos = row.position.trim()
-                        if (pos.isEmpty()) return@launch
-                        if (item.position != pos || item.bladeCount != row.bladeCount) {
-                            repository.updateConfigItem(
-                                item.copy(position = pos, bladeCount = row.bladeCount),
-                            )
-                        }
-                    }
-                    reload()
-                } catch (e: Exception) {
-                    V2Log.e(TAG, "exitTableEdit save failed", e)
-                    _errorMessage.value = "保存失败: ${e.message}"
+        if (!save) {
+            _pageMode.value = V2ModelDetailPageMode.VIEW
+            _rows.value = _rows.value?.map { it.copy(isRowEditing = false) }
+            publishEngineFields(editable = false)
+            return
+        }
+        if (tableRows == null) return
+        viewModelScope.launch {
+            _errorMessage.value = null
+            try {
+                val model = engineModel ?: return@launch
+                val safeTorque = engineValues?.get("safe_torque")?.trim().orEmpty()
+                val gearRatioText = engineValues?.get("gear_ratio")?.trim().orEmpty()
+                val gearRatio = gearRatioText.toDoubleOrNull()
+                if (gearRatio == null || gearRatio <= 0) {
+                    _errorMessage.value = V2ModelAddViewModel.MSG_INVALID_NUMBER
+                    return@launch
                 }
+                for (row in tableRows) {
+                    if (row.position.trim().isEmpty()) {
+                        _errorMessage.value = V2ModelAddViewModel.MSG_POSITION_EMPTY
+                        return@launch
+                    }
+                }
+                if (model.safeTorque != safeTorque) {
+                    repository.updateModel(model.copy(safeTorque = safeTorque))
+                }
+                val currentRatio = configItems.firstOrNull()?.gearRatio
+                if (currentRatio != null && currentRatio != gearRatio) {
+                    repository.updateAllConfigItemsGearRatioByModelId(model.id, gearRatio)
+                }
+                tableRows.forEach { row ->
+                    val item = configItems.firstOrNull { it.id == row.configItemId } ?: return@forEach
+                    val pos = row.position.trim()
+                    if (item.position != pos || item.bladeCount != row.bladeCount) {
+                        repository.updateConfigItem(
+                            item.copy(position = pos, bladeCount = row.bladeCount),
+                        )
+                    }
+                }
+                _pageMode.value = V2ModelDetailPageMode.VIEW
+                _saveSuccess.value = true
+                reload()
+            } catch (e: Exception) {
+                V2Log.e(TAG, "exitTableEdit save failed", e)
+                _errorMessage.value = "保存失败: ${e.message}"
             }
         }
-        _pageMode.value = V2ModelDetailPageMode.VIEW
-        _rows.value = _rows.value?.map { it.copy(isRowEditing = false) }
     }
 
     fun deleteRow(configItemId: Long) {
@@ -167,18 +201,17 @@ class V2ModelDetailViewModel(
         _modelRemoved.value = false
     }
 
+    fun consumeSaveSuccess() {
+        _saveSuccess.value = false
+    }
+
     private fun applyLoaded(model: EngineModel, items: List<ConfigItem>) {
         engineModel = model
         configItems = items
         _modelName.value = model.name
         _imagePath.value = model.imagePath
-        val gearRatioText = items.firstOrNull()?.gearRatio?.toString().orEmpty()
-        val positionSummary = items.firstOrNull()?.position.orEmpty()
-        _engineFields.value = listOf(
-            V2ModelEngineFieldUi("safe_torque", "安全力矩：", model.safeTorque, editable = false),
-            V2ModelEngineFieldUi("gear_ratio", "变速比：", gearRatioText, editable = false),
-            V2ModelEngineFieldUi("position", "位置：", positionSummary, editable = false),
-        )
+        val editing = _pageMode.value == V2ModelDetailPageMode.TABLE_EDIT
+        publishEngineFieldsFromModel(model, items, editable = editing)
         listGeneration++
         _rows.value = items.map { item ->
             V2ModelDetailRowUi(
@@ -190,6 +223,23 @@ class V2ModelDetailViewModel(
             )
         }
         V2Log.i(TAG, "loaded model=${model.name} configs=${items.size}")
+    }
+
+    private fun publishEngineFields(editable: Boolean) {
+        val model = engineModel ?: return
+        publishEngineFieldsFromModel(model, configItems, editable = editable)
+    }
+
+    private fun publishEngineFieldsFromModel(
+        model: EngineModel,
+        items: List<ConfigItem>,
+        editable: Boolean,
+    ) {
+        val gearRatioText = items.firstOrNull()?.gearRatio?.toString().orEmpty()
+        _engineFields.value = listOf(
+            V2ModelEngineFieldUi("safe_torque", "安全力矩：", model.safeTorque, editable = editable),
+            V2ModelEngineFieldUi("gear_ratio", "变速比：", gearRatioText, editable = editable),
+        )
     }
 
     companion object {
