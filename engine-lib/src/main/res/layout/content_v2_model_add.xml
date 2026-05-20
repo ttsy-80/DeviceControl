@@ -78,7 +78,7 @@
                             android:fadeScrollbars="false"
                             android:overScrollMode="ifContentScrolls"
                             android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
-                            android:scrollbarStyle="outsideOverlay"
+                            android:scrollbarStyle="insideOverlay"
                             android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
                             android:scrollbarTrackVertical="@drawable/bg_v2_scrollbar_track"
                             android:scrollbars="vertical" />

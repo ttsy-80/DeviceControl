@@ -10,15 +10,20 @@
         android:layout_height="36dp"
         android:orientation="horizontal">
 
-        <TextView
+        <com.devicecontrol.engine.v2.ui.widget.V2EngineInfoTabTextView
+            android:id="@+id/tvEngineInfoTab"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@drawable/bg_v2_engine_info_tab"
-            android:gravity="center"
+            android:gravity="center_vertical"
+            android:minWidth="160dp"
+            android:paddingHorizontal="10dp"
             android:text="@string/v2_engine_info"
             android:textColor="@color/v2_on_primary"
             android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:v2EngineInfoTabBackgroundColor="@color/v2_primary"
+            app:v2EngineInfoTabRightEdgeAngle="45"
+            app:v2EngineInfoTabTopLeftRadius="@dimen/v2_engine_info_tab_top_left_radius" />
 
         <TextView
             android:id="@+id/tvPanelModelName"
