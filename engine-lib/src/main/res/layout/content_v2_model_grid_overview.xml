@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P6 / P13 共用：浅底宫格（底栏由 Shell includeV2Bottom 提供） -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvModelGrid"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fadeScrollbars="false"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingStart="@dimen/v2_p6_content_padding_horizontal"
+        android:paddingTop="@dimen/v2_p6_content_padding_top"
+        android:paddingEnd="@dimen/v2_p6_content_padding_horizontal"
+        android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
+        android:scrollbarTrackVertical="@drawable/bg_v2_scrollbar_track"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

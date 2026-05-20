@@ -18,9 +18,14 @@ class V2ShellBottomBarBinder(bottomBarRoot: View) {
         cardAction.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
-    fun bindBottomActionLabels(labelCn: String, labelEn: String) {
+    fun bindBottomActionLabels(labelCn: String, labelEn: String?) {
         tvActionCn.text = labelCn
-        tvActionEn.text = labelEn
+        if (labelEn.isNullOrBlank()) {
+            tvActionEn.visibility = View.GONE
+        } else {
+            tvActionEn.text = labelEn
+            tvActionEn.visibility = View.VISIBLE
+        }
     }
 
     fun setBottomActionClickListener(listener: (() -> Unit)?) {

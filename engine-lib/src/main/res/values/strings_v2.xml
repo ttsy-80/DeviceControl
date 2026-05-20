@@ -8,6 +8,7 @@
     <string name="v2_disconnected">未连接</string>
     <string name="v2_battery_content_desc">电量</string>
     <string name="v2_back_home">返回首页</string>
+    <string name="v2_back_home_en">BACK HOME</string>
     <string name="v2_start_inspection">开始检测</string>
     <string name="v2_start_inspection_en">START INSPECTION</string>
     <string name="v2_model_manage">型号管理</string>

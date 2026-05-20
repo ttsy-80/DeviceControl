@@ -34,7 +34,8 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
     /** 底栏右下角操作钮文案；null 表示不显示 */
     data class ShellBottomAction(
         val labelCn: String,
-        val labelEn: String,
+        /** null 或空串时不显示英文行（如 P6/P13「返回首页」） */
+        val labelEn: String? = null,
     )
 
     @LayoutRes
@@ -127,7 +128,7 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
         bottomBarBinder.setBottomActionVisible(visible)
     }
 
-    protected fun updateShellBottomActionLabels(labelCn: String, labelEn: String) {
+    protected fun updateShellBottomActionLabels(labelCn: String, labelEn: String? = null) {
         bottomBarBinder.bindBottomActionLabels(labelCn, labelEn)
     }
 
