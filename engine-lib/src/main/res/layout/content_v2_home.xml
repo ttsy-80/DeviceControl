@@ -8,8 +8,8 @@
     <!-- 中间左右并排两大卡，不滚动 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardStartInspection"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
+        android:layout_width="120dp"
+        android:layout_height="180dp"
         android:clickable="true"
         android:focusable="true"
         app:cardBackgroundColor="@color/v2_peach"
@@ -56,8 +56,8 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardModelManage"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
+        android:layout_width="120dp"
+        android:layout_height="180dp"
         android:layout_marginStart="40dp"
         android:clickable="true"
         android:focusable="true"
@@ -99,52 +99,6 @@
                 android:text="@string/v2_model_manage_en"
                 android:textColor="@color/v2_on_primary"
                 android:textSize="12sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- 右下角设置 -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardSettings"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:cardBackgroundColor="@color/v2_primary"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_v2_settings_gear"
-                app:tint="@color/v2_on_primary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/v2_setting"
-                android:textColor="@color/v2_on_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/v2_setting_en"
-                android:textColor="@color/v2_on_primary"
-                android:textSize="10sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

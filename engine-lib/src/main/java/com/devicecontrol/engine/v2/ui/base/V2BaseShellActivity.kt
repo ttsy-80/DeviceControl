@@ -10,6 +10,7 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.devicecontrol.engine.databinding.ActivityV2ShellBinding
 import com.devicecontrol.engine.v2.log.V2Log
+import com.devicecontrol.engine.v2.ui.shell.V2ShellBottomBarBinder
 import com.devicecontrol.engine.v2.ui.shell.V2ShellUiBinder
 import com.devicecontrol.engine.v2.ui.widget.applyV2LandscapeIme
 
@@ -25,7 +26,16 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
     protected lateinit var shellBinder: V2ShellUiBinder
         private set
 
+    protected lateinit var bottomBarBinder: V2ShellBottomBarBinder
+        private set
+
     protected abstract val logTag: String
+
+    /** 底栏右下角操作钮文案；null 表示不显示 */
+    data class ShellBottomAction(
+        val labelCn: String,
+        val labelEn: String,
+    )
 
     @LayoutRes
     protected abstract fun contentLayoutId(): Int
@@ -44,6 +54,11 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
     /** 是否显示全局底栏品牌（设置页 P2～P5 使用内容区底栏，需隐藏） */
     protected open fun showShellBottomBar(): Boolean = true
 
+    /** 底栏右下角双语操作钮；默认隐藏 */
+    protected open fun shellBottomAction(): ShellBottomAction? = null
+
+    protected open fun onShellBottomActionClick() {}
+
     protected open fun onContentCreated(contentRoot: View) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +76,9 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
             navigateToHome()
         }
         shellBinder.observeConnection()
+
+        bottomBarBinder = V2ShellBottomBarBinder(shellBinding.includeV2Bottom.root)
+        applyShellBottomAction()
 
         shellBinding.includeV2Bottom.root.visibility =
             if (showShellBottomBar()) View.VISIBLE else View.GONE
@@ -92,6 +110,29 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
     override fun onPause() {
         shellBinder.stopClock()
         super.onPause()
+    }
+
+    protected fun applyShellBottomAction() {
+        val action = shellBottomAction()
+        if (action == null) {
+            setShellBottomActionVisible(false)
+        } else {
+            updateShellBottomActionLabels(action.labelCn, action.labelEn)
+            setShellBottomActionVisible(true)
+            bottomBarBinder.setBottomActionClickListener { onShellBottomActionClick() }
+        }
+    }
+
+    protected fun setShellBottomActionVisible(visible: Boolean) {
+        bottomBarBinder.setBottomActionVisible(visible)
+    }
+
+    protected fun updateShellBottomActionLabels(labelCn: String, labelEn: String) {
+        bottomBarBinder.bindBottomActionLabels(labelCn, labelEn)
+    }
+
+    protected fun setShellBottomActionClickListener(listener: (() -> Unit)?) {
+        bottomBarBinder.setBottomActionClickListener(listener)
     }
 
     protected fun navigateToHome() {

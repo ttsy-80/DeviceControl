@@ -21,13 +21,13 @@ class V2SettingsActivity : V2BaseShellActivity() {
 
     private lateinit var menuViews: Map<V2SettingsPage, TextView>
     private var bluetoothPanel: View? = null
-    private var languagePanel: View? = null
-    private var updatePanel: View? = null
-    private var aboutPanel: View? = null
+    // private var languagePanel: View? = null
+    // private var updatePanel: View? = null
+    // private var aboutPanel: View? = null
 
     private val deviceTextViews = mutableListOf<TextView>()
-    private val languageTextViews = mutableListOf<TextView>()
-    private var selectedLanguageIndex = 0
+    // private val languageTextViews = mutableListOf<TextView>()
+    // private var selectedLanguageIndex = 0
 
     override fun contentLayoutId(): Int = R.layout.content_v2_settings
 
@@ -42,9 +42,9 @@ class V2SettingsActivity : V2BaseShellActivity() {
         val container = contentRoot.findViewById<View>(R.id.settingsContent) as android.view.ViewGroup
 
         bluetoothPanel = inflater.inflate(R.layout.panel_v2_settings_bluetooth, container, false)
-        languagePanel = inflater.inflate(R.layout.panel_v2_settings_language, container, false)
-        updatePanel = inflater.inflate(R.layout.panel_v2_settings_update, container, false)
-        aboutPanel = inflater.inflate(R.layout.panel_v2_settings_about, container, false)
+        // languagePanel = inflater.inflate(R.layout.panel_v2_settings_language, container, false)
+        // updatePanel = inflater.inflate(R.layout.panel_v2_settings_update, container, false)
+        // aboutPanel = inflater.inflate(R.layout.panel_v2_settings_about, container, false)
 
         menuViews = mapOf(
             V2SettingsPage.BLUETOOTH to contentRoot.findViewById(R.id.menuBluetooth),
@@ -56,11 +56,11 @@ class V2SettingsActivity : V2BaseShellActivity() {
 
         menuViews.forEach { (page, tv) ->
             tv.setOnClickListener {
-                if (page == V2SettingsPage.MANUAL) {
-                    Toast.makeText(this, R.string.v2_settings_manual, Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
+                if (page == V2SettingsPage.BLUETOOTH) {
+                    viewModel.selectPage(page)
+                } else {
+                    toastTabPlaceholder(page)
                 }
-                viewModel.selectPage(page)
             }
         }
 
@@ -72,8 +72,8 @@ class V2SettingsActivity : V2BaseShellActivity() {
         }
 
         setupBluetoothPanel()
-        setupLanguagePanel()
-        setupUpdatePanel()
+        // setupLanguagePanel()
+        // setupUpdatePanel()
 
         viewModel.currentPage.observe(this) { page ->
             highlightMenu(page)
@@ -83,6 +83,17 @@ class V2SettingsActivity : V2BaseShellActivity() {
             V2SettingsSelectionUi.applyListSelection(this, deviceTextViews, it)
         }
         viewModel.selectPage(V2SettingsPage.BLUETOOTH)
+    }
+
+    private fun toastTabPlaceholder(page: V2SettingsPage) {
+        val msgRes = when (page) {
+            V2SettingsPage.LANGUAGE -> R.string.v2_settings_language
+            V2SettingsPage.UPDATE -> R.string.v2_settings_update
+            V2SettingsPage.ABOUT -> R.string.v2_settings_about
+            V2SettingsPage.MANUAL -> R.string.v2_settings_manual
+            V2SettingsPage.BLUETOOTH -> return
+        }
+        Toast.makeText(this, msgRes, Toast.LENGTH_SHORT).show()
     }
 
     private fun highlightMenu(page: V2SettingsPage) {
@@ -99,10 +110,11 @@ class V2SettingsActivity : V2BaseShellActivity() {
         container.removeAllViews()
         val panel = when (page) {
             V2SettingsPage.BLUETOOTH -> bluetoothPanel
-            V2SettingsPage.LANGUAGE -> languagePanel
-            V2SettingsPage.UPDATE -> updatePanel
-            V2SettingsPage.ABOUT -> aboutPanel
-            V2SettingsPage.MANUAL -> aboutPanel
+            // V2SettingsPage.LANGUAGE -> languagePanel
+            // V2SettingsPage.UPDATE -> updatePanel
+            // V2SettingsPage.ABOUT -> aboutPanel
+            // V2SettingsPage.MANUAL -> aboutPanel
+            else -> return
         } ?: return
         container.addView(panel)
     }
@@ -130,6 +142,7 @@ class V2SettingsActivity : V2BaseShellActivity() {
         }
     }
 
+    /*
     private fun setupLanguagePanel() {
         val panel = languagePanel ?: return
         val ids = listOf(R.id.langZh, R.id.langZhTw, R.id.langEn, R.id.langDe, R.id.langFr)
@@ -167,4 +180,5 @@ class V2SettingsActivity : V2BaseShellActivity() {
             Toast.makeText(this, R.string.v2_check_update, Toast.LENGTH_SHORT).show()
         }
     }
+    */
 }

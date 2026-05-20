@@ -10,7 +10,6 @@
         android:id="@+id/sidebar"
         android:layout_width="@dimen/v2_settings_sidebar_width"
         android:layout_height="match_parent"
-        android:background="@color/v2_settings_sidebar_bg"
         android:orientation="vertical"
         android:paddingHorizontal="10dp"
         android:paddingTop="8dp"

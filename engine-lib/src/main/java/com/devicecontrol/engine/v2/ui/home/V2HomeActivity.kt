@@ -22,6 +22,16 @@ class V2HomeActivity : V2BaseShellActivity() {
     override fun shellTitleCn(): String = getString(R.string.v2_app_title_cn)
     override fun shellTitleEn(): String = getString(R.string.v2_app_title_en)
 
+    override fun shellBottomAction(): ShellBottomAction = ShellBottomAction(
+        labelCn = getString(R.string.v2_setting),
+        labelEn = getString(R.string.v2_setting_en),
+    )
+
+    override fun onShellBottomActionClick() {
+        viewModel.onSettingsClicked()
+        startActivity(Intent(this, V2SettingsActivity::class.java))
+    }
+
     override fun onContentCreated(contentRoot: View) {
         contentRoot.findViewById<View>(R.id.cardStartInspection).setOnClickListener {
             viewModel.onStartInspectionClicked()
@@ -30,10 +40,6 @@ class V2HomeActivity : V2BaseShellActivity() {
         contentRoot.findViewById<View>(R.id.cardModelManage).setOnClickListener {
             viewModel.onModelManageClicked()
             startActivity(Intent(this, V2ModelCatalogActivity::class.java))
-        }
-        contentRoot.findViewById<View>(R.id.cardSettings).setOnClickListener {
-            viewModel.onSettingsClicked()
-            startActivity(Intent(this, V2SettingsActivity::class.java))
         }
     }
 }
