@@ -43,25 +43,29 @@ class V2EngineModelStripBackgroundDrawable(
             width = b.width().toFloat(),
             height = b.height().toFloat(),
             leftEdgeAngleDeg = shape.leftEdgeAngleDeg,
-            topRightRadiusPx = shape.topRightRadiusPx,
-            bottomRightRadiusPx = shape.bottomRightRadiusPx,
             outPath = path,
         )
         fillPaint.shader = createGradientShader(b.width().toFloat(), b.height().toFloat())
     }
 
+    /**
+     * 与 [android.graphics.drawable.GradientDrawable] 一致：按视图宽高映射渐变，
+     * 避免斜切轮廓内中心放射导致右侧发虚、变形。
+     */
     private fun createGradientShader(width: Float, height: Float): Shader {
-        val angleRad = Math.toRadians(shape.gradientAngleDeg.toDouble())
+        val angleDeg = ((shape.gradientAngleDeg % 360f) + 360f) % 360f
+        val rad = Math.toRadians(angleDeg.toDouble())
+        val y = height / 2f
+        val dx = cos(rad).toFloat()
+        val dy = sin(rad).toFloat()
+        val halfLen = (kotlin.math.abs(width * dx) + kotlin.math.abs(height * dy)) / 2f
         val cx = width / 2f
         val cy = height / 2f
-        val len = (kotlin.math.hypot(width.toDouble(), height.toDouble()) / 2.0).toFloat()
-        val dx = cos(angleRad).toFloat() * len
-        val dy = sin(angleRad).toFloat() * len
         return LinearGradient(
-            cx - dx,
-            cy - dy,
-            cx + dx,
-            cy + dy,
+            cx - dx * halfLen,
+            cy - dy * halfLen,
+            cx + dx * halfLen,
+            cy + dy * halfLen,
             shape.gradientStartColor,
             shape.gradientEndColor,
             Shader.TileMode.CLAMP,

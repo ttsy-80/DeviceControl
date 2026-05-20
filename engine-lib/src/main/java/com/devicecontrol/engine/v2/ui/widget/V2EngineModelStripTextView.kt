@@ -6,7 +6,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import com.devicecontrol.engine.R
 
 /**
- * 引擎信息右侧型号条：渐变背景、左侧外斜切（默认 45°）、右侧圆角。
+ * 引擎信息右侧型号条：渐变背景、左侧外斜切（默认 45°）、右侧直角。
  */
 class V2EngineModelStripTextView @JvmOverloads constructor(
     context: Context,
@@ -35,14 +35,6 @@ class V2EngineModelStripTextView @JvmOverloads constructor(
             R.styleable.V2EngineModelStripTextView_v2EngineStripLeftEdgeAngle,
             V2EngineModelStripShape.DEFAULT_LEFT_EDGE_ANGLE_DEG,
         )
-        val topRightRadius = a.getDimension(
-            R.styleable.V2EngineModelStripTextView_v2EngineStripTopRightRadius,
-            shape.topRightRadiusPx,
-        )
-        val bottomRightRadius = a.getDimension(
-            R.styleable.V2EngineModelStripTextView_v2EngineStripBottomRightRadius,
-            shape.bottomRightRadiusPx,
-        )
         a.recycle()
         applyStripShape(
             V2EngineModelStripShape(
@@ -50,8 +42,6 @@ class V2EngineModelStripTextView @JvmOverloads constructor(
                 gradientEndColor = endColor,
                 gradientAngleDeg = gradientAngle,
                 leftEdgeAngleDeg = leftAngle,
-                topRightRadiusPx = topRightRadius,
-                bottomRightRadiusPx = bottomRightRadius,
             ),
         )
     }

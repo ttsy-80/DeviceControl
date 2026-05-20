@@ -39,15 +39,13 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginStart="120dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="6dp"
             android:visibility="gone"
             tools:visibility="visible"
-            app:v2EngineStripBottomRightRadius="@dimen/v2_inspection_panel_radius"
             app:v2EngineStripGradientAngle="0"
             app:v2EngineStripGradientEndColor="@color/v2_surface"
             app:v2EngineStripGradientStartColor="@color/v2_peach"
-            app:v2EngineStripLeftEdgeAngle="45"
-            app:v2EngineStripTopRightRadius="@dimen/v2_inspection_panel_radius" />
+            app:v2EngineStripLeftEdgeAngle="45" />
     </RelativeLayout>
 
     <androidx.core.widget.NestedScrollView

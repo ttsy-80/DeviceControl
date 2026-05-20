@@ -19,6 +19,7 @@ import com.devicecontrol.engine.v2.model.V2ModelAddDetailRowUi
 import com.devicecontrol.engine.v2.model.V2ModelAppendArgs
 import com.devicecontrol.engine.v2.ui.adapter.V2ModelAddDetailRowAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
+import com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder.showModelNameStrip
 import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
 import com.devicecontrol.engine.v2.viewmodel.V2ModelAddViewModel
 
@@ -105,6 +106,7 @@ class V2ModelAddActivity : V2BaseShellActivity() {
             V2ModelEnginePanelBinder.setupAddEngineFields(engineFieldsContainer) { name ->
                 viewModel.updateModelNameTitle(name)
             }
+            showModelNameStrip(panelRoot, "")
         }
 
         detailRowAdapter = V2ModelAddDetailRowAdapter { _, _ -> }
