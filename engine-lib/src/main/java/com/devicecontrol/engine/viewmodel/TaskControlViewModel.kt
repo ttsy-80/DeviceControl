@@ -1,9 +1,16 @@
 package com.devicecontrol.engine.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.devicecontrol.engine.communication.command.EngineControlCommand
+import com.devicecontrol.engine.communication.protocol.CANOpenHelper
+import com.devicecontrol.engine.communication.protocol.CiA402
+import com.devicecontrol.engine.communication.protocol.SlcanManager
+import com.devicecontrol.engine.communication.protocol.SlcanRequest
+import com.devicecontrol.engine.communication.protocol.SlcanTransport
 import com.devicecontrol.engine.data.model.ConfigItem
 import com.devicecontrol.engine.data.model.OperationMode
 import com.devicecontrol.engine.data.model.RotationDirection
@@ -11,35 +18,26 @@ import com.devicecontrol.engine.data.model.Task
 import com.devicecontrol.engine.data.model.TaskExecution
 import com.devicecontrol.engine.data.model.TaskRecord
 import com.devicecontrol.engine.data.model.TaskStatus
-import com.devicecontrol.engine.communication.CanUsbInitConfig
-import com.devicecontrol.engine.communication.CommunicationManager
-import com.devicecontrol.engine.communication.command.EngineControlCommand
-import com.devicecontrol.engine.communication.transport.UsbCommunicationTransport
 import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
-import com.devicecontrol.engine.log.DefaultEngineLogger
+import com.devicecontrol.engine.lifecycle.SlcanEmergencyClose
 import com.devicecontrol.engine.log.DebugLogHolder
+import com.devicecontrol.engine.log.DefaultEngineLogger
 import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.log.EngineLogger
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.withContext
-import android.content.Context
-import com.devicecontrol.engine.communication.protocol.CanUsbProtocol
-import com.devicecontrol.engine.communication.protocol.CANOpenHelper
-import com.devicecontrol.engine.communication.protocol.CiA402
-import com.devicecontrol.engine.communication.protocol.SlcanManager
-import com.devicecontrol.engine.communication.protocol.SlcanRequest
-import com.devicecontrol.engine.communication.protocol.SlcanTransport
-import com.devicecontrol.engine.lifecycle.SlcanEmergencyClose
 import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
 import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
+import com.devicecontrol.engine.viewmodel.TaskControlViewModel.Companion.CONTINUOUS_PROGRESS_TOAST_MS
+import com.devicecontrol.engine.viewmodel.TaskControlViewModel.Companion.DEFAULT_SPEED_SEC_PER_REV
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TaskControlViewModel(
     private val taskRepository: TaskRepository,
@@ -220,64 +218,6 @@ class TaskControlViewModel(
             }
         })
 
-    }
-
-    /** 扫描并连接：设置 USB 传输并连接第一个可用设备；若为 CAN-USB 设备则连接成功后自动按手册初始化；主 logger 同时写入 [DebugLogHolder] 供调试页回看 */
-    private fun scanAndConnect() {
-        val defaultLogger = DefaultEngineLogger("Engine")
-        EngineLog.setLogger(object : EngineLogger {
-            override fun d(tag: String, message: String) {
-                defaultLogger.d(tag, message)
-                DebugLogHolder.add("D", tag, message)
-            }
-
-            override fun i(tag: String, message: String) {
-                defaultLogger.i(tag, message)
-                DebugLogHolder.add("I", tag, message)
-            }
-
-            override fun w(tag: String, message: String) {
-                defaultLogger.w(tag, message)
-                DebugLogHolder.add("W", tag, message)
-            }
-
-            override fun e(tag: String, message: String) {
-                defaultLogger.e(tag, message)
-                DebugLogHolder.add("E", tag, message)
-            }
-
-            override fun e(tag: String, message: String, throwable: Throwable?) {
-                defaultLogger.e(tag, message, throwable)
-                DebugLogHolder.add("E", tag, message, throwable)
-            }
-        })
-        val transport = UsbCommunicationTransport(applicationContext)
-        val manager = CommunicationManager.getInstance()
-        manager.setTransport(transport)
-        manager.setCanUsbInitConfig(
-            CanUsbInitConfig(
-                canBaudRate = CanUsbProtocol.CanBaudRate.BPS_500K,
-                openChannel = true
-            )
-        )
-        manager.setDataCallback(object : com.devicecontrol.engine.communication.DataCallback {
-            override fun onTextDataReceived(data: String) {
-//                _displayInfo.value = _displayInfo.value +" data1:$data"
-                EngineLog.d(TAG, "通讯回调 onTextDataReceived: $data")
-            }
-
-            override fun onBinaryDataReceived(data: ByteArray) {
-//                _displayInfo.value = _displayInfo.value +" data2:$data"
-                EngineLog.d(TAG, "通讯回调 onBinaryDataReceived: $data")
-            }
-
-            override fun onError(error: String) {
-//                _displayInfo.value = _displayInfo.value +" error:$error"
-                EngineLog.w(TAG, "通讯回调 onError: $error")
-            }
-        })
-        val started = manager.scanAndConnect()
-        EngineLog.i(TAG, "scanAndConnect: started=$started")
     }
 
     /**
@@ -999,12 +939,9 @@ class TaskControlViewModel(
     }
 
     /**
-     * 测试发送指令：将用户输入的原始文本通过 [CommunicationManager.sendText] 下发，供调试使用。
+     * 测试发送指令：将用户输入的原始文本通过  下发，供调试使用。
      */
     fun sendTestInstruction(text: String) {
-//        if (text.isBlank()) return
-//        val manager = CommunicationManager.getInstance()
-//        val sent = manager.sendText(text)
         val sent = vcpManager?.sendTextLine(text) ?: false
         if (sent) EngineLog.d(TAG, "sendTestInstruction: sent, cmd:$text len=${text.length}")
         else EngineLog.w(TAG, "sendTestInstruction: 发送失败 cmd:$text")

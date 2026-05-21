@@ -182,7 +182,6 @@ class UsbSerialVcpManager(private val context: Context) {
 
     /**
      * 扫描并连接：先刷新可用 VCP 设备列表，若扫到至少一个设备则连接第一个。
-     * 参考 [com.devicecontrol.engine.communication.CommunicationManager.scanAndConnect] 的实现。
      *
      * @param callback 可选，若传入则作为本次连接的数据与错误回调
      * @return true 已发起连接（扫到至少一个设备，可能需等待用户授权后再真正连上），false 未扫到设备
