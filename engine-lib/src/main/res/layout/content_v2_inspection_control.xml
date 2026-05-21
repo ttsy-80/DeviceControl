@@ -22,7 +22,7 @@
             android:id="@+id/enginePanelLeft"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0.8"
             android:layout_marginBottom="20dp"
             android:background="@drawable/bg_v2_panel_grey"
             android:clipToOutline="true"
