@@ -13,8 +13,9 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:baselineAligned="false"
-        android:orientation="horizontal"
-        android:padding="@dimen/v2_inspection_content_margin">
+        android:layout_marginTop="12dp"
+        android:layout_marginHorizontal="24dp"
+        android:orientation="horizontal">
 
         <!-- 左：引擎信息（weight 1，对齐型号详情） -->
         <FrameLayout
@@ -22,6 +23,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/bg_v2_panel_grey"
             android:clipToOutline="true"
             android:elevation="2dp">
@@ -116,18 +118,16 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/v2_inspection_col_gap"
+            android:layout_marginStart="20dp"
             android:layout_weight="1.5"
-            android:background="@drawable/bg_v2_panel_white"
             android:elevation="2dp"
-            android:orientation="vertical"
-            android:padding="8dp">
+            android:orientation="vertical">
 
             <!-- 状态栏 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_v2_p7_status_bar"
+                android:background="@drawable/bg_v2_edit_detail_header"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/v2_inspection_status_bar_h"
                 android:orientation="horizontal"
@@ -178,7 +178,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="8dp"
                 android:layout_weight="1"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
@@ -187,7 +186,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="56"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <!-- 记录区（灰底） -->
@@ -195,7 +194,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_v2_inspection_panel"
+                        android:background="@drawable/bg_v2_inspection_record"
                         android:orientation="vertical"
                         android:padding="6dp">
 
@@ -290,6 +289,7 @@
                         android:layout_marginTop="8dp"
                         android:background="@color/v2_surface"
                         android:orientation="vertical"
+                        android:visibility="gone"
                         android:paddingBottom="4dp">
 
                         <Button
@@ -328,16 +328,11 @@
                     android:id="@+id/scrollOperation"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="44"
-                    android:background="@drawable/bg_v2_inspection_panel"
+                    android:layout_weight="1.2"
+                    android:background="@drawable/bg_v2_inspection_func"
                     android:fadeScrollbars="false"
                     android:fillViewport="true"
                     android:overScrollMode="ifContentScrolls"
-                    android:padding="6dp"
-                    android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
-                    android:scrollbarStyle="insideOverlay"
-                    android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
                     android:scrollbars="vertical">
 
                     <FrameLayout
@@ -529,22 +524,25 @@
                     </FrameLayout>
                 </androidx.core.widget.NestedScrollView>
             </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/inspectionFooterBar"
+                android:layout_width="match_parent"
+                android:layout_marginStart="40dp"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tvV2CompanyCn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:text="@string/v2_company_cn"
+                    android:textColor="@color/v2_primary"
+                    android:alpha="0.2"
+                    android:textSize="13sp" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/inspectionFooterBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/tvV2CompanyCn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/v2_company_cn"
-            android:textColor="@color/v2_primary"
-            android:alpha="0.2"
-            android:textSize="13sp" />
-    </FrameLayout>
 </LinearLayout>
