@@ -224,9 +224,6 @@ class V2InspectionControlViewModel(
     }
 
     fun onControlAction(action: String) {
-        if (_isRunning.value == true && _operationMode.value == V2UiOperationMode.AUTO) {
-            if (action !in AUTO_ALLOWED_WHILE_RUNNING) return
-        }
         viewModelScope.launch {
             syncCommandContext()
             when (action) {
@@ -382,6 +379,5 @@ class V2InspectionControlViewModel(
 
     companion object {
         private const val TAG = "InspectionControlVM"
-        private val AUTO_ALLOWED_WHILE_RUNNING = setOf("AUTO_PHOTO")
     }
 }

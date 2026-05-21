@@ -110,6 +110,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             spinner.setSelection(if (mode == V2UiOperationMode.AUTO) 0 else 1, false)
             suppressModeSelection = false
             applyControlHighlights(root, lastHighlight, mode == V2UiOperationMode.MANUAL)
+            updateControlEnabled(root, viewModel.isRunning.value == true)
         }
         viewModel.controlHighlight.observe(this) { state ->
             lastHighlight = state
@@ -120,7 +121,10 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             updateControlEnabled(root, running)
         }
         viewModel.canStart.observe(this) { can ->
-            root.findViewById<View>(R.id.btnStart).isEnabled = can
+            root.findViewById<View>(R.id.btnStart).apply {
+                isEnabled = can
+                alpha = if (can) 1f else DISABLED_ALPHA
+            }
         }
         viewModel.errorMessage.observe(this) { error ->
             error?.let {
@@ -135,6 +139,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         setupModeSpinner(root)
         bindControlClicks(root)
         bindEndClicks(root)
+        updateControlEnabled(root, viewModel.isRunning.value == true)
 
         root.findViewById<View>(R.id.btnStart).setOnClickListener { viewModel.onStart() }
         root.findViewById<View>(R.id.btnPause).setOnClickListener { viewModel.onPause() }
@@ -336,19 +341,71 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         root.findViewById<androidx.core.widget.NestedScrollView>(R.id.scrollOperation).scrollTo(0, 0)
     }
 
+    /**
+     * 发送机未启动：操作区仅「自动/手动模式设置」可点；记录区暂停/记录/回程间隙禁用。
+     * 已启动：当前可见操作区全部可点（自动/手动运行中一致）。
+     */
     private fun updateControlEnabled(root: View, running: Boolean) {
-        val autoMode = viewModel.operationMode.value == V2UiOperationMode.AUTO
-        val disableMotion = running && autoMode
-        val autoIds = listOf(
-            R.id.btnForward, R.id.btnReverse, R.id.btnAccel, R.id.btnDecel,
-            R.id.btnContinuous, R.id.btnJog, R.id.btnBacklash,
+        val autoPillIds = listOf(
+            R.id.btnForward,
+            R.id.btnReverse,
+            R.id.btnAccel,
+            R.id.btnDecel,
+            R.id.btnContinuous,
+            R.id.btnJog,
+            R.id.btnAutoPhoto,
+            R.id.btnControlSettings,
+            R.id.btnBacklash,
+            R.id.btnEnd,
         )
-        val manualIds = listOf(
-            R.id.btnForwardManual, R.id.btnReverseManual, R.id.btnAccelManual, R.id.btnDecelManual,
-            R.id.btnContinuousManual, R.id.btnJogManual, R.id.btnBacklashManual,
+        val manualPillIds = listOf(
+            R.id.btnForwardManual,
+            R.id.btnReverseManual,
+            R.id.btnAccelManual,
+            R.id.btnDecelManual,
+            R.id.btnContinuousManual,
+            R.id.btnJogManual,
+            R.id.btnManualModeSettings,
+            R.id.btnBacklashManual,
+            R.id.btnEndManual,
         )
-        (autoIds + manualIds).forEach { id ->
-            root.findViewById<View>(id).isEnabled = !disableMotion
+
+        setRecordBarEnabled(root, running)
+
+        if (!running) {
+            autoPillIds.forEach { id ->
+                setControlPillEnabled(root, id, id == R.id.btnControlSettings)
+            }
+            manualPillIds.forEach { id ->
+                setControlPillEnabled(root, id, id == R.id.btnManualModeSettings)
+            }
+            return
+        }
+
+        autoPillIds.forEach { id -> setControlPillEnabled(root, id, true) }
+        manualPillIds.forEach { id -> setControlPillEnabled(root, id, true) }
+    }
+
+    private fun setRecordBarEnabled(root: View, running: Boolean) {
+        root.findViewById<View>(R.id.btnPause).apply {
+            isEnabled = running
+            alpha = if (running) 1f else DISABLED_ALPHA
+        }
+        root.findViewById<View>(R.id.btnRecord).apply {
+            isEnabled = running
+            alpha = if (running) 1f else DISABLED_ALPHA
+        }
+        root.findViewById<View>(R.id.btnBacklashOnReturn).apply {
+            isEnabled = running
+            alpha = if (running) 1f else DISABLED_ALPHA
+        }
+    }
+
+    private fun setControlPillEnabled(root: View, viewId: Int, enabled: Boolean) {
+        root.findViewById<View>(viewId)?.apply {
+            isEnabled = enabled
+            isClickable = enabled
+            alpha = if (enabled) 1f else DISABLED_ALPHA
         }
     }
 
@@ -453,6 +510,8 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     )
 
     companion object {
+        private const val DISABLED_ALPHA = 0.45f
+
         const val EXTRA_MODEL_ID = "extra_v2_inspection_model_id"
         const val EXTRA_MODEL_NAME = "extra_v2_model_name"
     }
