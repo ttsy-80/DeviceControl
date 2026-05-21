@@ -474,10 +474,30 @@ class V2InspectionEngineViewModel(
             TAG,
             "start(first=$first): mode=${exec.operationMode} status=${exec.status} speedSec=${exec.speed}"
         )
+        if (operationStrategy.startCommandPersistsStateOnly) {
+            viewModelScope.launch {
+                startStateOnly(task, exec, first)
+            }
+            return
+        }
         if (exec.operationMode == OperationMode.JOG) {
             startJogLoop(task, first)
         } else {
             startContinuousLoop(task, first)
+        }
+    }
+
+    /** 开发模式：开始仅落库 [TaskStatus.RUNNING] 并刷新业务层，不跑点动/连续协程。 */
+    private suspend fun startStateOnly(task: Task, exec: TaskExecution, first: Boolean) {
+        jogJob?.cancel()
+        jogJob = null
+        persistExecutionSync(exec.copy(status = TaskStatus.RUNNING))
+        withContext(Dispatchers.Main) {
+            loadCurrentConfigItem(task, currentGearRatioIndex)
+        }
+        EngineLog.i(TAG, "startStateOnly: status=RUNNING mode=${exec.operationMode}")
+        if (first) {
+            _toastMessage.postValue("开发模式：已开始（状态已同步）")
         }
     }
 

@@ -13,7 +13,13 @@ interface V2InspectionOperationStrategy {
     /** 无 CAN 映射时是否仍允许将 [executionAfterSuccess] 写入数据库（开发模式用于纯状态切换）。 */
     val allowsPersistWithoutCan: Boolean
 
-    /** 点动/连续循环中的等待时长（毫秒）；开发模式缩短以便调试。 */
+    /**
+     * 开始指令是否仅将 [TaskStatus.RUNNING] 写入数据库并同步 LiveData，
+     * 不启动点动/连续执行协程、不模拟发动机运转。
+     */
+    val startCommandPersistsStateOnly: Boolean
+
+    /** 点动/连续循环中的等待时长（毫秒）；发布模式使用真实耗时。 */
     fun motionDelayMs(realDelayMs: Long): Long
 
     suspend fun executeRequests(

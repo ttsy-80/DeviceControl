@@ -472,7 +472,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     private fun bindEndClicks(root: View) {
         val endListener = View.OnClickListener {
             viewModel.onEnd()
-            finish()
+//            finish()
         }
         root.findViewById<View>(R.id.btnEnd).setOnClickListener(endListener)
         root.findViewById<View>(R.id.btnEndManual).setOnClickListener(endListener)

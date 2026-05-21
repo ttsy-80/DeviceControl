@@ -14,6 +14,8 @@ object V2DevelopmentInspectionOperationStrategy : V2InspectionOperationStrategy 
 
     override val allowsPersistWithoutCan: Boolean = true
 
+    override val startCommandPersistsStateOnly: Boolean = true
+
     override fun motionDelayMs(realDelayMs: Long): Long = SIMULATED_MOTION_DELAY_MS
 
     override suspend fun executeRequests(
