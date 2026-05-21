@@ -41,6 +41,8 @@ import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
 import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
 import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.connection.V2ConnectionState
+import com.devicecontrol.engine.v2.inspection.strategy.V2CanExecuteOutcome
+import com.devicecontrol.engine.v2.inspection.strategy.V2InspectionOperationStrategyProvider
 import kotlinx.coroutines.MainScope
 
 /**
@@ -90,6 +92,12 @@ class V2InspectionEngineViewModel(
         val gearRatio = _currentConfigItem.value?.gearRatio ?: 1.0
         return gearRatio * 100
     }
+
+    private val operationStrategy
+        get() = V2InspectionOperationStrategyProvider.strategy
+
+    private suspend fun executeCanRequests(requests: List<SlcanRequest>): V2CanExecuteOutcome =
+        operationStrategy.executeRequests(slcanManager, requests)
 
     /**
      * 编码器 [actualPos] 可能累计多圈，折算角度会超过 ±360°。
@@ -484,14 +492,14 @@ class V2InspectionEngineViewModel(
             return false
         }
         EngineLog.i(TAG, "stopCurrentTaskMotionBeforeSwitch: 下发 PAUSE model=$n pos=$p")
-        val res = withContext(Dispatchers.IO) { slcanManager?.execute(reqs) }
-        return if (res?.success == true) {
+        val res = withContext(Dispatchers.IO) { executeCanRequests(reqs) }
+        return if (res.success) {
             persistExecutionSync(pending)
             EngineLog.i(TAG, "stopCurrentTaskMotionBeforeSwitch: PAUSE 成功，已落库 PAUSED")
             true
         } else {
-            EngineLog.e(TAG, "stopCurrentTaskMotionBeforeSwitch: PAUSE 失败 ${res?.error}")
-            _toastMessage.postValue("切换任务前停止失败: ${res?.error ?: "未知错误"}")
+            EngineLog.e(TAG, "stopCurrentTaskMotionBeforeSwitch: PAUSE 失败 ${res.error}")
+            _toastMessage.postValue("切换任务前停止失败")
             false
         }
     }
@@ -551,8 +559,7 @@ class V2InspectionEngineViewModel(
             return
         }
         val (pauseRequests, stoppedExec) = bundle
-        val res = slcanManager?.execute(pauseRequests)
-        if (res?.success == true) {
+        if (executeCanRequests(pauseRequests).success) {
             persistExecutionSync(stoppedExec)
             EngineLog.i(
                 TAG,
@@ -562,8 +569,8 @@ class V2InspectionEngineViewModel(
                 _toastMessage.postValue("连续运行结束，已停止")
             }
         } else {
-            EngineLog.e(TAG, "pauseContinuousAndPersistStopped: 失败 ${res?.error}")
-            _toastMessage.postValue("连续结束停止失败: ${res?.error ?: "未知错误"}")
+            EngineLog.e(TAG, "pauseContinuousAndPersistStopped: 失败")
+            _toastMessage.postValue("连续结束停止失败")
         }
     }
 
@@ -583,8 +590,9 @@ class V2InspectionEngineViewModel(
         while (currentCoroutineContext().isActive) {
             val ex = withContext(Dispatchers.Main) { _taskExecution.value } ?: return false
             if (ex.operationMode != OperationMode.CONTINUOUS || ex.status != TaskStatus.RUNNING) return false
-            val targetMs =
+            val realTargetMs =
                 (ex.speed.coerceAtLeast(MIN_SPEED_SEC_PER_REV) * 1000.0).toLong().coerceAtLeast(1L)
+            val targetMs = operationStrategy.motionDelayMs(realTargetMs)
             if (elapsed >= targetMs) return true
             val remaining = targetMs - elapsed
             val step = minOf(CONTINUOUS_SPEED_POLL_MS, remaining).coerceAtLeast(1L)
@@ -635,11 +643,10 @@ class V2InspectionEngineViewModel(
                 EngineLog.w(TAG, "startContinuousLoop: 无 CAN 请求")
                 return@launch
             }
-            val startRes = slcanManager?.execute(moveRequests)
-            if (startRes?.success != true) {
+            if (!executeCanRequests(moveRequests).success) {
                 val msg = if (first) "启动失败" else "连续启动失败"
-                EngineLog.e(TAG, "startContinuousLoop: CONTINUOUS 下发失败 ${startRes?.error}")
-                _toastMessage.postValue("$msg: ${startRes?.error ?: "未知错误"}")
+                EngineLog.e(TAG, "startContinuousLoop: CONTINUOUS 下发失败")
+                _toastMessage.postValue(msg)
                 return@launch
             }
 
@@ -731,13 +738,12 @@ class V2InspectionEngineViewModel(
                     }
                     if (bundle != null) {
                         val (pauseRequests, stoppedExec) = bundle
-                        val res = slcanManager?.execute(pauseRequests)
-                        if (res?.success == true) {
+                        if (executeCanRequests(pauseRequests).success) {
                             persistExecutionSync(stoppedExec)
                             EngineLog.i(TAG, "startJogLoop: 点动步数完成，已 PAUSE 落库 STOPPED")
                         } else {
-                            EngineLog.e(TAG, "startJogLoop: 点动结束 PAUSE 失败 ${res?.error}")
-                            _toastMessage.postValue("点动结束停止失败: ${res?.error ?: "未知错误"}")
+                            EngineLog.e(TAG, "startJogLoop: 点动结束 PAUSE 失败")
+                            _toastMessage.postValue("点动结束停止失败")
                         }
                     }
                     break
@@ -761,8 +767,7 @@ class V2InspectionEngineViewModel(
                     kotlin.math.abs(pbVelocity),
                     relativePulses
                 )
-                val res = slcanManager?.execute(requests)
-                if (res?.success == true) {
+                if (executeCanRequests(requests).success) {
                     if (!runningPersisted) {
                         runningPersisted = true
                         val cur = withContext(Dispatchers.Main) { _taskExecution.value } ?: break
@@ -784,14 +789,14 @@ class V2InspectionEngineViewModel(
                     )
                 } else {
                     val msg = if (first) "启动失败" else "点动下发失败"
-                    EngineLog.e(TAG, "startJogLoop: 相对位移失败 ${res?.error}")
-                    _toastMessage.postValue("$msg: ${res?.error ?: "未知错误"}")
+                    EngineLog.e(TAG, "startJogLoop: 相对位移失败")
+                    _toastMessage.postValue(msg)
                     break
                 }
 
                 stepCount++
                 val holdSec = V2InspectionCommandDispatcher.resolveJogHoldSec(commandCtx(currentExec))
-                delay(holdSec * 1000L)
+                delay(operationStrategy.motionDelayMs(holdSec * 1000L))
             }
         }
     }
@@ -849,12 +854,20 @@ class V2InspectionEngineViewModel(
 
     /** V2 手动：仅切换点动模式，不自动 start */
     fun setOperationModeJogOnly() {
-        applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.JOG) }
+        if (operationStrategy.allowsPersistWithoutCan) {
+            updateExecution { it.copy(operationMode = OperationMode.JOG) }
+        } else {
+            applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.JOG) }
+        }
     }
 
     /** V2 手动：仅切换连续模式，不自动 start */
     fun setOperationModeContinuousOnly() {
-        applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.CONTINUOUS) }
+        if (operationStrategy.allowsPersistWithoutCan) {
+            updateExecution { it.copy(operationMode = OperationMode.CONTINUOUS) }
+        } else {
+            applyExecutionToLiveDataOnly { it.copy(operationMode = OperationMode.CONTINUOUS) }
+        }
     }
 
     fun isSlcanReady(): Boolean = slcanManager?.state == SlcanManager.State.READY
@@ -936,40 +949,61 @@ class V2InspectionEngineViewModel(
             "addRecord: taskId=${task.id} gearIndex=$currentGearRatioIndex position=$position bladeCount=$bladeCount"
         )
         viewModelScope.launch {
-            val req = CANOpenHelper.readPosition()
-            val res = slcanManager?.execute(req)
-            if (res?.success == true) {
-                val actualPos = res.values[CiA402.ActualPosition.name] as? Int
-                if (actualPos != null) {
-                    val gearRatio = getRealGearRatio()
-                    val rawAngle = actualPos * 360.0 / (gearRatio * encoderResolution)
-                    val recordAngle = normalizeAngleDegrees0To360(rawAngle)
-                    val blades = bladeCount.coerceAtLeast(1)
-                    val bladeNumber = (blades * recordAngle / 360.0).toInt().coerceIn(0, blades)
-                    val record = TaskRecord(
-                        taskId = task.id,
-                        gearRatioIndex = currentGearRatioIndex,
-                        recordNumber = 0,
-                        position = position, // 0.1° 整数刻度，与历史一致
-                        angleDegrees = recordAngle.toFloat(),
-                        bladeNumber = bladeNumber
-                    )
-                    taskRepository.insertTaskRecord(record)
-                    loadTaskRecords(task.id, currentGearRatioIndex)
-
-                    EngineLog.i(
-                        TAG,
-                        "addRecord: 成功 actualPos=$actualPos angleDeg=${record.angleDegrees} blade=${record.bladeNumber}"
-                    )
-                    _toastMessage.postValue("记录位置获取成功: ${record.angleDegrees}")
-                } else {
-                    EngineLog.w(TAG, "addRecord: 读位置成功但 ActualPosition 为空")
-                }
-            } else {
-                EngineLog.e(TAG, "记录失败: ${res?.error}")
-                _toastMessage.postValue("获取失败: ${res?.error ?: "未知"}")
+            if (!operationStrategy.requiresDeviceConnection) {
+                insertSimulatedRecord(task, position, bladeCount)
+                return@launch
             }
+            val outcome = executeCanRequests(CANOpenHelper.readPosition())
+            if (!outcome.success) {
+                EngineLog.e(TAG, "记录失败: ${outcome.error}")
+                _toastMessage.postValue("获取失败: ${outcome.error ?: "未知"}")
+                return@launch
+            }
+            val actualPos = outcome.values[CiA402.ActualPosition.name] as? Int
+            if (actualPos == null) {
+                EngineLog.w(TAG, "addRecord: 读位置成功但 ActualPosition 为空")
+                return@launch
+            }
+            val gearRatio = getRealGearRatio()
+            val rawAngle = actualPos * 360.0 / (gearRatio * encoderResolution)
+            val recordAngle = normalizeAngleDegrees0To360(rawAngle)
+            insertRecordFromAngle(task, position, bladeCount, recordAngle, actualPos)
         }
+    }
+
+    private suspend fun insertSimulatedRecord(task: Task, position: Int, bladeCount: Int) {
+        val blades = bladeCount.coerceAtLeast(1)
+        val existing = taskRepository.getTaskRecordsByTaskIdAndIndex(task.id, currentGearRatioIndex)
+        val index = existing.size % blades
+        val recordAngle = index * (360.0 / blades)
+        insertRecordFromAngle(task, position, bladeCount, recordAngle, actualPosHint = -1)
+        _toastMessage.postValue("开发模式：已模拟记录 (${recordAngle.toInt()}°)")
+    }
+
+    private suspend fun insertRecordFromAngle(
+        task: Task,
+        position: Int,
+        bladeCount: Int,
+        recordAngle: Double,
+        actualPosHint: Int,
+    ) {
+        val blades = bladeCount.coerceAtLeast(1)
+        val bladeNumber = (blades * recordAngle / 360.0).toInt().coerceIn(0, blades)
+        val record = TaskRecord(
+            taskId = task.id,
+            gearRatioIndex = currentGearRatioIndex,
+            recordNumber = 0,
+            position = position,
+            angleDegrees = recordAngle.toFloat(),
+            bladeNumber = bladeNumber,
+        )
+        taskRepository.insertTaskRecord(record)
+        loadTaskRecords(task.id, currentGearRatioIndex)
+        EngineLog.i(
+            TAG,
+            "addRecord: 成功 actualPos=$actualPosHint angleDeg=${record.angleDegrees} blade=${record.bladeNumber}",
+        )
+        _toastMessage.postValue("记录位置获取成功: ${record.angleDegrees}")
     }
 
     fun playbackRecord(record: TaskRecord) {
@@ -988,8 +1022,7 @@ class V2InspectionEngineViewModel(
 
         viewModelScope.launch {
             val reqs = CANOpenHelper.startPositionMode(Math.abs(pbVelocity), pulses)
-            val res = slcanManager?.execute(reqs)
-            if (res?.success == true) {
+            if (executeCanRequests(reqs).success) {
                 EngineLog.i(
                     TAG,
                     "playbackRecord: 位置模式下发成功 pulses=$pulses profileVel=$pbVelocity"
@@ -999,10 +1032,16 @@ class V2InspectionEngineViewModel(
                     persistExecutionSync(cur.copy(status = TaskStatus.RUNNING))
                     EngineLog.i(TAG, "playbackRecord: 执行状态已同步为 RUNNING（原=${cur.status}）")
                 }
-                _toastMessage.postValue("已触发回溯指令: $positionAngle 度")
+                _toastMessage.postValue(
+                    if (operationStrategy.requiresDeviceConnection) {
+                        "已触发回溯指令: $positionAngle 度"
+                    } else {
+                        "开发模式：已模拟回溯 $positionAngle 度"
+                    },
+                )
             } else {
-                EngineLog.e(TAG, "playbackRecord: 失败 ${res?.error}")
-                _toastMessage.postValue("回溯指令失败: ${res?.error ?: "未知"}")
+                EngineLog.e(TAG, "playbackRecord: 失败")
+                _toastMessage.postValue("回溯指令失败")
             }
         }
     }
@@ -1047,20 +1086,29 @@ class V2InspectionEngineViewModel(
     ) {
         val requests = requestsForCommand(cmd, commandCtx(executionAfterSuccess))
         if (requests.isEmpty()) {
-            EngineLog.d(TAG, "sendCommandThenPersist: 未映射 CAN 指令, $cmd")
+            if (!operationStrategy.allowsPersistWithoutCan) {
+                EngineLog.d(TAG, "sendCommandThenPersist: 未映射 CAN 指令, $cmd")
+                return
+            }
+            viewModelScope.launch {
+                persistExecutionSync(executionAfterSuccess)
+                EngineLog.i(TAG, "sendCommandThenPersist: 开发模式无 CAN，直接落库 $cmd")
+                onSuccess()
+            }
             return
         }
         viewModelScope.launch {
-            val res = slcanManager?.execute(requests)
-            if (res?.success == true) {
-                _taskExecution.value = executionAfterSuccess
-                taskRepository.insertOrUpdateTaskExecution(executionAfterSuccess)
+            val outcome = executeCanRequests(requests)
+            if (outcome.success) {
+                persistExecutionSync(executionAfterSuccess)
                 EngineLog.i(TAG, "sendCommandThenPersist: 成功 $cmd")
-                _toastMessage.value = "命令发送成功"
+                if (operationStrategy.requiresDeviceConnection) {
+                    _toastMessage.value = "命令发送成功"
+                }
                 onSuccess()
             } else {
-                EngineLog.e(TAG, "sendCommandThenPersist: 失败 $cmd, error=${res?.error}")
-                _toastMessage.value = "发送失败: ${res?.error ?: "未知错误"}"
+                EngineLog.e(TAG, "sendCommandThenPersist: 失败 $cmd, error=${outcome.error}")
+                _toastMessage.value = "发送失败: ${outcome.error ?: "未知错误"}"
             }
         }
     }

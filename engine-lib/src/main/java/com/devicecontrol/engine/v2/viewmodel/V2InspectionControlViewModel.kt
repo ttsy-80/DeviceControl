@@ -19,6 +19,7 @@ import com.devicecontrol.engine.data.repository.EngineRepository
 import com.devicecontrol.engine.data.repository.TaskRepository
 import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.data.V2InspectionRepository
+import com.devicecontrol.engine.v2.inspection.strategy.V2InspectionOperationStrategyProvider
 import com.devicecontrol.engine.v2.inspection.V2InspectionCommandContext
 import com.devicecontrol.engine.v2.inspection.V2InspectionCommandDispatcher
 import com.devicecontrol.engine.v2.inspection.V2InspectionEngineViewModel
@@ -99,6 +100,11 @@ class V2InspectionControlViewModel(
 
     private val _controlHighlight = MutableLiveData(V2ControlHighlightState())
     val controlHighlight: LiveData<V2ControlHighlightState> = _controlHighlight
+
+    private val operationStrategy
+        get() = V2InspectionOperationStrategyProvider.strategy
+
+    fun requiresDeviceConnection(): Boolean = operationStrategy.requiresDeviceConnection
 
     private val taskObservers = MediatorLiveData<Unit>().apply {
         addSource(engine.taskExecution) { exec ->
@@ -239,10 +245,7 @@ class V2InspectionControlViewModel(
     }
 
     fun playbackRecord(record: TaskRecord) {
-        if (!engine.isSlcanReady()) {
-            _errorMessage.value = "未连接到设备"
-            return
-        }
+        if (!canOperate(requireConnection = true)) return
         syncCommandContext()
         engine.playbackRecord(record)
     }
@@ -278,31 +281,31 @@ class V2InspectionControlViewModel(
     }
 
     private fun addRecord() {
-        if (!engine.isSlcanReady()) {
-            _errorMessage.value = "未连接到设备"
-            return
-        }
+        if (!canOperate(requireConnection = true)) return
         val config = engine.currentConfigItem.value ?: return
         val position = config.position.toIntOrNull() ?: 1
         engine.addRecord(position, config.bladeCount)
     }
 
-    private fun canOperate(): Boolean {
+    private fun canOperate(requireConnection: Boolean = true): Boolean {
         if (_sessionReady.value != true) {
             _errorMessage.value = "检测会话未就绪"
             return false
         }
-        if (!V2ConnectionRepository.isConnected() || !engine.isSlcanReady()) {
-            _errorMessage.value = "未连接到设备"
-            return false
+        if (requireConnection && operationStrategy.requiresDeviceConnection) {
+            if (!V2ConnectionRepository.isConnected() || !engine.isSlcanReady()) {
+                _errorMessage.value = "未连接到设备"
+                return false
+            }
         }
         return true
     }
 
     private fun updateCanStart() {
+        val connectionOk = !operationStrategy.requiresDeviceConnection ||
+            (V2ConnectionRepository.isConnected() && engine.isSlcanReady())
         val ready = _sessionReady.value == true &&
-            V2ConnectionRepository.isConnected() &&
-            engine.isSlcanReady() &&
+            connectionOk &&
             _isRunning.value != true
         _canStart.value = ready
     }

@@ -432,6 +432,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     }
 
     private fun ensureConnectedForControl(): Boolean {
+        if (!viewModel.requiresDeviceConnection()) return true
         if (V2ConnectionRepository.isConnected()) return true
         V2ErrorDialog.show(
             context = this,
