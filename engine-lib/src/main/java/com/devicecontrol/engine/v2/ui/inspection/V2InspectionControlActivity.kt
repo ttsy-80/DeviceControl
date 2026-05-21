@@ -72,6 +72,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         }
 
         root.findViewById<TextView>(R.id.tvEngineModelName).text = modelName
+        val enginePanel = root.findViewById<View>(R.id.enginePanelLeft)
 
         recordAdapter = V2RecordRowAdapter(
             onReturn = { row -> viewModel.playbackRecord(row.taskRecord) },
@@ -89,8 +90,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             shellBinder.bindTitles(name, getString(R.string.v2_inspection_title_en))
         }
         viewModel.imagePath.observe(this) { path ->
-            val photoPanel = root.findViewById<View>(R.id.ivEnginePhoto).parent as View
-            com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder.bindEngineImage(photoPanel, path)
+            com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder.bindEngineImage(enginePanel, path)
         }
         viewModel.engineParamsText.observe(this) {
             root.findViewById<TextView>(R.id.tvEngineParams).text = it

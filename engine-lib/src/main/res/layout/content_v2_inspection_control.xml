@@ -16,48 +16,62 @@
         android:orientation="horizontal"
         android:padding="@dimen/v2_inspection_content_margin">
 
-        <!-- 左：引擎信息 -->
+        <!-- 左：引擎信息（weight 1，对齐型号详情） -->
         <FrameLayout
+            android:id="@+id/enginePanelLeft"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="22"
-            android:background="@drawable/bg_v2_panel_white"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v2_panel_grey"
+            android:clipToOutline="true"
             android:elevation="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="8dp">
+                android:orientation="vertical">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="36dp"
+                    android:layout_height="44dp"
                     android:orientation="horizontal">
 
-                    <TextView
+                    <com.devicecontrol.engine.v2.ui.widget.V2EngineInfoTabTextView
+                        android:id="@+id/tvEngineInfoTab"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:background="@drawable/bg_v2_engine_info_tab"
-                        android:gravity="center"
+                        android:gravity="center_vertical"
+                        android:minWidth="140dp"
                         android:paddingHorizontal="10dp"
                         android:text="@string/v2_engine_info"
                         android:textColor="@color/v2_on_primary"
                         android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
 
-                    <TextView
+                        app:v2EngineInfoTabBackgroundColor="@color/v2_primary"
+                        app:v2EngineInfoTabRightEdgeAngle="45"
+                        app:v2EngineInfoTabTopLeftRadius="@dimen/v2_engine_info_tab_top_left_radius" />
+
+                    <com.devicecontrol.engine.v2.ui.widget.V2EngineModelStripTextView
                         android:id="@+id/tvEngineModelName"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_v2_engine_model_strip"
+                        android:ellipsize="end"
+                        android:layout_marginEnd="6dp"
+                        android:layout_marginTop="2dp"
                         android:gravity="center_vertical"
-                        android:paddingHorizontal="10dp"
+                        android:maxLines="1"
+                        android:paddingHorizontal="24dp"
                         android:textColor="@color/v2_primary"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                        android:textStyle="bold"
+                        android:layout_marginStart="110dp"
+                        app:v2EngineStripGradientAngle="0"
+                        app:v2EngineStripGradientEndColor="@color/v2_surface"
+                        app:v2EngineStripGradientStartColor="@color/v2_peach"
+                        app:v2EngineStripLeftEdgeAngle="45" />
+                </RelativeLayout>
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
@@ -68,9 +82,6 @@
                     android:fadeScrollbars="false"
                     android:fillViewport="true"
                     android:overScrollMode="ifContentScrolls"
-                    android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
-                    android:scrollbarStyle="insideOverlay"
-                    android:scrollbarThumbVertical="@drawable/bg_v2_scrollbar_thumb"
                     android:scrollbars="vertical">
 
                     <LinearLayout
@@ -101,12 +112,12 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- 右：状态条 + 记录区 + 操作区 -->
+        <!-- 右：状态条 + 记录区 + 操作区（weight 1.5） -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="@dimen/v2_inspection_col_gap"
-            android:layout_weight="78"
+            android:layout_weight="1.5"
             android:background="@drawable/bg_v2_panel_white"
             android:elevation="2dp"
             android:orientation="vertical"
@@ -524,8 +535,16 @@
     <FrameLayout
         android:id="@+id/inspectionFooterBar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/v2_bottom_bar_height">
+        android:layout_height="wrap_content">
 
-        <include layout="@layout/include_v2_bottom_bar_inspection" />
+        <TextView
+            android:id="@+id/tvV2CompanyCn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/v2_company_cn"
+            android:textColor="@color/v2_primary"
+            android:alpha="0.2"
+            android:textSize="13sp" />
     </FrameLayout>
 </LinearLayout>
