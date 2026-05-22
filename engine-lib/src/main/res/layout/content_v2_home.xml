@@ -80,7 +80,7 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_v2_model_manage"
+                android:src="@drawable/ic_v2_home_model_manage"
                 app:tint="@color/v2_on_primary" />
 
             <TextView

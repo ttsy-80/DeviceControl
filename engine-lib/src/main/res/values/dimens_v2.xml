@@ -10,7 +10,7 @@
     <dimen name="v2_bottom_bar_height">56dp</dimen>
     <dimen name="v2_bottom_bar_padding_horizontal">16dp</dimen>
     <dimen name="v2_bottom_bar_padding_vertical">8dp</dimen>
-    <dimen name="v2_bottom_action_width">96dp</dimen>
+    <dimen name="v2_bottom_action_width">110dp</dimen>
     <dimen name="v2_bottom_action_height">70dp</dimen>
     <dimen name="v2_bottom_action_corner">16dp</dimen>
     <dimen name="v2_home_card_size">200dp</dimen>

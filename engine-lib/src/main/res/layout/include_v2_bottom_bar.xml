@@ -39,7 +39,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardV2BottomAction"
         android:layout_width="@dimen/v2_bottom_action_width"
-        android:layout_height="@dimen/v2_bottom_action_height"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="40dp"
         android:layout_gravity="top|end"
         android:clickable="true"
@@ -56,6 +56,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical"
+            android:paddingVertical="10dp"
             android:paddingHorizontal="8dp">
 
             <TextView
@@ -63,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/v2_on_primary"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 tools:text="@string/v2_setting" />
 
@@ -73,7 +74,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/v2_on_primary"
-                android:textSize="10sp"
+                android:textSize="14sp"
                 tools:text="@string/v2_setting_en" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
