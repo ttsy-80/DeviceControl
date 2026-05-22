@@ -10,6 +10,7 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.devicecontrol.engine.databinding.ActivityV2ShellBinding
 import com.devicecontrol.engine.v2.log.V2Log
+import com.devicecontrol.engine.v2.ui.V2SystemBars
 import com.devicecontrol.engine.v2.ui.shell.V2ShellBottomBarBinder
 import com.devicecontrol.engine.v2.ui.shell.V2ShellUiBinder
 import com.devicecontrol.engine.v2.ui.widget.applyV2LandscapeIme
@@ -74,6 +75,7 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         shellBinding = ActivityV2ShellBinding.inflate(layoutInflater)
         setContentView(shellBinding.root)
+        V2SystemBars.applyImmersiveLightSystemBars(this, shellBinding.root)
 
         LayoutInflater.from(this).inflate(contentLayoutId(), shellBinding.flV2Content, true)
 
@@ -117,6 +119,7 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        V2SystemBars.refreshWindowAppearance(this)
         shellBinder.startClock()
     }
 

@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- V2：沉浸式透明系统栏，白底内容 + 深色系统图标 -->
+    <style name="Theme.DeviceControl.V2" parent="Theme.DeviceControl">
+        <item name="android:windowBackground">@color/v2_surface</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+
     <style name="V2SettingsMenuItem">
         <item name="android:gravity">center</item>
         <item name="android:textSize">17sp</item>

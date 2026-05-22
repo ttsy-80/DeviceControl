@@ -6,6 +6,8 @@
     <color name="v2_peach">#F5B792</color>
     <color name="v2_background">#FFFFFF</color>
     <color name="v2_surface">#FFFFFF</color>
+    <!-- 系统状态栏/导航栏（V2 统一白底黑字） -->
+    <color name="v2_status_bar">#FFFFFF</color>
     <!-- P7 主内容区浅灰底（稿面） -->
     <color name="v2_inspection_page_bg">#F0F0F0</color>
     <color name="v2_p7_status_bar_bg">#ECEFFF</color>
