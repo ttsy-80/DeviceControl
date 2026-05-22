@@ -1,6 +1,7 @@
 package com.devicecontrol.engine.v2.ui.dialog
 
 import android.content.Context
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,12 +42,17 @@ object V2LpcDialog {
                 val selected = position == picked
                 holder.tvPosition.text = positions[position]
                 holder.tvBlade.text = bladeCounts.getOrNull(position)?.toString().orEmpty()
-                holder.itemView.setBackgroundColor(
-                    ContextCompat.getColor(
-                        holder.itemView.context,
-                        if (selected) R.color.v2_table_header else R.color.v2_surface,
-                    ),
+                holder.itemView.setBackgroundResource(
+                    if (selected) R.drawable.bg_v2_lpc_row_selected else android.R.color.transparent,
                 )
+                val textColor = ContextCompat.getColor(
+                    holder.itemView.context,
+                    if (selected) R.color.v2_text_primary else R.color.v2_text_secondary,
+                )
+                holder.tvPosition.setTextColor(textColor)
+                holder.tvBlade.setTextColor(textColor)
+                holder.tvPosition.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
+                holder.tvBlade.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
                 holder.itemView.setOnClickListener {
                     picked = position
                     notifyDataSetChanged()

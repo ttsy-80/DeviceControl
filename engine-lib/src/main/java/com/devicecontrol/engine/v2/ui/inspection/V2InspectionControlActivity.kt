@@ -25,7 +25,6 @@ import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.ui.adapter.V2RecordRowAdapter
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
 import com.devicecontrol.engine.v2.ui.dialog.V2ErrorDialog
-import com.devicecontrol.engine.v2.ui.dialog.V2LpcDialog
 import com.devicecontrol.engine.v2.ui.settings.V2ModeSettingsActivity
 import com.devicecontrol.engine.v2.viewmodel.V2ControlHighlightState
 import com.devicecontrol.engine.v2.viewmodel.V2EngineViewModelFactory
@@ -48,6 +47,8 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     private var suppressLpcSelection = false
     private var suppressModeSelection = false
     private var lastHighlight = V2ControlHighlightState()
+    private lateinit var modeSelector: V2InspectionModeSelector
+    private lateinit var lpcSelector: V2InspectionLpcSelector
 
     override fun contentLayoutId(): Int = R.layout.content_v2_inspection_control
 
@@ -100,14 +101,25 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         }
         viewModel.records.observe(this) { recordAdapter.submitList(it) }
         viewModel.lpcPositions.observe(this) { positions ->
+            if (positions.isNullOrEmpty()) return@observe
             bladeCounts = viewModel.configBladeCounts()
-            setupLpcSpinner(root, positions)
+            val index = viewModel.currentLpcIndex.value ?: 0
+            if (::lpcSelector.isInitialized) {
+                lpcSelector.updateData(positions, bladeCounts, index)
+            } else {
+                setupLpcSelector(root, positions, index)
+            }
+        }
+        viewModel.currentLpcIndex.observe(this) { index ->
+            if (!::lpcSelector.isInitialized) return@observe
+            suppressLpcSelection = true
+            lpcSelector.setIndexSilently(index)
+            suppressLpcSelection = false
         }
         viewModel.operationMode.observe(this) { mode ->
             applyOperationModeUi(root, mode)
-            val spinner = root.findViewById<Spinner>(R.id.spinnerMode)
             suppressModeSelection = true
-            spinner.setSelection(if (mode == V2UiOperationMode.AUTO) 0 else 1, false)
+            modeSelector.setModeSilently(mode)
             suppressModeSelection = false
             applyControlHighlights(root, lastHighlight, mode == V2UiOperationMode.MANUAL)
             updateControlEnabled(root, viewModel.isRunning.value == true)
@@ -155,6 +167,8 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     }
 
     override fun onDestroy() {
+        if (::modeSelector.isInitialized) modeSelector.dismiss()
+        if (::lpcSelector.isInitialized) lpcSelector.dismiss()
         viewModel.destroySession()
         super.onDestroy()
     }
@@ -289,48 +303,27 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
     }
 
     private fun setupModeSpinner(root: View) {
-        val spinner = root.findViewById<Spinner>(R.id.spinnerMode)
-        val labels = listOf(getString(R.string.v2_auto_mode), getString(R.string.v2_manual_mode))
-        spinner.adapter = buildSpinnerAdapter(labels)
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (suppressModeSelection) return
-                val mode = if (position == 0) V2UiOperationMode.AUTO else V2UiOperationMode.MANUAL
-                viewModel.setOperationMode(mode)
+        val trigger = root.findViewById<TextView>(R.id.tvModeSpinner)
+        val initial = viewModel.operationMode.value ?: V2UiOperationMode.AUTO
+        modeSelector = V2InspectionModeSelector(this, trigger).apply {
+            setup(initial)
+            onModeSelected = { mode ->
+                if (suppressModeSelection.not()) {
+                    viewModel.setOperationMode(mode)
+                }
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
     }
 
-    private fun setupLpcSpinner(root: View, positions: List<String>) {
-        val spinner = root.findViewById<Spinner>(R.id.spinnerLpc)
-        if (positions.isEmpty()) {
-            spinner.adapter = buildSpinnerAdapter(emptyList())
-            return
-        }
-        suppressLpcSelection = true
-        spinner.adapter = buildSpinnerAdapter(positions)
-        val index = viewModel.currentLpcIndex.value ?: 0
-        spinner.setSelection(index.coerceIn(0, positions.lastIndex), false)
-        suppressLpcSelection = false
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (suppressLpcSelection) return
-                viewModel.setLpcIndex(position)
+    private fun setupLpcSelector(root: View, positions: List<String>, selectedIndex: Int) {
+        val trigger = root.findViewById<TextView>(R.id.tvLpcSpinner)
+        lpcSelector = V2InspectionLpcSelector(this, trigger).apply {
+            setup(positions, bladeCounts, selectedIndex)
+            onIndexSelected = { index ->
+                if (!suppressLpcSelection) {
+                    viewModel.setLpcIndex(index)
+                }
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        spinner.setOnLongClickListener {
-            val selected = viewModel.currentLpcIndex.value ?: 0
-            V2LpcDialog.show(this, positions, bladeCounts, selected) { index ->
-                suppressLpcSelection = true
-                viewModel.setLpcIndex(index)
-                spinner.setSelection(index)
-                suppressLpcSelection = false
-            }
-            true
         }
     }
 

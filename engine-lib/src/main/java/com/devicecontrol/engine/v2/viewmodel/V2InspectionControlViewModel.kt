@@ -74,7 +74,7 @@ class V2InspectionControlViewModel(
     private val _operationMode = MutableLiveData(V2UiOperationMode.AUTO)
     val operationMode: LiveData<V2UiOperationMode> = _operationMode
 
-    private val _lpcPositions = MutableLiveData<List<String>>(emptyList())
+    private val _lpcPositions = MutableLiveData<List<String>>()
     val lpcPositions: LiveData<List<String>> = _lpcPositions
 
     private val _currentLpcIndex = MutableLiveData(0)
@@ -197,10 +197,20 @@ class V2InspectionControlViewModel(
 
     fun setLpcIndex(index: Int) {
         if (index < 0 || index >= configItems.size) return
-        _currentLpcIndex.value = index
+        val previousIndex = _currentLpcIndex.value ?: 0
+        if (index == previousIndex) return
         viewModelScope.launch {
-            engine.switchToTaskAndWait(index)
-            syncCommandContext()
+            val switched = engine.switchToTaskAndWait(index)
+            if (switched) {
+                _currentLpcIndex.value = index
+                syncCommandContext()
+                refreshDerivedUi()
+                V2Log.i(TAG, "setLpcIndex: switched to $index")
+            } else {
+                _currentLpcIndex.value = previousIndex
+                _errorMessage.value = "切换位置失败"
+                V2Log.w(TAG, "setLpcIndex: failed, revert to $previousIndex")
+            }
         }
     }
 

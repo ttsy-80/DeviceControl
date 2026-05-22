@@ -164,13 +164,13 @@ class V2InspectionEngineViewModel(
         loadTaskExecutionBlocking(taskId, currentGearRatioIndex)
     }
 
-    suspend fun switchToTaskAndWait(index: Int) {
-        val task = withContext(Dispatchers.Main) { _task.value } ?: return
-        if (index < 0 || index >= task.configItemIds.size) return
+    suspend fun switchToTaskAndWait(index: Int): Boolean {
+        val task = withContext(Dispatchers.Main) { _task.value } ?: return false
+        if (index < 0 || index >= task.configItemIds.size) return false
         EngineLog.i(TAG, "switchToTaskAndWait: gearIndex=$index (from=$currentGearRatioIndex)")
         if (!stopCurrentTaskMotionBeforeSwitch()) {
             EngineLog.w(TAG, "switchToTaskAndWait: 停止当前运动失败，取消切换")
-            return
+            return false
         }
         val latest = withContext(Dispatchers.Main) { _taskExecution.value }
         if (latest != null) {
@@ -178,6 +178,7 @@ class V2InspectionEngineViewModel(
         }
         currentGearRatioIndex = index
         loadTaskExecutionBlocking(task.id, currentGearRatioIndex)
+        return true
     }
 
     private fun scanAndConnect2() {
@@ -423,6 +424,11 @@ class V2InspectionEngineViewModel(
         }
 
         val pending = exec.copy(status = TaskStatus.PAUSED)
+        if (operationStrategy.allowsPersistWithoutCan) {
+            persistExecutionSync(pending)
+            EngineLog.i(TAG, "stopCurrentTaskMotionBeforeSwitch: 开发模式已落库 PAUSED")
+            return true
+        }
         val reqs = withContext(Dispatchers.Main) {
             requestsForCommand(EngineControlCommand.pause(n, p), commandCtx(pending))
         }

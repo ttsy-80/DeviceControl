@@ -68,6 +68,14 @@
     <dimen name="v2_p7_control_btn_margin">6dp</dimen>
     <dimen name="v2_p7_control_btn_elevation">5dp</dimen>
     <dimen name="v2_spinner_arrow_size">18dp</dimen>
+    <dimen name="v2_mode_spinner_trigger_min_width">118dp</dimen>
+    <dimen name="v2_mode_spinner_trigger_h">36dp</dimen>
+    <dimen name="v2_mode_spinner_popup_width">148dp</dimen>
+    <dimen name="v2_mode_spinner_popup_radius">16dp</dimen>
+    <dimen name="v2_mode_spinner_pill_height">48dp</dimen>
+    <dimen name="v2_lpc_spinner_trigger_min_width">100dp</dimen>
+    <dimen name="v2_lpc_spinner_popup_width">228dp</dimen>
+    <dimen name="v2_lpc_spinner_list_max_h">240dp</dimen>
     <dimen name="v2_p7_start_btn_h">58dp</dimen>
     <!-- P6 型号宫格 -->
     <dimen name="v2_p6_model_card_size">168dp</dimen>

@@ -4,6 +4,7 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -128,6 +129,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_v2_edit_detail_header"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/v2_inspection_status_bar_h"
                 android:orientation="horizontal"
@@ -154,25 +157,37 @@
                     android:textColor="@color/v2_on_primary"
                     android:textSize="15sp" />
 
-                <Spinner
-                    android:id="@+id/spinnerMode"
-                    android:layout_width="118dp"
-                    android:layout_height="36dp"
+                <TextView
+                    android:id="@+id/tvModeSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/v2_mode_spinner_trigger_h"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_v2_spinner_dropdown"
-                    android:dropDownWidth="160dp"
-                    android:popupBackground="@color/v2_surface"
-                    android:spinnerMode="dropdown" />
+                    android:background="@drawable/bg_v2_mode_spinner_trigger"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minWidth="@dimen/v2_mode_spinner_trigger_min_width"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/v2_auto_mode"
+                    android:textColor="@color/v2_on_primary"
+                    android:textSize="14sp" />
 
-                <Spinner
-                    android:id="@+id/spinnerLpc"
-                    android:layout_width="100dp"
-                    android:layout_height="36dp"
+                <TextView
+                    android:id="@+id/tvLpcSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/v2_mode_spinner_trigger_h"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_v2_spinner_dropdown"
-                    android:dropDownWidth="140dp"
-                    android:popupBackground="@color/v2_surface"
-                    android:spinnerMode="dropdown" />
+                    android:background="@drawable/bg_v2_lpc_spinner_trigger"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minWidth="@dimen/v2_lpc_spinner_trigger_min_width"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="10dp"
+                    android:textColor="@color/v2_on_primary"
+                    android:textSize="14sp"
+                    tools:text="LPC 1" />
             </LinearLayout>
 
             <LinearLayout
