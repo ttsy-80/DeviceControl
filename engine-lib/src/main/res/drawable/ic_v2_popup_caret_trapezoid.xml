@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 弹层顶部白底梯形：上窄下宽（100×6dp） -->
+<!-- 弹层顶部白底梯形：上边 90dp、下边 100dp、高 6dp -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="100dp"
     android:height="6dp"
@@ -7,5 +7,5 @@
     android:viewportHeight="6">
     <path
         android:fillColor="@color/v2_surface"
-        android:pathData="M35,0 L65,0 L100,6 H0 Z" />
+        android:pathData="M5,0 L95,0 L100,6 H0 Z" />
 </vector>
