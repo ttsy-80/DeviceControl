@@ -88,7 +88,7 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
         viewModel.engineModelName.observe(this) { name ->
             root.findViewById<TextView>(R.id.tvEngineModelName).text = name
-            shellBinder.bindTitles(name, getString(R.string.v2_inspection_title_en))
+//            shellBinder.bindTitles(name, getString(R.string.v2_inspection_title_en))
         }
         viewModel.imagePath.observe(this) { path ->
             com.devicecontrol.engine.v2.ui.model.V2ModelEnginePanelBinder.bindEngineImage(enginePanel, path)
@@ -275,8 +275,8 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             applyHighlightFor(root, R.id.btnReverseManual, state.reverseGreen)
             applyHighlightFor(root, R.id.btnContinuousManual, state.continuousGreen)
             applyHighlightFor(root, R.id.btnJogManual, state.jogGreen)
-            applyHighlightFor(root, R.id.btnAccelManual, false)
-            applyHighlightFor(root, R.id.btnDecelManual, false)
+            applyHighlightFor(root, R.id.btnAccelManual, state.accelGreen)
+            applyHighlightFor(root, R.id.btnDecelManual, state.decelGreen)
             applyHighlightFor(root, R.id.btnManualModeSettings, false)
             applyHighlightFor(root, R.id.btnBacklashManual, false)
             applyHighlightFor(root, R.id.btnEndManual, false, end = true)
@@ -286,8 +286,8 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             applyHighlightFor(root, R.id.btnContinuous, state.continuousGreen)
             applyHighlightFor(root, R.id.btnJog, state.jogGreen)
             applyHighlightFor(root, R.id.btnAutoPhoto, state.autoPhotoGreen)
-            applyHighlightFor(root, R.id.btnAccel, false)
-            applyHighlightFor(root, R.id.btnDecel, false)
+            applyHighlightFor(root, R.id.btnAccel, state.accelGreen)
+            applyHighlightFor(root, R.id.btnDecel, state.decelGreen)
             applyHighlightFor(root, R.id.btnControlSettings, false)
             applyHighlightFor(root, R.id.btnBacklash, false)
             applyHighlightFor(root, R.id.btnEnd, false, end = true)

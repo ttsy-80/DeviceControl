@@ -40,6 +40,8 @@ data class V2ControlHighlightState(
     val continuousGreen: Boolean = false,
     val jogGreen: Boolean = false,
     val autoPhotoGreen: Boolean = false,
+    val accelGreen: Boolean = false,
+    val decelGreen: Boolean = false,
 )
 
 class V2InspectionControlViewModel(
@@ -239,8 +241,16 @@ class V2InspectionControlViewModel(
             when (action) {
                 "FORWARD" -> engine.setForward()
                 "REVERSE" -> engine.setReverse()
-                "ACCEL" -> engine.increaseSpeed()
-                "DECEL" -> engine.decreaseSpeed()
+                "ACCEL" -> engine.increaseSpeed {
+                    syncCommandContext()
+                    refreshDerivedUi()
+                    flashSpeedButton(accel = true)
+                }
+                "DECEL" -> engine.decreaseSpeed {
+                    syncCommandContext()
+                    refreshDerivedUi()
+                    flashSpeedButton(decel = true)
+                }
                 "CONTINUOUS" -> engine.setOperationModeContinuousOnly()
                 "JOG" -> engine.setOperationModeJogOnly()
                 "AUTO_PHOTO" -> engine.takePhoto()
@@ -351,7 +361,6 @@ class V2InspectionControlViewModel(
             appendLine(line(R.string.v2_param_rotation_time, null))
             appendLine(line(R.string.v2_param_backlash, null))
             appendLine(line(R.string.v2_param_run_time, null))
-            appendLine(line(R.string.v2_param_motor_torque, null))
         }.trimEnd()
     }
 
@@ -366,7 +375,11 @@ class V2InspectionControlViewModel(
         return "$modeWord ${"%.1f".format(minPerRev)}分钟/圈 $dir"
     }
 
-    private fun refreshControlHighlight(exec: com.devicecontrol.engine.data.model.TaskExecution) {
+    private fun refreshControlHighlight(
+        exec: com.devicecontrol.engine.data.model.TaskExecution,
+        accelGreen: Boolean = false,
+        decelGreen: Boolean = false,
+    ) {
         val uiMode = _operationMode.value ?: V2UiOperationMode.AUTO
         _controlHighlight.value = V2ControlHighlightState(
             forwardGreen = exec.rotationDirection == RotationDirection.FORWARD,
@@ -374,7 +387,19 @@ class V2InspectionControlViewModel(
             continuousGreen = exec.operationMode == OperationMode.CONTINUOUS,
             jogGreen = exec.operationMode == OperationMode.JOG,
             autoPhotoGreen = uiMode == V2UiOperationMode.AUTO,
+            accelGreen = accelGreen,
+            decelGreen = decelGreen,
         )
+    }
+
+    private fun flashSpeedButton(accel: Boolean = false, decel: Boolean = false) {
+        val exec = engine.taskExecution.value ?: return
+        refreshControlHighlight(exec, accelGreen = accel, decelGreen = decel)
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(350)
+            val latest = engine.taskExecution.value ?: return@launch
+            refreshControlHighlight(latest)
+        }
     }
 
     private fun formatMinPerRev(secPerRev: Double): String {

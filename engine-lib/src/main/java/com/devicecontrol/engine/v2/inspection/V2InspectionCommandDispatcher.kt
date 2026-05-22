@@ -46,6 +46,10 @@ object V2InspectionCommandDispatcher {
 
     fun resolveSpeedSecPerRev(ctx: V2InspectionCommandContext): Double {
         ctx.speedSecOverride?.let { return it.coerceAtLeast(MIN_SPEED_SEC_PER_REV) }
+        // 运行速度以 TaskExecution.speed（秒/圈）为准，加速/减速与状态栏均读此字段
+        if (ctx.execution.speed >= MIN_SPEED_SEC_PER_REV) {
+            return ctx.execution.speed
+        }
         return when (ctx.uiMode) {
             V2UiOperationMode.AUTO -> {
                 if (ctx.autoConfig.autoContinuous > 0.01) {

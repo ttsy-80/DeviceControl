@@ -846,30 +846,42 @@ class V2InspectionEngineViewModel(
         }
     }
 
-    fun increaseSpeed() {
-        val execution = _taskExecution.value ?: return
-        val ctx = commandContext ?: return
-        val current = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx)
-        val step = V2InspectionCommandDispatcher.resolveSpeedStepSecPerRev(ctx)
-        val newSpeed = (current - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
-        EngineLog.d(TAG, "increaseSpeed: ${current}s -> ${newSpeed}s per rev")
-        commandContext = ctx.copy(speedSecOverride = newSpeed)
-        val n = modelName() ?: return
-        val p = position() ?: return
-        sendCommandThenPersist(EngineControlCommand.speedPlus(n, p), execution)
+    fun increaseSpeed(onApplied: (() -> Unit)? = null) {
+        applySpeedChange(stepSign = -1, commandFactory = { n, p ->
+            EngineControlCommand.speedPlus(n, p)
+        }, onApplied = onApplied)
     }
 
-    fun decreaseSpeed() {
+    fun decreaseSpeed(onApplied: (() -> Unit)? = null) {
+        applySpeedChange(stepSign = 1, commandFactory = { n, p ->
+            EngineControlCommand.speedMinus(n, p)
+        }, onApplied = onApplied)
+    }
+
+    private fun applySpeedChange(
+        stepSign: Int,
+        commandFactory: (modelName: String, position: String) -> String,
+        onApplied: (() -> Unit)?,
+    ) {
         val execution = _taskExecution.value ?: return
         val ctx = commandContext ?: return
         val current = V2InspectionCommandDispatcher.resolveSpeedSecPerRev(ctx)
         val step = V2InspectionCommandDispatcher.resolveSpeedStepSecPerRev(ctx)
-        val newSpeed = current + step
-        EngineLog.d(TAG, "decreaseSpeed: ${current}s -> ${newSpeed}s per rev")
-        commandContext = ctx.copy(speedSecOverride = newSpeed)
+        val newSpeed = if (stepSign < 0) {
+            (current - step).coerceAtLeast(MIN_SPEED_SEC_PER_REV)
+        } else {
+            current + step
+        }
+        if (newSpeed == current) return
+        EngineLog.d(TAG, "applySpeedChange: ${current}s -> ${newSpeed}s per rev stepSign=$stepSign")
+        val updated = execution.copy(speed = newSpeed)
+        commandContext = ctx.copy(speedSecOverride = null)
         val n = modelName() ?: return
         val p = position() ?: return
-        sendCommandThenPersist(EngineControlCommand.speedMinus(n, p), execution)
+        sendCommandThenPersist(commandFactory(n, p), updated) {
+            commandContext = commandContext?.copy(speedSecOverride = null)
+            onApplied?.invoke()
+        }
     }
 
     /**
