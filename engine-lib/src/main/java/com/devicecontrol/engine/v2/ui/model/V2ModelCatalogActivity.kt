@@ -27,7 +27,7 @@ class V2ModelCatalogActivity : V2BaseShellActivity() {
     override fun shellTitleEn(): String = getString(R.string.v2_model_catalog)
 
     @DrawableRes
-    override fun shellTitleIcon(): Int = R.drawable.ic_v2_model_manage
+    override fun shellTitleIcon(): Int = R.drawable.ic_v2_home_model_manage
 
     override fun showBackHome(): Boolean = false
 

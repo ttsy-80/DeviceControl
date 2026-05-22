@@ -1,5 +1,6 @@
 package com.devicecontrol.engine.v2.ui.adapter
 
+import android.content.res.ColorStateList
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.model.V2ModelAddDetailRowUi
@@ -71,8 +73,11 @@ class V2ModelAddDetailRowAdapter(
             if (placeholder) {
                 tvLabel.visibility = View.GONE
                 ivLabelEdit.visibility = View.VISIBLE
+                stylePlaceholderEditIcon(ivLabelEdit)
 
                 etValue.visibility = View.GONE
+                ivValueEdit.visibility = View.VISIBLE
+                stylePlaceholderEditIcon(ivValueEdit)
                 return
             }
 
@@ -81,6 +86,7 @@ class V2ModelAddDetailRowAdapter(
             ivLabelEdit.visibility = View.GONE
 
             etValue.visibility = View.VISIBLE
+            styleActiveEditIcon(ivValueEdit)
             etValue.hint = detailFieldHint(ctx, item.key)
             etValue.setHintTextColor(ContextCompat.getColor(ctx, R.color.v2_text_hint))
             etValue.inputType = detailFieldInputType(item.key)
@@ -99,6 +105,25 @@ class V2ModelAddDetailRowAdapter(
     }
 
     companion object {
+        private fun stylePlaceholderEditIcon(icon: ImageView) {
+            val ctx = icon.context
+            ImageViewCompat.setImageTintList(
+                icon,
+                ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.v2_text_hint)),
+            )
+            icon.isClickable = false
+            icon.isFocusable = false
+        }
+
+        private fun styleActiveEditIcon(icon: ImageView) {
+            ImageViewCompat.setImageTintList(
+                icon,
+                ColorStateList.valueOf(
+                    ContextCompat.getColor(icon.context, R.color.v2_text_primary),
+                ),
+            )
+        }
+
         private fun detailFieldHint(ctx: android.content.Context, key: String): String =
             when (key) {
                 "position" -> ctx.getString(R.string.v2_hint_position)

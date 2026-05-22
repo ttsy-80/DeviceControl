@@ -108,6 +108,7 @@ class V2ModelAddActivity : V2BaseShellActivity() {
             }
             showModelNameStrip(panelRoot, "")
         }
+        V2ModelEnginePanelBinder.applyImportImageAreaMargins(panelRoot)
 
         detailRowAdapter = V2ModelAddDetailRowAdapter { _, _ -> }
         rvAddDetailRows = contentRoot.findViewById(R.id.rvAddDetailRows)

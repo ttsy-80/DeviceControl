@@ -237,7 +237,7 @@ class V2ModelDetailViewModel(
     ) {
         val gearRatioText = items.firstOrNull()?.gearRatio?.toString().orEmpty()
         _engineFields.value = listOf(
-            V2ModelEngineFieldUi("safe_torque", "安全力矩：", model.safeTorque, editable = editable),
+            V2ModelEngineFieldUi("safe_torque", "安全扭矩：", model.safeTorque, editable = editable),
             V2ModelEngineFieldUi("gear_ratio", "变速比：", gearRatioText, editable = editable),
         )
     }

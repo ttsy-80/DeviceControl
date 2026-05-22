@@ -58,6 +58,7 @@ class V2ModelDetailActivity : V2BaseShellActivity() {
 
         panelRoot = contentRoot.findViewById(R.id.includeEnginePanel)
         engineFieldsContainer = panelRoot.findViewById(R.id.llEngineFields)
+        V2ModelEnginePanelBinder.applyImportImageAreaMargins(panelRoot)
 
         rowAdapter = V2ModelDetailRowAdapter(
             onAddConfig = { launchAddConfig() },

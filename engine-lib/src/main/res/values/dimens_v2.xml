@@ -41,6 +41,11 @@
     <dimen name="v2_control_pill_height">48dp</dimen>
     <dimen name="v2_inspection_left_weight">0.22</dimen>
     <dimen name="v2_engine_import_image_height">160dp</dimen>
+    <dimen name="v2_engine_panel_content_margin_horizontal">14dp</dimen>
+    <!-- 导入图区域在内容区边距基础上再各加一倍（14+14=28） -->
+    <dimen name="v2_engine_import_image_margin_horizontal">28dp</dimen>
+    <dimen name="v2_model_action_button_radius">12dp</dimen>
+    <dimen name="v2_model_detail_row_action_button_radius">10dp</dimen>
     <dimen name="v2_engine_info_tab_top_left_radius">8dp</dimen>
     <dimen name="v2_model_add_table_cell_pad_end">12dp</dimen>
     <dimen name="v2_model_add_table_value_margin_end">34dp</dimen>

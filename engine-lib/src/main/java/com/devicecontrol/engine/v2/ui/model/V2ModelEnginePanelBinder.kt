@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -39,7 +40,7 @@ object V2ModelEnginePanelBinder {
     }
 
     /**
-     * 从详情页进入添加配置项：型号/安全力矩/变速比只读，图片区只展示不可导入。
+     * 从详情页进入添加配置项：型号/安全扭矩/变速比只读，图片区只展示不可导入。
      */
     fun setupAppendConfigEngineFields(
         panelRoot: View,
@@ -54,7 +55,7 @@ object V2ModelEnginePanelBinder {
             val inflater = LayoutInflater.from(container.context)
             listOf(
                 V2ModelEngineFieldUi("model_name", "型号名称：", modelName, editable = false),
-                V2ModelEngineFieldUi("safe_torque", "安全力矩：", safeTorque, editable = false),
+                V2ModelEngineFieldUi("safe_torque", "安全扭矩：", safeTorque, editable = false),
                 V2ModelEngineFieldUi("gear_ratio", "变速比：", gearRatio, editable = false),
             ).forEach { field ->
                 val row = inflater.inflate(R.layout.item_v2_model_engine_field, container, false)
@@ -83,7 +84,7 @@ object V2ModelEnginePanelBinder {
         panelRoot.findViewById<View>(R.id.tvPanelModelName)?.visibility = View.GONE
     }
 
-    /** P15～P17 详情：灰底区展示安全力矩/变速比 + 底部发动机图 + 右侧型号条。 */
+    /** P15～P17 详情：灰底区展示安全扭矩/变速比 + 底部发动机图 + 右侧型号条。 */
     fun setupDetailEnginePanel(
         panelRoot: View,
         container: LinearLayout,
@@ -257,6 +258,18 @@ object V2ModelEnginePanelBinder {
             et.setText(field.value)
         }
         icon.setOnClickListener { if (field.editable) et.requestFocus() }
+    }
+
+    /** 型号添加/详情：导入图区域左右边距为内容区的 2 倍（14dp → 28dp）。 */
+    fun applyImportImageAreaMargins(panelRoot: View) {
+        val frame = panelRoot.findViewById<View>(R.id.frameImageArea) ?: return
+        val margin = panelRoot.context.resources.getDimensionPixelSize(
+            R.dimen.v2_engine_import_image_margin_horizontal,
+        )
+        val lp = frame.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        lp.marginStart = margin
+        lp.marginEnd = margin
+        frame.layoutParams = lp
     }
 
     fun configureImageArea(

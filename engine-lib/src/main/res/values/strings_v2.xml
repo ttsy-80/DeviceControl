@@ -105,11 +105,11 @@
     <string name="v2_engine_model_subtitle">发动机型号</string>
     <string name="v2_new_model_title">新建型号</string>
     <string name="v2_hint_model_name">请输入型号名称</string>
-    <string name="v2_hint_safe_torque">请输入安全力矩</string>
+    <string name="v2_hint_safe_torque">请输入安全扭矩</string>
     <string name="v2_hint_gear_ratio">请输入变速比</string>
     <string name="v2_hint_position">请输入位置</string>
     <string name="v2_hint_blade_count">请输入叶片数</string>
-    <string name="v2_detail_safe_torque">安全力矩</string>
+    <string name="v2_detail_safe_torque">安全扭矩</string>
     <string name="v2_model_name_required">请输入型号名称</string>
     <string name="v2_model_create_success">型号创建成功</string>
     <string name="v2_device_sample">设备%1$03d</string>

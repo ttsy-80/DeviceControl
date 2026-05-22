@@ -34,7 +34,7 @@
     <color name="v2_mode_spinner_auto_pill">#E3EFFF</color>
     <color name="v2_mode_spinner_manual_pill">#FFE4D0</color>
     <color name="v2_end_border">#E53935</color>
-    <color name="v2_panel_grey">#EEEEEE</color>
+    <color name="v2_panel_grey">#D7D6DB</color>
     <!-- P8/P11 设置行斑马纹 -->
     <color name="v2_mode_setting_panel_bg">#F5F5F5</color>
     <color name="v2_mode_setting_row_gray">#F2F2F2</color>
