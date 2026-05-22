@@ -16,7 +16,7 @@ import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.log.V2Log
 
 /**
- * P7 检测页 LPC 位置选择（对齐稿面：深蓝触发钮 + 底部白条衔接 + 取消/选择 + 表头 + 高亮行）。
+ * P7 检测页 LPC 位置选择（深蓝触发钮 + 顶部白梯形尖角弹层 + 取消/选择 + 表头 + 高亮行）。
  */
 class V2InspectionLpcSelector(
     private val activity: AppCompatActivity,
@@ -119,7 +119,7 @@ class V2InspectionLpcSelector(
     private fun showPopupAligned(window: PopupWindow, popupWidth: Int) {
         if (!trigger.isShown || trigger.windowToken == null) return
         val offsetX = ((trigger.width - popupWidth) / 2f).toInt()
-        window.showAsDropDown(trigger, offsetX, dp(2))
+        window.showAsDropDown(trigger, offsetX, 0)
     }
 
     private fun applySelection(index: Int) {
@@ -139,10 +139,9 @@ class V2InspectionLpcSelector(
     }
 
     private fun renderTrigger(expanded: Boolean) {
-        trigger.background = ContextCompat.getDrawable(
-            activity,
-            if (expanded) R.drawable.bg_v2_lpc_spinner_trigger_open else R.drawable.bg_v2_lpc_spinner_trigger,
-        )
+        if (trigger.background == null) {
+            trigger.setBackgroundResource(R.drawable.bg_v2_lpc_spinner_trigger)
+        }
         trigger.text = if (selectedIndex in positions.indices) {
             displayPosition(positions[selectedIndex])
         } else {

@@ -12,7 +12,7 @@ import com.devicecontrol.engine.R
 import com.devicecontrol.engine.v2.viewmodel.V2UiOperationMode
 
 /**
- * P7 检测页「自动/手动模式」选择器（对齐稿面：深蓝触发钮 + 白底浮层 + 顶部尖角 + 双色药丸项）。
+ * P7 检测页「自动/手动模式」选择器（深蓝触发钮 + 顶部白梯形尖角 + 白底列表框 + 双色药丸项）。
  */
 class V2InspectionModeSelector(
     private val activity: AppCompatActivity,
@@ -54,12 +54,12 @@ class V2InspectionModeSelector(
         content.findViewById<TextView>(R.id.btnModeOptionManual).setOnClickListener {
             select(V2UiOperationMode.MANUAL)
         }
+        val popupWidth = activity.resources.getDimensionPixelSize(R.dimen.v2_mode_spinner_popup_width)
+        val widthSpec = View.MeasureSpec.makeMeasureSpec(popupWidth, View.MeasureSpec.EXACTLY)
         content.measure(
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            widthSpec,
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
         )
-        val popupWidth = content.measuredWidth
-        val xOff = (trigger.width - popupWidth) / 2
         val window = PopupWindow(
             content,
             popupWidth,
@@ -74,8 +74,7 @@ class V2InspectionModeSelector(
         popup = window
         renderTrigger(expanded = true)
         trigger.post {
-            val offsetX = ((trigger.width - popupWidth) / 2f).toInt()
-            window.showAsDropDown(trigger, offsetX, dp(6))
+            window.showAsDropDown(trigger, popupOffsetX(trigger.width, popupWidth), 0)
         }
     }
 
@@ -110,4 +109,8 @@ class V2InspectionModeSelector(
 
     private fun dp(value: Int): Int =
         (value * activity.resources.displayMetrics.density).toInt()
+
+    /** 弹层水平居中于触发钮；垂直 y=0 使梯形紧贴触发钮底边。 */
+    private fun popupOffsetX(triggerWidth: Int, popupWidth: Int): Int =
+        ((triggerWidth - popupWidth) / 2f).toInt()
 }

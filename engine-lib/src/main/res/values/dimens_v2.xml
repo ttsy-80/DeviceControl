@@ -73,6 +73,8 @@
     <dimen name="v2_mode_spinner_popup_width">148dp</dimen>
     <dimen name="v2_mode_spinner_popup_radius">16dp</dimen>
     <dimen name="v2_mode_spinner_pill_height">48dp</dimen>
+    <dimen name="v2_popup_caret_width">100dp</dimen>
+    <dimen name="v2_popup_caret_height">6dp</dimen>
     <dimen name="v2_lpc_spinner_trigger_min_width">100dp</dimen>
     <dimen name="v2_lpc_spinner_popup_width">228dp</dimen>
     <dimen name="v2_lpc_spinner_list_max_h">240dp</dimen>
