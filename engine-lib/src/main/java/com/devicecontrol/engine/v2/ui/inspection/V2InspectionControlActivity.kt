@@ -1,12 +1,10 @@
 package com.devicecontrol.engine.v2.ui.inspection
 
 import android.content.res.ColorStateList
-import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
@@ -15,9 +13,7 @@ import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.widget.ImageViewCompat
-import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.devicecontrol.engine.R
@@ -76,8 +72,8 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
         val enginePanel = root.findViewById<View>(R.id.enginePanelLeft)
 
         recordAdapter = V2RecordRowAdapter(
-            onReturn = { row -> viewModel.playbackRecord(row.taskRecord) },
-            onDelete = { row -> viewModel.deleteRecord(row.taskRecord) },
+            onReturn = { row -> row.taskRecord?.let { viewModel.playbackRecord(it) } },
+            onDelete = { row -> row.taskRecord?.let { viewModel.deleteRecord(it) } },
         )
         root.findViewById<RecyclerView>(R.id.rvRecords).apply {
             layoutManager = LinearLayoutManager(this@V2InspectionControlActivity)
@@ -147,7 +143,6 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
 
         setupAutoControlPills(root)
         setupManualControlPills(root)
-        setupStartPauseButtons(root)
         setupModeSpinner(root)
         bindControlClicks(root)
         bindEndClicks(root)
@@ -211,27 +206,6 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             PillSpec(R.id.btnEndManual, R.string.v2_end, R.drawable.ic_v2_ctrl_end, isEnd = true),
         )
         specs.forEach { bindPill(root, it) }
-    }
-
-    private fun setupStartPauseButtons(root: View) {
-        val pad = (resources.displayMetrics.density * 12).toInt()
-        val start = root.findViewById<Button>(R.id.btnStart)
-        TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            start, whiteIconDrawable(R.drawable.ic_v2_start_badge), null, null, null,
-        )
-        start.compoundDrawablePadding = pad
-        val pause = root.findViewById<Button>(R.id.btnPause)
-        TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            pause, whiteIconDrawable(R.drawable.ic_v2_pause_badge), null, null, null,
-        )
-        pause.compoundDrawablePadding = pad
-    }
-
-    private fun whiteIconDrawable(@DrawableRes resId: Int): Drawable? {
-        val base = ContextCompat.getDrawable(this, resId) ?: return null
-        val wrapped = DrawableCompat.wrap(base.mutate())
-        DrawableCompat.setTint(wrapped, ContextCompat.getColor(this, R.color.v2_on_primary))
-        return wrapped
     }
 
     private fun bindPill(root: View, spec: PillSpec) {

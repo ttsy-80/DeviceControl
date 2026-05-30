@@ -242,8 +242,8 @@
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1.1"
-                                android:gravity="end"
+                                android:layout_weight="1.3"
+                                android:gravity="center"
                                 android:text="@string/v2_col_action"
                                 android:textColor="@color/v2_on_primary"
                                 android:textSize="14sp"
@@ -256,6 +256,7 @@
                             android:layout_height="0dp"
                             android:layout_weight="1"
                             android:background="@android:color/transparent"
+                            android:clipToPadding="false"
                             android:fadeScrollbars="false"
                             android:overScrollMode="ifContentScrolls"
                             android:scrollbarSize="@dimen/v2_p6_scrollbar_width"
@@ -300,39 +301,25 @@
                     <!-- 开始/暂停：白底区，完整显示 -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@color/v2_surface"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="24dp"
+                        android:paddingStart="40dp"
+                        android:paddingEnd="20dp"
+                        android:background="@drawable/bg_v2_start_or_pause"
                         android:orientation="vertical"
                         android:visibility="visible"
-                        android:paddingBottom="4dp">
+                        android:paddingBottom="24dp">
 
-                        <Button
-                            android:id="@+id/btnStart"
+                        <include
+                            layout="@layout/include_v2_inspection_start_btn"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_v2_p7_start_btn"
-                            android:drawablePadding="10dp"
-                            android:gravity="center"
-                            android:text="@string/v2_start"
-                            android:textColor="@color/v2_on_primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            app:backgroundTint="@null" />
+                            android:layout_height="58dp" />
 
-                        <Button
-                            android:id="@+id/btnPause"
+                        <include
+                            layout="@layout/include_v2_inspection_pause_btn"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_v2_p7_pause_btn"
-                            android:drawablePadding="10dp"
-                            android:gravity="center"
-                            android:text="@string/v2_pause"
-                            android:textColor="@color/v2_on_primary"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:backgroundTint="@null" />
+                            android:layout_height="58dp"
+                            android:layout_marginTop="24dp" />
                     </LinearLayout>
                 </LinearLayout>
 

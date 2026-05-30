@@ -7,5 +7,6 @@ data class V2RecordRowUi(
     val recordId: Long,
     val positionLabel: String,
     val bladeCount: Int,
-    val taskRecord: TaskRecord,
+    val taskRecord: TaskRecord? = null,
+    val isPlaceholder: Boolean = false,
 )

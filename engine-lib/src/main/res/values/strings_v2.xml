@@ -70,8 +70,8 @@
     <string name="v2_row_delete">删除</string>
     <string name="v2_backlash_on_return">返回时消除游隙</string>
     <string name="v2_record">记录</string>
-    <string name="v2_start">开始</string>
-    <string name="v2_pause">暂停</string>
+    <string name="v2_start">开   始</string>
+    <string name="v2_pause">暂   停</string>
     <string name="v2_forward">正转</string>
     <string name="v2_reverse">反转</string>
     <string name="v2_accel">加速</string>

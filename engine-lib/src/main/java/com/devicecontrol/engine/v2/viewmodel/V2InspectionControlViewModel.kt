@@ -120,13 +120,24 @@ class V2InspectionControlViewModel(
         }
         addSource(engine.taskRecords) { list ->
             val label = engine.currentConfigItem.value?.position.orEmpty()
-            _records.value = list.map { record ->
-                V2RecordRowUi(
-                    recordId = record.recordId,
-                    positionLabel = label,
-                    bladeCount = record.bladeNumber,
-                    taskRecord = record,
-                )
+            _records.value = if (list.isEmpty()) {
+                List(RECORD_LIST_PLACEHOLDER_COUNT) { index ->
+                    V2RecordRowUi(
+                        recordId = -(index + 1L),
+                        positionLabel = "",
+                        bladeCount = 0,
+                        isPlaceholder = true,
+                    )
+                }
+            } else {
+                list.map { record ->
+                    V2RecordRowUi(
+                        recordId = record.recordId,
+                        positionLabel = label,
+                        bladeCount = record.bladeNumber,
+                        taskRecord = record,
+                    )
+                }
             }
         }
         addSource(engine.toastMessage) { msg ->
@@ -414,5 +425,6 @@ class V2InspectionControlViewModel(
 
     companion object {
         private const val TAG = "InspectionControlVM"
+        private const val RECORD_LIST_PLACEHOLDER_COUNT = 8
     }
 }

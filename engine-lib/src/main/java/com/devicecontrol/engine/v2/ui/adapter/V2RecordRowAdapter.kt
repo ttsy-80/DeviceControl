@@ -33,17 +33,29 @@ class V2RecordRowAdapter(
         private val rowRoot: View = itemView.findViewById(R.id.rowRoot)
         private val tvPosition: TextView = itemView.findViewById(R.id.tvPosition)
         private val tvBlade: TextView = itemView.findViewById(R.id.tvBlade)
+        private val cellAction: View = itemView.findViewById(R.id.cellAction)
+        private val btnReturn: View = itemView.findViewById(R.id.btnRowReturn)
+        private val btnDelete: View = itemView.findViewById(R.id.btnRowDelete)
 
         fun bind(row: V2RecordRowUi, position: Int) {
-            tvPosition.text = row.positionLabel
-            tvBlade.text = row.bladeCount.toString()
             rowRoot.setBackgroundColor(
                 itemView.context.getColor(
                     if (position % 2 == 1) R.color.v2_table_row_alt else R.color.v2_surface,
                 ),
             )
-            itemView.findViewById<View>(R.id.btnRowReturn).setOnClickListener { onReturn(row) }
-            itemView.findViewById<View>(R.id.btnRowDelete).setOnClickListener { onDelete(row) }
+            if (row.isPlaceholder) {
+                tvPosition.text = ""
+                tvBlade.text = ""
+                cellAction.visibility = View.INVISIBLE
+                btnReturn.setOnClickListener(null)
+                btnDelete.setOnClickListener(null)
+                return
+            }
+            cellAction.visibility = View.VISIBLE
+            tvPosition.text = row.positionLabel
+            tvBlade.text = row.bladeCount.toString()
+            btnReturn.setOnClickListener { onReturn(row) }
+            btnDelete.setOnClickListener { onDelete(row) }
         }
     }
 
