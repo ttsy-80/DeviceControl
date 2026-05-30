@@ -93,7 +93,7 @@ class V2InspectionLpcSelector(
             applySelection(pickedIndex)
         }
 
-        val popupWidth = activity.resources.getDimensionPixelSize(R.dimen.v2_lpc_spinner_popup_width)
+        val popupWidth = (activity.resources.getDimensionPixelSize(R.dimen.v2_lpc_spinner_popup_width)* 1.5f).toInt()
         val window = PopupWindow(
             content,
             popupWidth,
@@ -118,7 +118,8 @@ class V2InspectionLpcSelector(
 
     private fun showPopupAligned(window: PopupWindow, popupWidth: Int) {
         if (!trigger.isShown || trigger.windowToken == null) return
-        val offsetX = ((trigger.width - popupWidth) / 2f).toInt()
+//        val offsetX = ((trigger.width - popupWidth) / 2f).toInt()
+        val offsetX = ((trigger.width - popupWidth))+trigger.context.resources.getDimensionPixelSize(R.dimen.v2_top_bar_margin_horizontal)
         window.showAsDropDown(trigger, offsetX, 0)
     }
 
