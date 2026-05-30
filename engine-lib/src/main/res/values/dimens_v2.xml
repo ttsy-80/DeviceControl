@@ -70,7 +70,7 @@
     <!-- 游隙消除/结束：竖向三行，与结束钮同高 -->
     <dimen name="v2_p7_control_btn_tall_h">78dp</dimen>
     <dimen name="v2_p7_control_btn_radius">28dp</dimen>
-    <dimen name="v2_p7_control_btn_margin">6dp</dimen>
+    <dimen name="v2_p7_control_btn_margin">14dp</dimen>
     <dimen name="v2_p7_control_btn_elevation">5dp</dimen>
     <dimen name="v2_spinner_arrow_size">18dp</dimen>
     <dimen name="v2_mode_spinner_trigger_min_width">118dp</dimen>

@@ -78,7 +78,7 @@
     <string name="v2_decel">减速</string>
     <string name="v2_continuous">连续</string>
     <string name="v2_jog">点动</string>
-    <string name="v2_auto_photo">自动拍照</string>
+    <string name="v2_auto_photo">自动\n拍照</string>
     <string name="v2_backlash">游隙消除</string>
     <string name="v2_end">结束</string>
     <string name="v2_settings_btn">设置</string>
