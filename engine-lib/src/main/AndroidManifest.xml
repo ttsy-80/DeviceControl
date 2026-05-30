@@ -40,7 +40,13 @@
             android:screenOrientation="landscape"
             android:theme="@style/Theme.DeviceControl.V2"
             android:windowSoftInputMode="adjustNothing"
-            android:exported="false" />
+            android:exported="true" >
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".v2.ui.settings.V2SettingsActivity"
             android:screenOrientation="landscape"
