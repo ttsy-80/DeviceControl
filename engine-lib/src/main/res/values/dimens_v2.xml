@@ -89,9 +89,10 @@
     <dimen name="v2_p6_model_card_corner">20dp</dimen>
     <dimen name="v2_p6_model_card_elevation">6dp</dimen>
     <dimen name="v2_p6_model_card_text_size">20sp</dimen>
-    <dimen name="v2_p6_grid_spacing">12dp</dimen>
+    <dimen name="v2_p6_grid_spacing">40dp</dimen>
     <dimen name="v2_p6_grid_cell_padding">6dp</dimen>
     <dimen name="v2_p6_content_padding_horizontal">20dp</dimen>
+    <dimen name="v2_p6_content_padding_v">20dp</dimen>
     <dimen name="v2_p6_content_padding_top">12dp</dimen>
     <dimen name="v2_p6_scrollbar_width">5dp</dimen>
     <dimen name="v2_p6_back_home_margin_end">12dp</dimen>

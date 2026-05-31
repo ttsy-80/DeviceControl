@@ -40,4 +40,5 @@
     <color name="v2_mode_setting_row_gray">#F2F2F2</color>
     <color name="v2_mode_setting_btn_grey">#9E9E9E</color>
     <color name="v2_mode_setting_col_divider">#D8D8D8</color>
+    <color name="v2_scrollbar_gray">#C1C0BD</color>
 </resources>
