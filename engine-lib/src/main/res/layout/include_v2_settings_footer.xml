@@ -10,8 +10,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/v2_company_cn"
+        android:textStyle="bold"
+        android:fontFamily="serif"
         android:textColor="@color/v2_primary"
-        android:textSize="15sp" />
+        android:textSize="18sp" />
 
     <TextView
         android:layout_width="wrap_content"

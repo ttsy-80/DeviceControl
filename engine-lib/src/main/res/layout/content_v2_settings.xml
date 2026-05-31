@@ -102,11 +102,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <View
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:background="#D0D0D0" />
-
     <FrameLayout
         android:id="@+id/settingsContent"
         android:layout_width="0dp"

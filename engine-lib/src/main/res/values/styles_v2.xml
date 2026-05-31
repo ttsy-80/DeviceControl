@@ -12,8 +12,10 @@
     </style>
 
     <style name="V2SettingsMenuItem">
-        <item name="android:gravity">center</item>
+        <item name="android:gravity">center_vertical</item>
         <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingStart">20dp</item>
         <item name="android:textColor">@color/v2_text_primary</item>
         <item name="android:background">@drawable/bg_v2_menu_normal</item>
     </style>
