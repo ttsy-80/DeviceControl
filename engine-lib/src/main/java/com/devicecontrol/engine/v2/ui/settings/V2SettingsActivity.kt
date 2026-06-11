@@ -7,6 +7,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import com.devicecontrol.engine.R
+import com.devicecontrol.engine.v2.connection.V2BluetoothPermissions
+import com.devicecontrol.engine.v2.ui.dialog.V2LoadingDialog
 import com.devicecontrol.engine.v2.ui.base.V2BaseShellActivity
 import com.devicecontrol.engine.v2.ui.home.V2HomeActivity
 import com.devicecontrol.engine.v2.viewmodel.V2SettingsPage
@@ -21,30 +23,34 @@ class V2SettingsActivity : V2BaseShellActivity() {
 
     private lateinit var menuViews: Map<V2SettingsPage, TextView>
     private var bluetoothPanel: View? = null
-    // private var languagePanel: View? = null
-    // private var updatePanel: View? = null
-    // private var aboutPanel: View? = null
 
     private val deviceTextViews = mutableListOf<TextView>()
-    // private val languageTextViews = mutableListOf<TextView>()
-    // private var selectedLanguageIndex = 0
+
+    private lateinit var requestBluetoothPermissions: () -> Unit
 
     override fun contentLayoutId(): Int = R.layout.content_v2_settings
 
     override fun shellTitleCn(): String = getString(R.string.v2_app_title_cn)
     override fun shellTitleEn(): String = getString(R.string.v2_app_title_en)
 
-    /** 设置页底栏品牌放在右侧内容区底部，隐藏全局壳底栏 */
     override fun showShellBottomBar(): Boolean = false
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        requestBluetoothPermissions = V2BluetoothPermissions.registerLauncher(this) { granted ->
+            if (granted) {
+                viewModel.refreshBluetoothScan()
+            } else {
+                Toast.makeText(this, R.string.v2_bluetooth_permission_denied, Toast.LENGTH_SHORT).show()
+            }
+        }
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onContentCreated(contentRoot: View) {
         val inflater = LayoutInflater.from(this)
         val container = contentRoot.findViewById<View>(R.id.settingsContent) as android.view.ViewGroup
 
         bluetoothPanel = inflater.inflate(R.layout.panel_v2_settings_bluetooth, container, false)
-        // languagePanel = inflater.inflate(R.layout.panel_v2_settings_language, container, false)
-        // updatePanel = inflater.inflate(R.layout.panel_v2_settings_update, container, false)
-        // aboutPanel = inflater.inflate(R.layout.panel_v2_settings_about, container, false)
 
         menuViews = mapOf(
             V2SettingsPage.BLUETOOTH to contentRoot.findViewById(R.id.menuBluetooth),
@@ -72,17 +78,74 @@ class V2SettingsActivity : V2BaseShellActivity() {
         }
 
         setupBluetoothPanel()
-        // setupLanguagePanel()
-        // setupUpdatePanel()
+        bindBluetoothObservers()
 
         viewModel.currentPage.observe(this) { page ->
             highlightMenu(page)
             showPanel(page, container)
+            if (page == V2SettingsPage.BLUETOOTH) {
+                requestBluetoothPermissions()
+            }
+        }
+        viewModel.selectPage(V2SettingsPage.BLUETOOTH)
+    }
+
+    override fun onPause() {
+//        viewModel.stopBluetoothScan()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        V2LoadingDialog.dismiss()
+        super.onDestroy()
+    }
+
+    private fun bindBluetoothObservers() {
+        viewModel.bluetoothDevices.observe(this) { devices ->
+            deviceTextViews.forEachIndexed { index, tv ->
+                if (index < devices.size) {
+                    tv.visibility = View.VISIBLE
+                    tv.text = devices[index].displayName
+                } else {
+                    tv.visibility = View.GONE
+                }
+            }
+            bluetoothPanel?.findViewById<View>(R.id.btnConfirmConnect)?.visibility =
+                if (devices.isNotEmpty()) View.VISIBLE else View.GONE
+            bluetoothPanel?.findViewById<View>(R.id.scrollPanelContent)?.visibility =
+                if (devices.isNotEmpty()) View.VISIBLE else View.GONE
+            updateScanCenterVisibility()
+            updateConfirmConnectEnabled()
         }
         viewModel.selectedDeviceIndex.observe(this) {
             V2SettingsSelectionUi.applyListSelection(this, deviceTextViews, it)
         }
-        viewModel.selectPage(V2SettingsPage.BLUETOOTH)
+        viewModel.bluetoothScanning.observe(this) { scanning ->
+            bluetoothPanel?.findViewById<View>(R.id.tvScanStatus)?.visibility =
+                if (scanning) View.VISIBLE else View.GONE
+            updateScanCenterVisibility()
+            updateConfirmConnectEnabled()
+        }
+        viewModel.bluetoothScanEmpty.observe(this) { empty ->
+            bluetoothPanel?.findViewById<View>(R.id.llScanEmpty)?.visibility =
+                if (empty) View.VISIBLE else View.GONE
+            updateScanCenterVisibility()
+        }
+        viewModel.connecting.observe(this) { connecting ->
+            updateConnectingUi(connecting)
+        }
+        viewModel.errorMessage.observe(this) { error ->
+            error?.let {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearError()
+            }
+        }
+        viewModel.connectSuccess.observe(this) { success ->
+            if (success) {
+                Toast.makeText(this, R.string.v2_connected, Toast.LENGTH_SHORT).show()
+                viewModel.consumeConnectSuccess()
+            }
+        }
     }
 
     private fun toastTabPlaceholder(page: V2SettingsPage) {
@@ -110,10 +173,6 @@ class V2SettingsActivity : V2BaseShellActivity() {
         container.removeAllViews()
         val panel = when (page) {
             V2SettingsPage.BLUETOOTH -> bluetoothPanel
-            // V2SettingsPage.LANGUAGE -> languagePanel
-            // V2SettingsPage.UPDATE -> updatePanel
-            // V2SettingsPage.ABOUT -> aboutPanel
-            // V2SettingsPage.MANUAL -> aboutPanel
             else -> return
         } ?: return
         container.addView(panel)
@@ -123,62 +182,47 @@ class V2SettingsActivity : V2BaseShellActivity() {
         val panel = bluetoothPanel ?: return
         val ids = listOf(R.id.tvDevice1, R.id.tvDevice2, R.id.tvDevice3, R.id.tvDevice4, R.id.tvDevice5)
         deviceTextViews.clear()
-        val devices = viewModel.bluetoothDevices.value.orEmpty()
         ids.forEachIndexed { index, id ->
             val tv = panel.findViewById<TextView>(id)
-            tv.text = devices.getOrElse(index) { getString(R.string.v2_device_sample, index + 1) }
             tv.setOnClickListener { viewModel.selectDevice(index) }
             deviceTextViews.add(tv)
         }
-        V2SettingsSelectionUi.applyListSelection(
-            this,
-            deviceTextViews,
-            viewModel.selectedDeviceIndex.value ?: 0,
-        )
 
         panel.findViewById<View>(R.id.btnConfirmConnect).setOnClickListener {
             viewModel.confirmBluetoothConnect()
-            Toast.makeText(this, R.string.v2_connected, Toast.LENGTH_SHORT).show()
+        }
+        panel.findViewById<View>(R.id.btnRetryScan).setOnClickListener {
+            requestBluetoothPermissions()
         }
     }
 
-    /*
-    private fun setupLanguagePanel() {
-        val panel = languagePanel ?: return
-        val ids = listOf(R.id.langZh, R.id.langZhTw, R.id.langEn, R.id.langDe, R.id.langFr)
-        languageTextViews.clear()
-        ids.forEachIndexed { index, id ->
-            val tv = panel.findViewById<TextView>(id)
-            languageTextViews.add(tv)
-            tv.setOnClickListener {
-                selectedLanguageIndex = index
-                V2SettingsSelectionUi.applyListSelection(this, languageTextViews, index)
-            }
-        }
-        V2SettingsSelectionUi.applyListSelection(this, languageTextViews, 0)
-
-        panel.findViewById<View>(R.id.btnChangeLanguage).setOnClickListener {
-            val code = when (selectedLanguageIndex) {
-                1 -> "zh-TW"
-                2 -> "en"
-                3 -> "de"
-                4 -> "fr"
-                else -> "zh"
-            }
-            viewModel.applyLanguage(code)
-            Toast.makeText(this, R.string.v2_change_language, Toast.LENGTH_SHORT).show()
-        }
+    private fun updateScanCenterVisibility() {
+        val scanning = viewModel.bluetoothScanning.value == true
+        val empty = viewModel.bluetoothScanEmpty.value == true
+        bluetoothPanel?.findViewById<View>(R.id.flScanCenter)?.visibility =
+            if (scanning || empty) View.VISIBLE else View.GONE
     }
 
-    private fun setupUpdatePanel() {
-        updatePanel?.findViewById<TextView>(R.id.tvCurrentVersion)?.text =
-            getString(R.string.v2_version_format, "v.1.0.0")
-        updatePanel?.findViewById<TextView>(R.id.tvLastInspection)?.text =
-            getString(R.string.v2_last_check_format, "2026.04.14")
-        updatePanel?.findViewById<View>(R.id.btnCheckUpdate)?.setOnClickListener {
-            viewModel.checkUpdate()
-            Toast.makeText(this, R.string.v2_check_update, Toast.LENGTH_SHORT).show()
+    private fun updateConnectingUi(connecting: Boolean) {
+        val btnConfirm = bluetoothPanel?.findViewById<TextView>(R.id.btnConfirmConnect)
+        if (connecting) {
+            val idx = viewModel.selectedDeviceIndex.value ?: 0
+            val deviceName = viewModel.bluetoothDevices.value?.getOrNull(idx)?.displayName.orEmpty()
+            V2LoadingDialog.show(
+                this,
+                getString(R.string.v2_bluetooth_connecting_format, deviceName),
+            )
+            btnConfirm?.text = getString(R.string.v2_bluetooth_connecting)
+        } else {
+            V2LoadingDialog.dismiss()
+            btnConfirm?.text = getString(R.string.v2_confirm_connect)
         }
+        updateConfirmConnectEnabled()
     }
-    */
+
+    private fun updateConfirmConnectEnabled() {
+        val hasDevices = !viewModel.bluetoothDevices.value.isNullOrEmpty()
+        val connecting = viewModel.connecting.value == true
+        bluetoothPanel?.findViewById<View>(R.id.btnConfirmConnect)?.isEnabled = hasDevices && !connecting
+    }
 }

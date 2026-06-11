@@ -10,6 +10,7 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.devicecontrol.engine.databinding.ActivityV2ShellBinding
 import com.devicecontrol.engine.v2.log.V2Log
+import com.devicecontrol.engine.v2.connection.V2SlcanConnectionManager
 import com.devicecontrol.engine.v2.ui.V2SystemBars
 import com.devicecontrol.engine.v2.ui.shell.V2ShellBottomBarBinder
 import com.devicecontrol.engine.v2.ui.shell.V2ShellUiBinder
@@ -72,6 +73,7 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
     protected open fun onContentCreated(contentRoot: View) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        V2SlcanConnectionManager.init(this)
         super.onCreate(savedInstanceState)
         shellBinding = ActivityV2ShellBinding.inflate(layoutInflater)
         setContentView(shellBinding.root)

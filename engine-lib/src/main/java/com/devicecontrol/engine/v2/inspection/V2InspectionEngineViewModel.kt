@@ -26,9 +26,9 @@ import com.devicecontrol.engine.log.DefaultEngineLogger
 import com.devicecontrol.engine.log.EngineLog
 import com.devicecontrol.engine.log.EngineLogger
 import com.devicecontrol.engine.usbserial.UsbSerialVcpCallback
-import com.devicecontrol.engine.usbserial.UsbSerialVcpManager
 import com.devicecontrol.engine.v2.connection.V2ConnectionRepository
 import com.devicecontrol.engine.v2.connection.V2ConnectionState
+import com.devicecontrol.engine.v2.connection.V2SlcanConnectionManager
 import com.devicecontrol.engine.v2.inspection.V2InspectionEngineViewModel.Companion.CONTINUOUS_PROGRESS_TOAST_MS
 import com.devicecontrol.engine.v2.inspection.V2InspectionEngineViewModel.Companion.DEFAULT_SPEED_SEC_PER_REV
 import com.devicecontrol.engine.v2.inspection.strategy.V2CanExecuteOutcome
@@ -125,7 +125,6 @@ class V2InspectionEngineViewModel(
     val taskRecords: LiveData<List<TaskRecord>> = _taskRecords
 
     private var currentGearRatioIndex: Int = 0
-    private var vcpManager: UsbSerialVcpManager? = null
     private var slcanManager: SlcanManager? = null
 
     private var encoderResolution: Int = 65536
@@ -154,7 +153,7 @@ class V2InspectionEngineViewModel(
     /** V2 检测页：加载任务并等待 [taskExecution] 就绪（供应用 P8/P11 后再下发指令）。 */
     suspend fun prepareInspectionTask(taskId: Long) {
         withContext(Dispatchers.Main) {
-            if (vcpManager == null) scanAndConnect2()
+            if (slcanManager == null) ensureSlcanLink()
         }
         val task = taskRepository.getTaskById(taskId) ?: return
         EngineLog.d(TAG, "prepareInspectionTask: id=$taskId, lpc=${task.configItemIds.size}")
@@ -181,13 +180,9 @@ class V2InspectionEngineViewModel(
         return true
     }
 
-    private fun scanAndConnect2() {
-        vcpManager = UsbSerialVcpManager(applicationContext)
-        vcpManager?.let { SlcanEmergencyClose.bind(it) }
+    private fun ensureSlcanLink() {
         val transport = object : SlcanTransport {
-            override fun send(data: String): Boolean {
-                return vcpManager?.sendTextLine(data) ?: false
-            }
+            override fun send(data: String): Boolean = V2SlcanConnectionManager.createTransport().send(data)
         }
         slcanManager = SlcanManager(transport)
 
@@ -218,41 +213,42 @@ class V2InspectionEngineViewModel(
                 DebugLogHolder.add("E", tag, message, throwable)
             }
         })
-        vcpManager?.scanAndConnect(object : UsbSerialVcpCallback {
-            override fun onConnect(isConnect: Boolean) {
-                EngineLog.i(TAG, "通讯回调 onConnect: $isConnect")
-                V2ConnectionRepository.update(
-                    if (isConnect) V2ConnectionState.CONNECTED else V2ConnectionState.DISCONNECTED,
-                )
-                viewModelScope.launch {
-                    if (isConnect) {
-                        val res = slcanManager?.init()
-                        if (res?.success == true) {
-                            EngineLog.i(TAG, "SLCAN 握手初始化成功")
 
-                            val encReq = CANOpenHelper.readEncoderResolution()
-                            val encRes = slcanManager?.execute(encReq)
-                            if (encRes?.success == true) {
-                                val resolution =
-                                    encRes.values[CiA402.EncoderResolution.name] as? Int
-                                if (resolution != null && resolution > 0) {
-                                    encoderResolution = resolution
-                                    EngineLog.i(
-                                        TAG,
-                                        "成功读取伺服编码器分辨率: $encoderResolution 脉冲/360°"
-                                    )
-                                }
-                            } else {
-                                EngineLog.w(
+        V2SlcanConnectionManager.connectPreferred(object : UsbSerialVcpCallback {
+            override fun onConnect(isConnect: Boolean) {
+                EngineLog.i(TAG, "通讯回调 onConnect: $isConnect transport=${V2SlcanConnectionManager.activeTransport()}")
+                if (!isConnect) {
+                    viewModelScope.launch {
+                        slcanManager?.close()
+                    }
+                    return
+                }
+                viewModelScope.launch {
+                    val res = slcanManager?.init()
+                    if (res?.success == true) {
+                        EngineLog.i(TAG, "SLCAN 握手初始化成功")
+
+                        val encReq = CANOpenHelper.readEncoderResolution()
+                        val encRes = slcanManager?.execute(encReq)
+                        if (encRes?.success == true) {
+                            val resolution =
+                                encRes.values[CiA402.EncoderResolution.name] as? Int
+                            if (resolution != null && resolution > 0) {
+                                encoderResolution = resolution
+                                EngineLog.i(
                                     TAG,
-                                    "读取编码器分辨率失败，使用默认值 $encoderResolution 脉冲/360°"
+                                    "成功读取伺服编码器分辨率: $encoderResolution 脉冲/360°",
                                 )
                             }
                         } else {
-                            EngineLog.e(TAG, "SLCAN 握手初始化失败: ${res?.error}")
+                            EngineLog.w(
+                                TAG,
+                                "读取编码器分辨率失败，使用默认值 $encoderResolution 脉冲/360°",
+                            )
                         }
                     } else {
-                        slcanManager?.close()
+                        EngineLog.e(TAG, "SLCAN 握手初始化失败: ${res?.error}")
+                        V2ConnectionRepository.update(V2ConnectionState.DISCONNECTED)
                     }
                 }
             }
@@ -265,7 +261,6 @@ class V2InspectionEngineViewModel(
                 EngineLog.e(TAG, "通讯回调 onError: $error")
             }
         })
-
     }
 
     /**
@@ -1106,14 +1101,13 @@ class V2InspectionEngineViewModel(
             MainScope().launch {
                 pause()
                 slcanManager?.close()
-                vcpManager?.release()
-                EngineLog.i(TAG, "destroy: SLCAN 已 close，VCP 已 release")
+                V2SlcanConnectionManager.releaseInspectionSession()
+                EngineLog.i(TAG, "destroy: SLCAN 已 close，检测会话链路已释放")
             }
         } else {
-            vcpManager?.release()
-            EngineLog.i(TAG, "destroy: 非 READY，仅 release VCP")
+            V2SlcanConnectionManager.releaseInspectionSession()
+            EngineLog.i(TAG, "destroy: 非 READY，仅释放检测会话链路")
         }
-
     }
 }
 

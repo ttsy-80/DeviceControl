@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>BLE 透传测试终端</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        #log { background: #f4f4f4; padding: 10px; height: 300px; overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 10px; }
+        input, button { padding: 8px; font-size: 16px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h2>BLE 透传控制台</h2>
+    <button id="connectBtn">连接蓝牙</button>
+    <button id="disconnectBtn" disabled>断开连接</button>
+    
+    <div style="margin-top: 20px;">
+        <input type="text" id="cmdInput" placeholder="输入指令 (如 SLCAN 命令)" style="width: 70%;">
+        <button id="sendBtn" disabled>发送</button>
+    </div>
+    
+    <h3>通信日志：</h3>
+    <div id="log"></div>
+
+    <script>
+        const BLE_SERVICE_UUID = 0xABF0;
+        const BLE_CHR_UUID     = 0xABF1;
+
+        let bluetoothDevice;
+        let rxCharacteristic;
+
+        const logDiv = document.getElementById('log');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const cmdInput = document.getElementById('cmdInput');
+
+        function printLog(text) {
+            logDiv.innerHTML += `<div>${text}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        connectBtn.addEventListener('click', async () => {
+            try {
+                printLog('正在请求蓝牙设备...');
+                // 1. 请求设备 (过滤出包含我们指定 Service 的设备)
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: "BLE-AP" }],
+                    optionalServices: [BLE_SERVICE_UUID]
+                });
+
+                printLog(`正在连接设备: ${bluetoothDevice.name}...`);
+                // 2. 连接 GATT 服务器
+                const server = await bluetoothDevice.gatt.connect();
+
+                // 3. 获取服务和特征值
+                const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+                // 这里把原来的 rx 和 tx 合并成一个
+                rxCharacteristic = await service.getCharacteristic(BLE_CHR_UUID); 
+
+                // 4. 开启接收监听 (对同一个特征值开启 Notify)
+                await rxCharacteristic.startNotifications();
+                let rxBuffer = ''; 
+
+                // 4. 开启接收监听
+                await rxCharacteristic.startNotifications();
+                rxCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    // 把新收到的数据拼接到缓冲区
+                    rxBuffer += new TextDecoder().decode(event.target.value);
+
+                    // 只要发现里面有换行符 \r，就立刻打印并清空
+                    if (rxBuffer.includes('\r')) {
+                        // .trim() 可以顺手把前后的空格和回车符 \r\n 清理干净，保证排版整洁
+                        printLog(`<span style="color:blue;">[收到] ${rxBuffer.trim()}</span>`);
+                        
+                        // 打印完直接清空缓冲区，等下一条指令
+                        rxBuffer = ''; 
+                    }
+                });
+
+                printLog('<span style="color:green;">连接成功！可以开始收发数据了。</span>');
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendBtn.disabled = false;
+
+            } catch (error) {
+                printLog(`<span style="color:red;">连接失败: ${error}</span>`);
+            }
+        });
+
+        sendBtn.addEventListener('click', async () => {
+            if (!rxCharacteristic) return;
+            const cmd = cmdInput.value;
+            try {
+                // SLCAN 命令通常需要带回车换行符 \r\n，根据你的实际协议调整
+                const encoder = new TextEncoder();
+                await rxCharacteristic.writeValue(encoder.encode(cmd + "\r\n"));
+                printLog(`[发送] ${cmd}`);
+            } catch (error) {
+                printLog(`<span style="color:red;">发送失败: ${error}</span>`);
+            }
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (!bluetoothDevice || !bluetoothDevice.gatt.connected) return;
+            bluetoothDevice.gatt.disconnect();
+            printLog('已断开连接。');
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            sendBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

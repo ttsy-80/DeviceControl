@@ -21,6 +21,13 @@
     <string name="v2_settings_about">关于</string>
     <string name="v2_settings_manual">操作手册</string>
     <string name="v2_bluetooth_title">蓝牙设备连接</string>
+    <string name="v2_bluetooth_permission_denied">需要蓝牙权限才能扫描设备</string>
+    <string name="v2_bluetooth_scanning">正在扫描蓝牙设备…</string>
+    <string name="v2_bluetooth_scan_empty">未发现 BLE-AP 设备，请确认设备已开机</string>
+    <string name="v2_bluetooth_scan_retry">重新扫描</string>
+    <string name="v2_bluetooth_connecting_banner">连接中</string>
+    <string name="v2_bluetooth_connecting">连接中…</string>
+    <string name="v2_bluetooth_connecting_format">正在连接 %1$s，请稍候…</string>
     <string name="v2_confirm_connect">确认连接</string>
     <string name="v2_back_main">返回\n主界面</string>
     <string name="v2_change_language">更改设置</string>

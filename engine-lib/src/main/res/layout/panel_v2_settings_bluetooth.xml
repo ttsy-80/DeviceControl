@@ -32,65 +32,117 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollPanelContent"
+    <FrameLayout
+        android:id="@+id/flPanelBody"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:clipToPadding="true"
-        android:fillViewport="false"
-        android:overScrollMode="never"
-        android:paddingBottom="@dimen/v2_settings_content_padding_bottom"
-        android:scrollbars="vertical"
         app:layout_constraintBottom_toTopOf="@id/footerInclude"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvBluetoothTitle">
 
         <LinearLayout
+            android:id="@+id/flScanCenter"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvScanStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/v2_bluetooth_scanning"
+                android:textColor="@color/v2_text_secondary"
+                android:textSize="16sp"
+                android:visibility="gone" />
 
             <LinearLayout
-                android:id="@+id/llDeviceList"
+                android:id="@+id/llScanEmpty"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/tvDevice1"
-                    style="@style/V2SettingsListRow" />
+                    android:id="@+id/tvScanEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/v2_bluetooth_scan_empty"
+                    android:textColor="@color/v2_text_secondary"
+                    android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/tvDevice2"
-                    style="@style/V2SettingsListRow"
-                    android:layout_marginTop="@dimen/v2_settings_list_gap" />
-
-                <TextView
-                    android:id="@+id/tvDevice3"
-                    style="@style/V2SettingsListRow"
-                    android:layout_marginTop="@dimen/v2_settings_list_gap" />
-
-                <TextView
-                    android:id="@+id/tvDevice4"
-                    style="@style/V2SettingsListRow"
-                    android:layout_marginTop="@dimen/v2_settings_list_gap" />
-
-                <TextView
-                    android:id="@+id/tvDevice5"
-                    style="@style/V2SettingsListRow"
-                    android:layout_marginTop="@dimen/v2_settings_list_gap" />
+                    android:id="@+id/btnRetryScan"
+                    style="@style/V2SettingsActionButton"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/v2_bluetooth_scan_retry" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/btnConfirmConnect"
-                style="@style/V2SettingsActionButton"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="8dp"
-                android:text="@string/v2_confirm_connect" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollPanelContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="true"
+            android:fillViewport="false"
+            android:overScrollMode="never"
+            android:paddingBottom="@dimen/v2_settings_content_padding_bottom"
+            android:scrollbars="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
+
+                <LinearLayout
+                    android:id="@+id/llDeviceList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvDevice1"
+                        style="@style/V2SettingsListRow" />
+
+                    <TextView
+                        android:id="@+id/tvDevice2"
+                        style="@style/V2SettingsListRow"
+                        android:layout_marginTop="@dimen/v2_settings_list_gap" />
+
+                    <TextView
+                        android:id="@+id/tvDevice3"
+                        style="@style/V2SettingsListRow"
+                        android:layout_marginTop="@dimen/v2_settings_list_gap" />
+
+                    <TextView
+                        android:id="@+id/tvDevice4"
+                        style="@style/V2SettingsListRow"
+                        android:layout_marginTop="@dimen/v2_settings_list_gap" />
+
+                    <TextView
+                        android:id="@+id/tvDevice5"
+                        style="@style/V2SettingsListRow"
+                        android:layout_marginTop="@dimen/v2_settings_list_gap" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btnConfirmConnect"
+                    style="@style/V2SettingsActionButton"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/v2_confirm_connect"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
