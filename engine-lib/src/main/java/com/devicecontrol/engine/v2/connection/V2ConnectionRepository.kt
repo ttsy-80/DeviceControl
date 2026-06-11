@@ -31,10 +31,10 @@ object V2ConnectionRepository {
     fun update(state: V2ConnectionState, transport: V2ConnectionTransport) {
         if (_connectionState.value != state) {
             V2Log.i(TAG, "connectionState -> $state transport=$transport")
-            _connectionState.value = state
+            _connectionState.postValue(state)
         }
         if (_activeTransport.value != transport) {
-            _activeTransport.value = transport
+            _activeTransport.postValue(transport)
         }
     }
 
