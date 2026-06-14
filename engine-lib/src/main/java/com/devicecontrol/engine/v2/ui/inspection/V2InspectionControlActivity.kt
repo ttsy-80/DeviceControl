@@ -129,10 +129,10 @@ class V2InspectionControlActivity : V2BaseShellActivity() {
             updateControlEnabled(root, running)
         }
         viewModel.canStart.observe(this) { can ->
-            root.findViewById<View>(R.id.btnStart).apply {
-                isEnabled = can
-                alpha = if (can) 1f else DISABLED_ALPHA
-            }
+//            root.findViewById<View>(R.id.btnStart).apply {
+//                isEnabled = can
+//                alpha = if (can) 1f else DISABLED_ALPHA
+//            }
         }
         viewModel.errorMessage.observe(this) { error ->
             error?.let {

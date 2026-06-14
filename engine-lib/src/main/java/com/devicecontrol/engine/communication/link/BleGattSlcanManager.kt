@@ -79,10 +79,10 @@ class BleGattSlcanManager(
                 if (name.isBlank()) {
                     return
                 }
-                EngineLog.i(TAG, "BLE scan success address=${device.address} name:${device.name} alias:${device.alias}")
                 if (name.isNotBlank() && !name.contains(TARGET_NAME, ignoreCase = true)) {
                     return
                 }
+                EngineLog.i(TAG, "BLE scan success address=${device.address} name:${device.name} alias:${device.alias}")
                 val info = BleDeviceInfo(name = name.ifBlank { TARGET_NAME }, address = device.address)
                 discovered[device.address] = info
                 notifyScanUpdated()

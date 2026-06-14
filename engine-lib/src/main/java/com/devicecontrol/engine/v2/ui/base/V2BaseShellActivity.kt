@@ -1,5 +1,6 @@
 package com.devicecontrol.engine.v2.ui.base
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.devicecontrol.engine.databinding.ActivityV2ShellBinding
+import com.devicecontrol.engine.ui.control.DebugLogActivity
 import com.devicecontrol.engine.v2.log.V2Log
 import com.devicecontrol.engine.v2.connection.V2SlcanConnectionManager
 import com.devicecontrol.engine.v2.ui.V2SystemBars
@@ -93,6 +95,10 @@ abstract class V2BaseShellActivity : AppCompatActivity() {
             if (shellTitleEditClickable()) {{ onShellTitleEditClick() }} else null,
         )
         shellBinder.observeConnection()
+        shellBinder.setConnectionLongClick {
+            V2Log.i(logTag, "open DebugLogActivity")
+            startActivity(Intent(this, DebugLogActivity::class.java))
+        }
 
         bottomBarBinder = V2ShellBottomBarBinder(shellBinding.includeV2Bottom.root)
         applyShellBottomAction()

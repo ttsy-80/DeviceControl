@@ -134,6 +134,14 @@ class V2ShellUiBinder(
         }
     }
 
+    fun setConnectionLongClick(onLongClick: (() -> Unit)?) {
+        tvConnection.isLongClickable = onLongClick != null
+        tvConnection.setOnLongClickListener {
+            onLongClick?.invoke()
+            true
+        }
+    }
+
     fun startClock() {
         handler.removeCallbacks(tickRunnable)
         tickRunnable.run()

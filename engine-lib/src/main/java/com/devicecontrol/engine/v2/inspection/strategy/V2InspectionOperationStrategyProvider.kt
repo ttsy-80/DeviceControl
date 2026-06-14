@@ -7,7 +7,7 @@ package com.devicecontrol.engine.v2.inspection.strategy
 object V2InspectionOperationStrategyProvider {
 
     @Volatile
-    var deployMode: V2InspectionDeployMode = V2InspectionDeployMode.DEVELOPMENT
+    var deployMode: V2InspectionDeployMode = V2InspectionDeployMode.RELEASE
 
     val strategy: V2InspectionOperationStrategy
         get() = when (deployMode) {

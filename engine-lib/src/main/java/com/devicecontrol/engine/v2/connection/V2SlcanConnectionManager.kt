@@ -77,6 +77,7 @@ object V2SlcanConnectionManager {
         EngineLog.i(TAG, "connectPreferred: 无 USB，尝试蓝牙")
         val ble = ensureBleManager()
         if (ble.isConnected()) {
+            EngineLog.i(TAG, "connectPreferred: 蓝牙已连接")
             activeTransport = V2ConnectionTransport.BLUETOOTH
             bindEmergencyClose()
             V2ConnectionRepository.update(V2ConnectionState.CONNECTED, V2ConnectionTransport.BLUETOOTH)
@@ -84,6 +85,7 @@ object V2SlcanConnectionManager {
             return
         }
         if (ble.connectSaved(wrapCallback(V2ConnectionTransport.BLUETOOTH, linkCallback))) {
+            EngineLog.i(TAG, "connectPreferred: 蓝牙已连接，保存的蓝牙")
             activeTransport = V2ConnectionTransport.BLUETOOTH
             return
         }
