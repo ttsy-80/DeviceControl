@@ -68,7 +68,7 @@ object V2SlcanConnectionManager {
         val usbDevices = usb.getAvailableDevices()
         if (usbDevices.isNotEmpty()) {
             EngineLog.i(TAG, "connectPreferred: 使用 USB (${usbDevices.first().deviceName})")
-            disconnectBleTransportOnly()
+//            disconnectBleTransportOnly()
             activeTransport = V2ConnectionTransport.USB
             usb.connect(usbDevices.first(), wrapCallback(V2ConnectionTransport.USB, linkCallback))
             return
